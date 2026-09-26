@@ -658,3 +658,62 @@ def test_50_communicate_maps_to_a_real_aera_capability():
     for skill, capability in SKILL_TO_CAPABILITY.items():
         assert capability in CAPABILITY_ALLOWLIST, (
             f"skill {skill} maps to unknown capability {capability}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════ #
+# REPLY BINDING (final audit): a validly signed reply must answer THIS request
+# ═══════════════════════════════════════════════════════════════════════════ #
+def _serve_once(path, reply_for):
+    """Tiny one-shot Unix socket server; reply_for(envelope) -> response dict."""
+    import threading
+
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(str(path))
+    srv.listen(1)
+
+    def run():
+        conn, _ = srv.accept()
+        data = b""
+        while not data.endswith(b"\n"):
+            chunk = conn.recv(65536)
+            if not chunk:
+                break
+            data += chunk
+        conn.sendall(json.dumps(reply_for(json.loads(data))).encode() + b"\n")
+        conn.close()
+        srv.close()
+
+    threading.Thread(target=run, daemon=True).start()
+
+
+class _KeyConn:
+    def __init__(self, public_key):
+        self.public_key = public_key
+
+    def execute(self, *_args):
+        pk = self.public_key
+        return type("C", (), {"fetchall": lambda self: [(pk,)]})()
+
+
+def test_51_gateway_accepts_a_reply_bound_to_its_request(runtime, keystore):
+    from a2a_gateway.runtime_link import call_runtime
+
+    path = socket_path_for(runtime.identity.agent_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _serve_once(path, lambda env: runtime.handle_payload(json.dumps(env).encode()))
+    reply = call_runtime(_KeyConn(keystore.public_key), runtime.identity.agent_id,
+                         text="hi")
+    assert reply.text == "hello from the model"
+
+
+def test_52_gateway_rejects_a_replayed_signed_reply(runtime, keystore):
+    """An old reply, correctly signed by the agent key, replayed on the socket."""
+    from a2a_gateway.runtime_link import RuntimeAuthenticityError, call_runtime
+
+    old = call(runtime, {"op": "message", "text": "earlier"}, request_id="old-request")
+    path = socket_path_for(runtime.identity.agent_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _serve_once(path, lambda _env: old)
+    with pytest.raises(RuntimeAuthenticityError):
+        call_runtime(_KeyConn(keystore.public_key), runtime.identity.agent_id,
+                     text="hi")

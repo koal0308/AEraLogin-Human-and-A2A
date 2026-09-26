@@ -130,6 +130,7 @@ def call_runtime(conn, agent_id: str, *, text: str,
         body={"op": "message", "text": text},
         secret=secret,
     )
+    sent_request_id = envelope["payload"]["request_id"]
 
     raw = _roundtrip(path, json.dumps(envelope).encode("utf-8") + b"\n")
 
@@ -149,6 +150,11 @@ def call_runtime(conn, agent_id: str, *, text: str,
 
     if result.get("agent_id") != agent_id:
         raise RuntimeAuthenticityError("runtime replied for a different agent")
+
+    # Bind the signed reply to THIS request: an old, validly signed reply
+    # replayed onto the socket must not be accepted as the answer.
+    if result.get("request_id") != sent_request_id:
+        raise RuntimeAuthenticityError("runtime reply is not for this request")
 
     if not result.get("ok"):
         error = result.get("error") or {}
