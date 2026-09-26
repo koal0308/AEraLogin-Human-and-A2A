@@ -642,12 +642,13 @@
                         <tr><th>Level</th><th>Who authenticates to whom</th><th>Mechanism</th><th>Cannot do</th></tr>
                     </thead>
                     <tbody>
-                        <tr><td>1</td><td>Human / Owner &rarr; AEraLogIn</td><td>Wallet signature (EIP-191, EIP-1271 for smart wallets) over a server nonce &rarr; dashboard session. Agent lifecycle actions additionally require an owner signature over a single-use, operation-bound challenge.</td><td>A dashboard session alone cannot register, rotate or revoke an agent key.</td></tr>
+                        <tr><td>1</td><td>Human / Owner &rarr; AEraLogIn</td><td>Wallet signature (EIP-191, EIP-1271 for smart wallets) over a server-issued nonce. Login nonces are stored server-side, bound to the address, expire after 10 minutes and are single use. The dashboard session uses a separate server-stored challenge (5 minutes, single use). Agent lifecycle actions additionally require an owner signature over a single-use, operation-bound challenge.</td><td>A dashboard session alone cannot register, rotate or revoke an agent key.</td></tr>
                         <tr><td>2</td><td>AEraLogIn &rarr; Runtime</td><td>One-time enrollment code (short-lived, single use, bound to the owner). The runtime generates its Ed25519 key locally; the private key never leaves the machine. The server only stores the public key.</td><td>An enrollment code cannot be reused, and it cannot be claimed for another owner.</td></tr>
                         <tr><td>3</td><td>Agent &rarr; Agent (A2A, internal)</td><td>Ed25519 challenge&ndash;response &rarr; short-lived Agent JWT (issuer, audience and <code>jti</code> bound). Revocation applies on the next request.</td><td>A revoked or foreign agent cannot relay messages. The JWT is not accepted as a dashboard session.</td></tr>
                         <tr><td>4</td><td>External peer &rarr; Gateway</td><td>Owner-issued peer credential (<code>aera_a2a_&hellip;</code>). It is scoped to agents and skills, expires, and can be revoked. Only a hash is stored. The <code>peer_id</code> is minted by AEraLogIn and stays the same when the credential is rotated.</td><td>An external peer never becomes an internal agent. Its trust score does not widen its scope.</td></tr>
                     </tbody>
                 </table>
+                <p><strong>Gateway &rarr; Runtime (internal channel):</strong> the gateway reaches a runtime only through a local Unix socket, derived from the agent id, in a directory that only the service user can access. Each request is authenticated with an HMAC envelope. A reply is accepted only if it is signed with an <em>active</em> registered Ed25519 key of the target agent and carries the same agent id and request id. Replies signed with a revoked key are rejected.</p>
                 <p>Details: <a href="/docs/agent-api.html#enrollment">Agent enrollment</a> &middot; <a href="/docs/AGENT_IDENTITY.md">Agent identity reference</a> &middot; <a href="/docs/a2a.html">A2A gateway</a> &middot; <a href="/docs/A2A_PEER_CREDENTIALS.md">Peer credentials reference</a></p>
             </section>
 
@@ -658,23 +659,24 @@
                 <table>
                     <thead><tr><th>Check</th><th>Result</th></tr></thead>
                     <tbody>
-                        <tr><td>Unit / integration test suite (<code>pytest tests/</code>)</td><td>668 passed, 3 skipped, 12 expected failures (documented, not-yet-implemented spec items)</td></tr>
+                        <tr><td>Unit / integration test suite (<code>pytest tests/</code>)</td><td>678 passed, 3 skipped, 12 expected failures (documented, not-yet-implemented spec items)</td></tr>
                         <tr><td>Agent security lab (isolated)</td><td>237 passed</td></tr>
                         <tr><td>End-to-end release run against an isolated server (<code>tools/release_live_e2e.py</code>): enrollment, runtime, Agent JWT, A2A relay, external peer, trust monitoring, recovery, revocation, secret/log audit</td><td>114 / 114 checks</td></tr>
                         <tr><td>Mutation checks: deliberately broken security code must be detected by the tests</td><td>Enrollment 9/9 caught &middot; external A2A 6/6 caught</td></tr>
                         <tr><td>Negative proofs (credentials, trust, gateway, rate limit, runtime)</td><td>29/29 &middot; 32/32 &middot; 10/10 &middot; 7/7 &middot; 14/14</td></tr>
                         <tr><td>Repository secret scan / forbidden-file audit</td><td>0 high findings &middot; 0 forbidden files</td></tr>
                         <tr><td>Public file exposure: only allowlisted files under <code>/static</code> and <code>/docs</code></td><td>Regression tests for configuration, database, source and path-traversal requests</td></tr>
+                        <tr><td>Login replay protection (<code>/api/verify</code>)</td><td>Regression tests: a replayed, unissued, foreign-address or expired nonce is rejected</td></tr>
                     </tbody>
                 </table>
 
                 <h3>Known limitations</h3>
                 <ul>
-                    <li>Trust assessment of external peers is monitoring only. It does not change any access decision, and trust enforcement is not enabled.</li>
+                    <li>Trust assessment of external peers is monitoring only. It does not change any access decision, and trust enforcement is not enabled. The public instance runs in the default mode: evidence is recorded, but no assessment is computed on the request path.</li>
                     <li>No automatic installer: the agent runtime is set up by the operator. Anyone with access to the runtime host can use its key.</li>
                     <li>No in-place key recovery after the runtime key is lost. Recovery means re-enrolling, which produces a new agent.</li>
                     <li>Peer credentials are bearer secrets. Whoever holds one can use it until it expires or is revoked.</li>
-                    <li>Rate limiting runs in memory per process and is not shared across several server instances.</li>
+                    <li>Rate limiting runs in memory per process and is not shared across several server instances. The same applies to pending login nonces: a server restart means users request a new nonce.</li>
                     <li>No external audit has been done yet. The results above come from the project's own test tooling.</li>
                 </ul>
             </section>
@@ -1052,7 +1054,7 @@ else:
 
                 <h3>Key Files</h3>
                 <ul>
-                    <li><code>aeralogin/server.py</code> (Lines 1300-1500): Signature verification & score logic</li>
+                    <li><code>server.py</code>: wallet signature verification and score logic</li>
                     <li><code>web3_service.py</code>: Blockchain integration (NFT, Score, Interactions)</li>
                     <li><code>resonance_calculator.py</code>: Resonance Score algorithm</li>
                     <li><code>blockchain_sync.py</code>: On-chain sync queue management</li>

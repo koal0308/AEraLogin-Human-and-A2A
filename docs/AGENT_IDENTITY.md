@@ -162,7 +162,10 @@ module in this repository and runs from the source tree.
 6. **Health:** `python -m agent_runtime health` (queries the running runtime
    over the authenticated socket).
 7. **Normal run:** re-authenticates on demand; checks liveness with AEra every
-   5 minutes; answers gateway calls with an Ed25519-signed reply.
+   5 minutes; answers gateway calls with an Ed25519-signed reply. The gateway
+   authenticates its request with an HMAC envelope (`AERA_RUNTIME_INTERNAL_SECRET`)
+   and accepts a reply only if it is signed by an **active** registered key of
+   the target agent and carries the same `agent_id` and `request_id` as the request.
 8. **Exit codes / failures:** `2` config error (e.g. internal secret missing);
    `1` key/identity/provider error or AEra unreachable at start; `3` agent or
    key revoked (at start, or discovered at a liveness check).

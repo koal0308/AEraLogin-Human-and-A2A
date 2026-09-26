@@ -274,7 +274,7 @@
                 </div>
                 <div class="info-box warning">
                     <div class="info-box-title">Monitoring, not enforcement</div>
-                    <p>Trust assessment runs <strong>independently</strong> of authentication and authorization. It does not replace credential validation, scope checks, revocation, replay protection or rate limiting, and it does <strong>not</strong> change any access decision today. There is no enforcement mode. Evidence is only recorded while the operator runs the gateway in observation mode.</p>
+                    <p>Trust assessment runs <strong>independently</strong> of authentication and authorization. It does not replace credential validation, scope checks, revocation, replay protection or rate limiting, and it does <strong>not</strong> change any access decision today. There is no enforcement mode. In the default mode (<code>off</code>, which is what the public instance runs), outcomes of authenticated peer requests are recorded as evidence, but no assessment is computed on the request path. In observation mode (<code>monitor</code>) the assessment is also computed and written to the audit log. Neither mode changes a response.</p>
                 </div>
             </section>
 
