@@ -34,3 +34,15 @@ def test_private_files_are_not_served(client, path):
 def test_public_files_are_served(client, path):
     r = client.get(path)
     assert r.status_code == 200, f"{path} -> {r.status_code}"
+
+
+@pytest.mark.parametrize("path", ["/resonance", "/blockchain-test.html",
+                                  "/blockchain-direct-test.html"])
+def test_retired_pages_are_404_not_500(client, path):
+    assert client.get(path).status_code == 404
+
+
+def test_debug_endpoint_discloses_no_filesystem_path(client, server_module):
+    body = client.get("/api/debug").text
+    assert server_module.DB_PATH not in body
+    assert "/home/" not in body

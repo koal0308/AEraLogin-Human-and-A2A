@@ -117,3 +117,54 @@ def test_replay_of_login_nonce_and_signature(client, db, eth_test_account):
     # Report generator (test_99_report.py) reads back this attribute.
     test_replay_of_login_nonce_and_signature.replay_accepted = both_accepted  # type: ignore[attr-defined]
     assert r1.get("is_human") is True, "first login must succeed as a baseline"
+    # S-03 fixed: the nonce is single use.
+    assert r2.get("is_human") is not True, "replayed login nonce+signature was accepted"
+
+
+def test_unissued_nonce_is_rejected(client, db, eth_test_account):
+    """A self-chosen nonce (never issued by /api/nonce) must not log in."""
+    addr = eth_test_account.address.lower()
+    nonce = "a" * 32
+    msg = build_siwe_message(addr, nonce)
+    r = client.post("/api/verify", json={"address": addr, "nonce": nonce,
+                                         "message": msg,
+                                         "signature": _sig(eth_test_account, msg)}).json()
+    assert r.get("is_human") is not True
+
+
+def test_nonce_is_bound_to_its_address(client, db, eth_test_account):
+    """A nonce issued for another address cannot be used."""
+    from eth_account import Account
+    other = Account.create().address.lower()
+    nonce = _get_nonce(client, other)
+    addr = eth_test_account.address.lower()
+    msg = build_siwe_message(addr, nonce)
+    r = client.post("/api/verify", json={"address": addr, "nonce": nonce,
+                                         "message": msg,
+                                         "signature": _sig(eth_test_account, msg)}).json()
+    assert r.get("is_human") is not True
+
+
+def test_expired_nonce_is_rejected(client, db, eth_test_account, server_module, monkeypatch):
+    addr = eth_test_account.address.lower()
+    nonce = _get_nonce(client, addr)
+    monkeypatch.setattr(server_module, "LOGIN_NONCE_TTL_SECONDS", -1)
+    msg = build_siwe_message(addr, nonce)
+    r = client.post("/api/verify", json={"address": addr, "nonce": nonce,
+                                         "message": msg,
+                                         "signature": _sig(eth_test_account, msg)}).json()
+    assert r.get("is_human") is not True
+
+
+def test_bad_signature_does_not_burn_the_nonce(client, db, eth_test_account):
+    """Consumption happens only after a valid signature."""
+    addr = eth_test_account.address.lower()
+    nonce = _get_nonce(client, addr)
+    msg = build_siwe_message(addr, nonce)
+    bad = client.post("/api/verify", json={"address": addr, "nonce": nonce,
+                                           "message": msg, "signature": "0x" + "11" * 65}).json()
+    assert bad.get("is_human") is not True
+    good = client.post("/api/verify", json={"address": addr, "nonce": nonce,
+                                            "message": msg,
+                                            "signature": _sig(eth_test_account, msg)}).json()
+    assert good.get("is_human") is True

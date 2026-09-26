@@ -1151,8 +1151,12 @@ async def root():
 
 @app.get("/resonance", response_class=HTMLResponse)
 async def resonance_landing():
-    """Resonance Landing Page - Gold & Sand Theme"""
-    with open(os.path.join(os.path.dirname(__file__), "landing-resonance.html"), "r") as f:
+    """Resonance Landing Page - Gold & Sand Theme (retired; file no longer shipped)."""
+    path = os.path.join(os.path.dirname(__file__), "landing-resonance.html")
+    if not os.path.isfile(path):
+        # Unlinked legacy route: answer 404 instead of crashing with a 500.
+        raise HTTPException(status_code=404, detail="Not Found")
+    with open(path, "r") as f:
         return f.read()
 
 @app.get("/landing", response_class=HTMLResponse)
@@ -1243,17 +1247,9 @@ async def aera_chat_css():
     css_path = os.path.join(os.path.dirname(__file__), "aera-chat.css")
     return FileResponse(css_path, media_type="text/css")
 
-@app.get("/blockchain-test.html", response_class=HTMLResponse)
-async def blockchain_test():
-    """Blockchain Integration Test Page"""
-    with open(os.path.join(os.path.dirname(__file__), "blockchain-test.html"), "r") as f:
-        return f.read()
-
-@app.get("/blockchain-direct-test.html", response_class=HTMLResponse)
-async def blockchain_direct_test():
-    """Direct Blockchain API Test Page"""
-    with open(os.path.join(os.path.dirname(__file__), "blockchain-direct-test.html"), "r") as f:
-        return f.read()
+# /blockchain-test.html and /blockchain-direct-test.html were development test
+# pages. The files are no longer shipped and the routes answered with a 500, so
+# the routes were removed (final release audit).
 
 @app.get("/join-telegram", response_class=HTMLResponse)
 async def join_telegram():
@@ -1341,7 +1337,7 @@ async def debug_info(req: Request):
         "timestamp": int(time.time()),
         "client_ip": client_host,
         "database": {
-            "path": DB_PATH,
+            # No filesystem path: this endpoint is public.
             "exists": os.path.exists(DB_PATH),
             "size_mb": os.path.getsize(DB_PATH) / (1024 * 1024) if os.path.exists(DB_PATH) else 0
         },
@@ -1416,6 +1412,60 @@ async def vera_chat_proxy(req: Request):
             "success": False
         }
 
+# ---------------------------------------------------------------------------
+# Login nonces for /api/verify (audit finding S-03).
+#
+# Nonces used to be generated and forgotten, so a captured signature+nonce
+# could be replayed forever. They are now remembered per address, expire and
+# are consumed on the first successful verification. In-process state: the
+# service runs as a single worker (see a2a_gateway/ratelimit.py); a restart
+# only means users request a fresh nonce.
+# ---------------------------------------------------------------------------
+LOGIN_NONCE_TTL_SECONDS = 600
+_LOGIN_NONCES_PER_ADDRESS = 5
+_LOGIN_NONCES_MAX_ADDRESSES = 50_000
+_login_nonces: dict = {}  # address -> {nonce: issued_at}
+
+
+def _prune_login_nonces(now: float) -> None:
+    for addr in list(_login_nonces):
+        live = {n: t for n, t in _login_nonces[addr].items()
+                if now - t <= LOGIN_NONCE_TTL_SECONDS}
+        if live:
+            _login_nonces[addr] = live
+        else:
+            del _login_nonces[addr]
+
+
+def _remember_login_nonce(address: str, nonce: str) -> None:
+    now = time.time()
+    if len(_login_nonces) >= _LOGIN_NONCES_MAX_ADDRESSES:
+        _prune_login_nonces(now)
+        if len(_login_nonces) >= _LOGIN_NONCES_MAX_ADDRESSES:
+            # Drop the oldest address bucket rather than grow without bound.
+            oldest = min(_login_nonces, key=lambda a: max(_login_nonces[a].values()))
+            del _login_nonces[oldest]
+    bucket = _login_nonces.setdefault(address, {})
+    bucket[nonce] = now
+    while len(bucket) > _LOGIN_NONCES_PER_ADDRESS:
+        del bucket[min(bucket, key=bucket.get)]
+
+
+def _login_nonce_is_live(address: str, nonce: str) -> bool:
+    issued = _login_nonces.get(address, {}).get(nonce)
+    return issued is not None and time.time() - issued <= LOGIN_NONCE_TTL_SECONDS
+
+
+def _consume_login_nonce(address: str, nonce: str) -> bool:
+    """Atomically (single event loop, no await) remove a live nonce."""
+    if not _login_nonce_is_live(address, nonce):
+        return False
+    bucket = _login_nonces.get(address, {})
+    bucket.pop(nonce, None)
+    if not bucket:
+        _login_nonces.pop(address, None)
+    return True
+
 @app.post("/api/nonce")
 async def get_nonce(req: Request):
     """
@@ -1432,6 +1482,7 @@ async def get_nonce(req: Request):
         
         # Generiere zufällige Nonce
         nonce = secrets.token_hex(16)
+        _remember_login_nonce(address, nonce)
         log_activity("DEBUG", "AUTH", "Nonce generated", address=address[:10], nonce=nonce[:16])
         
         return {
@@ -4155,6 +4206,12 @@ async def verify(req: Request):
             log_activity("ERROR", "AUTH", "Invalid address format", address=address[:10])
             return {"error": "Invalid address format", "is_human": False}
         
+        # S-03: the nonce must have been issued by /api/nonce for this address,
+        # be unexpired and unused. Checked before the (expensive) signature work.
+        if not _login_nonce_is_live(address, nonce):
+            log_activity("WARNING", "AUTH", "Unknown, expired or used login nonce", address=address[:10])
+            return {"error": "Invalid or expired nonce - request a new one", "is_human": False}
+        
         # ===== VALIDIERE SIGNATURE MIT web3.py (EOA + Smart Contract Wallets) =====
         try:
             from eth_account.messages import encode_defunct, defunct_hash_message
@@ -4259,10 +4316,18 @@ async def verify(req: Request):
                 log_activity("ERROR", "AUTH", "SIWE nonce mismatch", address=address[:10])
                 return {"error": "Nonce mismatch in SIWE message", "is_human": False}
             
+            # S-03: single use. Consumed only after a valid signature, so a
+            # garbage request cannot burn someone else's pending nonce.
+            if not _consume_login_nonce(address, nonce):
+                log_activity("WARNING", "AUTH", "Login nonce already used", address=address[:10])
+                return {"error": "Invalid or expired nonce - request a new one", "is_human": False}
+            
             log_activity("INFO", "AUTH", "✓✓✓ Signature VERIFIED", address=address[:10])
             
         except ImportError:
-            log_activity("WARNING", "AUTH", "eth_account not available - skipping signature check")
+            # Fail closed: never log a user in without verifying the signature.
+            log_activity("ERROR", "AUTH", "eth_account not available - rejecting login")
+            return {"error": "Signature verification unavailable", "is_human": False}
         except Exception as e:
             log_activity("ERROR", "AUTH", f"Signature verification error: {str(e)}", address=address[:10])
             return {"error": f"Signature error: {str(e)}", "is_human": False}
