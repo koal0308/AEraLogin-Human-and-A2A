@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/favicon.png?v=20251229a">
+    <title>AEraLogIn - Agent API Documentation</title>
+    <meta name="description" content="AEra Agent API: register owner-bound agents with Ed25519 keys, rotate and revoke keys, authenticate agents with challenge-response and send signed agent messages.">
+    <link rel="canonical" href="https://aeralogin.com/docs/agent-api.html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AEraLogIn">
+    <meta property="og:title" content="AEraLogIn - Agent API Documentation">
+    <meta property="og:description" content="Owner-bound agent identities with Ed25519 keys, rotation, revocation and challenge-response authentication.">
+    <meta property="og:url" content="https://aeralogin.com/docs/agent-api.html">
+    <meta name="twitter:card" content="summary">
+
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+
+    <link rel="stylesheet" href="/docs/assets/docs.css?v=20260926">
+    <link rel="stylesheet" href="/docs/assets/site-shell.css?v=20260926">
+</head>
+<body>
+    <div class="bg-animation" id="bgCanvas"></div>
+
+<!-- AERA:SHELL-HEADER -->
+    <a class="site-skip-link" href="#main-content">Skip to content</a>
+    <div class="site-menu-backdrop" id="siteMenuBackdrop"></div>
+    <header class="site-header">
+        <a href="/" class="site-logo" aria-label="AEraLogIn home">
+            <span class="site-logo-icon" aria-hidden="true">🌀</span>
+            <span>AEraLogIn</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Platform</button>
+                <div class="site-dropdown-menu">
+                    <a href="/#identity">Human Identity<small>Proof of Human, Identity NFT, ownership</small></a>
+                    <a href="/#agents">Agent Identity<small>Own keys, rotation, revocation</small></a>
+                    <a href="/#a2a">A2A Communication<small>Gateway, external peers</small></a>
+                    <a href="/#trust">Trust Assessment<small>Evidence-based monitoring</small></a>
+                </div>
+            </div>
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Developers</button>
+                <div class="site-dropdown-menu">
+                    <a href="/docs/agent-api.html">Agent API<small>Register, authenticate, message</small></a>
+                    <a href="/docs/a2a.html">A2A Gateway<small>JSON-RPC, peer credentials</small></a>
+                    <a href="/docs/agent-card.html">A2A Agent Card<small>Public discovery document</small></a>
+                    <a href="/sdk-docs">SDK Documentation<small>AEra Gate SDK &amp; OAuth 2.0</small></a>
+                </div>
+            </div>
+            <a href="/security-concept.html">Security</a>
+            <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="/dashboard.html">Dashboard</a>
+        </nav>
+        <button type="button" class="site-menu-toggle" id="siteMenuToggle" aria-label="Toggle menu" aria-controls="siteMobileMenu" aria-expanded="false">☰</button>
+    </header>
+    <nav class="site-mobile-menu" id="siteMobileMenu" aria-label="Mobile">
+        <span class="site-mobile-group">Platform</span>
+        <a href="/">Home</a>
+        <a href="/#identity">Human Identity</a>
+        <a href="/#agents">Agent Identity</a>
+        <a href="/#a2a">A2A Communication</a>
+        <a href="/#trust">Trust Assessment</a>
+        <span class="site-mobile-group">Developers</span>
+        <a href="/docs/agent-api.html">Agent API</a>
+        <a href="/docs/a2a.html">A2A Gateway</a>
+        <a href="/docs/agent-card.html">A2A Agent Card</a>
+        <a href="/sdk-docs">SDK Documentation</a>
+        <span class="site-mobile-group">Resources</span>
+        <a href="/security-concept.html">Security Concept</a>
+        <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/user-dashboard.html">AEra Core (Agents)</a>
+    </nav>
+    <!-- /AERA:SHELL-HEADER -->
+
+    <div class="doc-container">
+        <aside class="doc-sidebar" aria-label="On this page">
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">Agent API</h4>
+                <ul>
+                    <li><a href="#overview" class="active">Overview</a></li>
+                    <li><a href="#concepts">Concepts</a></li>
+                    <li><a href="#authentication">Authentication</a></li>
+                </ul>
+            </div>
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">Lifecycle</h4>
+                <ul>
+                    <li><a href="#owner-challenge">Owner challenge</a></li>
+                    <li><a href="#register">Register an agent</a></li>
+                    <li><a href="#keys">Key management</a></li>
+                    <li><a href="#revoke">Revoke an agent</a></li>
+                    <li><a href="#capabilities">Capabilities</a></li>
+                </ul>
+            </div>
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">Agent calls</h4>
+                <ul>
+                    <li><a href="#agent-auth">Challenge &amp; authenticate</a></li>
+                    <li><a href="#tokens">Agent JWT</a></li>
+                    <li><a href="#messages">Signed messages</a></li>
+                    <li><a href="#public">Public metadata</a></li>
+                </ul>
+            </div>
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">Reference</h4>
+                <ul>
+                    <li><a href="#endpoints">Endpoint table</a></li>
+                    <li><a href="#errors">Errors</a></li>
+                    <li><a href="#security">Security model</a></li>
+                    <li><a href="#not-implemented">Not implemented</a></li>
+                    <li><a href="#next">Next steps</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="doc-main" id="main-content">
+            <section id="overview" class="doc-section">
+                <h1>Agent API</h1>
+                <p class="doc-lead">
+                    The Agent API gives autonomous agents their <strong>own cryptographic identity</strong>, owned by a human AEra identity but independent of any human login, OAuth token or browser session.
+                </p>
+                <p>
+                    A human owner registers an agent with a wallet signature. The agent then proves who it is with its own <strong>Ed25519 key</strong> and receives a short-lived <strong>Agent JWT</strong>, which it uses to call AEra and to send signed messages to other AEra agents.
+                </p>
+                <div class="doc-flow" role="img" aria-label="Human wallet owns an agent identity; the agent runtime holds the private key and authenticates to AEra to receive an Agent JWT.">
+                    <div class="doc-flow-node"><strong>Human owner</strong><span>AEra identity &middot; wallet signature (EIP-191 / EIP-1271)</span></div>
+                    <div class="doc-flow-arrow" aria-hidden="true">▼ registers &amp; controls</div>
+                    <div class="doc-flow-node"><strong>Agent identity</strong><span><code>did:aera:agent:…</code> &middot; Ed25519 public keys</span></div>
+                    <div class="doc-flow-arrow" aria-hidden="true">▼ proves possession of key</div>
+                    <div class="doc-flow-node"><strong>Agent runtime</strong><span>holds the private key &middot; never sent to AEra</span></div>
+                    <div class="doc-flow-arrow" aria-hidden="true">▼ challenge &rarr; signature</div>
+                    <div class="doc-flow-node"><strong>Agent JWT</strong><span>15 minutes &middot; audience-bound &middot; revocable</span></div>
+                </div>
+                <div class="info-box accent">
+                    <div class="info-box-title">Base URL</div>
+                    <p>All endpoints live under <code>https://aeralogin.com/api/agents</code>. Requests and responses are JSON.</p>
+                </div>
+                <div class="info-box warning">
+                    <div class="info-box-title">Availability</div>
+                    <p>The Agent Identity Layer is an additive subsystem that the AEra operator can switch on or off. When it is disabled, these routes are not served. Most developers use it through the agent section of <a href="/user-dashboard.html">AEra Core</a>, which runs the owner steps with your wallet.</p>
+                </div>
+            </section>
+
+            <section id="concepts" class="doc-section">
+                <h2>🧩 Concepts</h2>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Concept</th><th>What it is</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Owner</strong></td><td>The wallet of a human AEra identity. Every lifecycle change needs a fresh owner signature. Externally owned accounts (EIP-191) and smart-contract wallets (EIP-1271) are supported.</td></tr>
+                            <tr><td><strong>Agent ID</strong></td><td>A stable identifier of the form <code>did:aera:agent:&lt;32 hex&gt;</code>, assigned by AEra at registration. It does not change when keys rotate.</td></tr>
+                            <tr><td><strong>Key</strong></td><td>An Ed25519 public key, encoded as <code>ed25519:&lt;base64url, no padding&gt;</code>, identified by a <code>key_id</code> (<code>aera-key-…</code>). Up to 5 active keys per agent.</td></tr>
+                            <tr><td><strong>Capabilities</strong></td><td>Server-recorded permissions of the agent. The owner sets them; the agent cannot grant itself any.</td></tr>
+                            <tr><td><strong>Audience</strong></td><td>What a token is for: <code>aera-agent-api</code> (API calls) or <code>aera-agent-relay</code> (message relay). A token only works for its own audience.</td></tr>
+                            <tr><td><strong>Agent runtime</strong></td><td>The process that <em>is</em> the agent. It generates and keeps the private key, authenticates to AEra and answers A2A messages. AEra only ever sees the public key.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="info-box">
+                    <div class="info-box-title">Human identity ≠ agent identity</div>
+                    <p>An agent is owned by a human, but it never uses the human's session, OAuth token or wallet key. Agent JWTs and human OAuth tokens are separate credentials, and neither is accepted in place of the other.</p>
+                </div>
+            </section>
+
+            <section id="authentication" class="doc-section">
+                <h2>🔐 Authentication</h2>
+                <p>The API uses two separate proofs, depending on who is acting:</p>
+                <div class="doc-grid">
+                    <div class="doc-card">
+                        <h3>Owner actions</h3>
+                        <p>Register, add / rotate / revoke keys, revoke the agent and change capabilities. Proven with an <strong>owner challenge</strong> signed by the owner wallet. Each challenge is valid for 120 seconds, can be used once and is bound to one owner, one operation and one agent.</p>
+                    </div>
+                    <div class="doc-card">
+                        <h3>Agent actions</h3>
+                        <p>Verify tokens, record interactions and send messages. Proven with an <strong>Agent JWT</strong> in the <code>Authorization: Bearer</code> header, obtained through an Ed25519 challenge&ndash;response. Messages additionally carry their own Ed25519 signature.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="owner-challenge" class="doc-section">
+                <h2><span class="badge method-post">POST</span> /api/agents/owner-challenge</h2>
+                <p>Requests a single-use challenge for one owner operation. <code>operation</code> is one of <code>register</code>, <code>key_add</code>, <code>key_rotate</code>, <code>key_revoke</code>, <code>agent_revoke</code>, <code>capabilities</code>. <code>agent_id</code> is required for every operation except <code>register</code>.</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Request</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "owner_wallet": "0xYourWalletAddress",
+  "operation": "register"
+}</pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Response 200</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "challenge_id": "…",
+  "challenge": "…",
+  "expires_at": "2026-01-01T12:02:00Z",
+  "domain": "aeralogin.com",
+  "protocol": "aera-owner-challenge",
+  "version": "1",
+  "owner_wallet": "0xyourwalletaddress",
+  "agent_id": "",
+  "operation": "register"
+}</pre>
+                </div>
+                <p>The owner signs the canonical JSON of this challenge (fields <code>protocol</code>, <code>version</code>, <code>owner_wallet</code>, <code>agent_id</code>, <code>operation</code>, <code>challenge_id</code>, <code>challenge</code>, <code>expires_at</code>, <code>domain</code>, keys sorted) with <code>personal_sign</code>. The hex signature is then sent as <code>owner_signature</code> in the owner request.</p>
+                <p>Rate limit: 30 requests per minute per owner wallet.</p>
+            </section>
+
+            <section id="register" class="doc-section">
+                <h2><span class="badge method-post">POST</span> /api/agents/register</h2>
+                <p>Creates a new agent owned by the signing wallet, with its first active Ed25519 key. Generate the key pair inside the agent runtime and submit only the public key.</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Request</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "owner_wallet": "0xYourWalletAddress",
+  "owner_challenge_id": "&lt;challenge_id&gt;",
+  "owner_signature": "0x&lt;owner signature&gt;",
+  "public_key": "ed25519:&lt;base64url public key&gt;",
+  "label": "My research agent",
+  "capabilities": ["agent.authenticate", "agent.read.profile", "agent.communicate"]
+}</pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Response 200</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "agent_id": "did:aera:agent:&lt;id&gt;",
+  "key_id": "aera-key-&lt;id&gt;",
+  "capabilities": ["agent.authenticate", "agent.read.profile", "agent.communicate"]
+}</pre>
+                </div>
+                <p><code>label</code> and <code>capabilities</code> are optional. Without <code>capabilities</code>, the defaults <code>agent.authenticate</code>, <code>agent.read.profile</code> and <code>agent.communicate</code> apply. Rate limit: 10 registrations per minute per owner.</p>
+            </section>
+
+            <section id="keys" class="doc-section">
+                <h2>🔑 Key management</h2>
+                <p>Each owner operation needs its own owner challenge with the matching <code>operation</code> and <code>agent_id</code>.</p>
+
+                <h3><span class="badge method-post">POST</span> /api/agents/{agent_id}/keys &mdash; add a key</h3>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Request (operation: key_add)</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "owner_wallet": "0xYourWalletAddress",
+  "owner_challenge_id": "&lt;challenge_id&gt;",
+  "owner_signature": "0x&lt;owner signature&gt;",
+  "public_key": "ed25519:&lt;new public key&gt;"
+}</pre>
+                </div>
+                <p>Returns <code>{"key_id": "aera-key-…"}</code>. Fails with <code>too_many_active_keys</code> above 5 active keys.</p>
+
+                <h3><span class="badge method-post">POST</span> /api/agents/{agent_id}/keys/rotate &mdash; rotate a key</h3>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Request (operation: key_rotate)</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "owner_wallet": "0xYourWalletAddress",
+  "owner_challenge_id": "&lt;challenge_id&gt;",
+  "owner_signature": "0x&lt;owner signature&gt;",
+  "new_public_key": "ed25519:&lt;new public key&gt;",
+  "revoke_key_id": "aera-key-&lt;old key&gt;"
+}</pre>
+                </div>
+                <p>Adds the new key, revokes the old key and revokes every Agent JWT issued for the old key, all in one transaction. The agent ID stays the same.</p>
+
+                <h3><span class="badge method-delete">DELETE</span> /api/agents/{agent_id}/keys/{key_id} &mdash; revoke a key</h3>
+                <p>Body: <code>owner_wallet</code>, <code>owner_challenge_id</code>, <code>owner_signature</code> (operation <code>key_revoke</code>). Revokes the key and cascades to all of its active tokens. Returns <code>{"status": "revoked"}</code>.</p>
+                <p>Rate limit for all key operations: 20 per minute per agent.</p>
+            </section>
+
+            <section id="revoke" class="doc-section">
+                <h2><span class="badge method-delete">DELETE</span> /api/agents/{agent_id}</h2>
+                <p>Revokes the agent permanently (operation <code>agent_revoke</code>). All of its keys and all active Agent JWTs are revoked in the same transaction. A revoked agent cannot authenticate again.</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Request</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "owner_wallet": "0xYourWalletAddress",
+  "owner_challenge_id": "&lt;challenge_id&gt;",
+  "owner_signature": "0x&lt;owner signature&gt;"
+}</pre>
+                </div>
+            </section>
+
+            <section id="capabilities" class="doc-section">
+                <h2><span class="badge method-patch">PATCH</span> /api/agents/{agent_id}/capabilities</h2>
+                <p>Replaces the agent's capability set (operation <code>capabilities</code>). Only these values are accepted. Unknown values are dropped, and if nothing valid remains, the default set applies.</p>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Capability</th><th>Allows</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>agent.authenticate</code></td><td>Obtaining an Agent JWT</td></tr>
+                            <tr><td><code>agent.read.profile</code></td><td>Having its public profile read, including through the A2A gateway</td></tr>
+                            <tr><td><code>agent.communicate</code></td><td>Sending and receiving agent messages</td></tr>
+                            <tr><td><code>agent.interaction.record</code></td><td>Recording signed interactions</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>Capabilities are issued by the server only. The capabilities in a JWT are always a subset of those recorded for the agent.</p>
+            </section>
+
+            <section id="agent-auth" class="doc-section">
+                <h2>🤖 Agent challenge &amp; authenticate</h2>
+                <h3><span class="badge method-post">POST</span> /api/agents/{agent_id}/challenge</h3>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Request</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{ "key_id": "aera-key-&lt;id&gt;", "aud": "aera-agent-api" }</pre>
+                </div>
+                <p>Returns a challenge that is valid for 60 seconds, can be used once and is bound to <code>agent_id</code>, <code>key_id</code> and <code>aud</code>:</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Response 200</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "protocol": "aera-agent-auth",
+  "version": "1",
+  "agent_id": "did:aera:agent:&lt;id&gt;",
+  "key_id": "aera-key-&lt;id&gt;",
+  "challenge_id": "…",
+  "challenge": "…",
+  "aud": "aera-agent-api",
+  "issued_at": "…",
+  "expires_at": "…"
+}</pre>
+                </div>
+                <h3><span class="badge method-post">POST</span> /api/agents/{agent_id}/authenticate</h3>
+                <p>The runtime signs the canonical JSON of the challenge object above (keys sorted, UTF-8) with its Ed25519 private key and sends the base64url signature:</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Request</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "challenge_id": "…",
+  "key_id": "aera-key-&lt;id&gt;",
+  "aud": "aera-agent-api",
+  "signature": "&lt;base64url Ed25519 signature&gt;"
+}</pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Response 200</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "token": "&lt;Agent JWT&gt;",
+  "jti": "…",
+  "aud": "aera-agent-api",
+  "expires_at": 1767269700,
+  "capabilities": ["agent.authenticate", "agent.read.profile", "agent.communicate"]
+}</pre>
+                </div>
+                <p>Rate limit: 60 challenges and 60 authentications per minute per agent.</p>
+            </section>
+
+            <section id="tokens" class="doc-section">
+                <h2>🎫 Agent JWT</h2>
+                <p>An Agent JWT is valid for 15 minutes and only for its audience. It is signed by AEra with a key that is separate from the human OAuth tokens, and it is marked as an agent token (<code>typ = agent</code>).</p>
+                <h3><span class="badge method-post">POST</span> /api/agents/verify-jwt</h3>
+                <p>Send the token as <code>Authorization: Bearer &lt;Agent JWT&gt;</code>. Returns <code>agent_id</code>, <code>key_id</code>, <code>aud</code>, <code>capabilities</code>, <code>exp</code> and <code>typ</code> if the token is valid and not revoked.</p>
+                <h3><span class="badge method-post">POST</span> /api/agents/tokens/revoke</h3>
+                <p>Lets an agent revoke its own token: <code>{"jti": "&lt;jti&gt;"}</code> with the same token in the bearer header. Tokens are also revoked automatically when their key or agent is revoked.</p>
+            </section>
+
+            <section id="messages" class="doc-section">
+                <h2>✉️ Signed agent messages</h2>
+                <h3><span class="badge method-post">POST</span> /api/agents/messages</h3>
+                <p>AEra's relay for signed envelopes between AEra agents. The call needs an Agent JWT with audience <code>aera-agent-relay</code> and the <code>agent.communicate</code> capability. The JWT alone never authenticates a message: every payload also carries an Ed25519 signature from the sender's key.</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Request</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "payload": {
+    "protocol": "aera-agent-message",
+    "version": "1",
+    "message_id": "&lt;unique id&gt;",
+    "sender_agent_id": "did:aera:agent:&lt;sender&gt;",
+    "sender_key_id": "aera-key-&lt;id&gt;",
+    "receiver_agent_id": "did:aera:agent:&lt;receiver&gt;",
+    "issued_at": "…",
+    "expires_at": "…",
+    "content_hash": "sha256:&lt;base64url digest&gt;"
+  },
+  "signature": "&lt;base64url Ed25519 signature over canonical payload&gt;",
+  "content": "optional opaque content"
+}</pre>
+                </div>
+                <p>Returns <code>{"status": "relayed", "message_id": …, "receiver": …}</code>. Messages expire after at most 5 minutes, and a <code>message_id</code> is accepted only once, so a replayed message fails with <code>message_replay</code>.</p>
+                <h3><span class="badge method-post">POST</span> /api/agents/interactions</h3>
+                <p>Records a signed interaction between agents. It needs an Agent JWT (<code>aera-agent-api</code>) with <code>agent.interaction.record</code>, plus a signed <code>payload</code>, <code>signature</code> and <code>interaction_type</code>. <code>responder_agent_id</code> and <code>metadata</code> are optional.</p>
+                <div class="info-box">
+                    <div class="info-box-title">External agents use the A2A gateway</div>
+                    <p>This relay is for AEra agents. Agents from outside AEra talk to AEra agents through the standard <a href="/docs/a2a.html">A2A gateway</a> instead.</p>
+                </div>
+            </section>
+
+            <section id="public" class="doc-section">
+                <h2><span class="badge method-get">GET</span> /api/agents/{agent_id}</h2>
+                <p>Public metadata of an agent. No authentication is required.</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Response 200</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "agent_id": "did:aera:agent:&lt;id&gt;",
+  "owner_wallet": "0x…",
+  "status": "active",
+  "label": "My research agent",
+  "created_at": "…",
+  "updated_at": "…",
+  "keys": [
+    { "key_id": "aera-key-&lt;id&gt;", "algorithm": "Ed25519",
+      "public_key": "ed25519:…", "status": "active" }
+  ]
+}</pre>
+                </div>
+            </section>
+
+            <section id="endpoints" class="doc-section">
+                <h2>📋 Endpoint table</h2>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Purpose</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/owner-challenge</code></td><td>&ndash;</td><td>Request an owner challenge</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/register</code></td><td>Owner</td><td>Register an agent</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/{id}/keys</code></td><td>Owner</td><td>Add a key</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/{id}/keys/rotate</code></td><td>Owner</td><td>Rotate a key</td></tr>
+                            <tr><td><span class="badge method-delete">DELETE</span></td><td><code>/api/agents/{id}/keys/{key_id}</code></td><td>Owner</td><td>Revoke a key</td></tr>
+                            <tr><td><span class="badge method-delete">DELETE</span></td><td><code>/api/agents/{id}</code></td><td>Owner</td><td>Revoke the agent</td></tr>
+                            <tr><td><span class="badge method-patch">PATCH</span></td><td><code>/api/agents/{id}/capabilities</code></td><td>Owner</td><td>Set capabilities</td></tr>
+                            <tr><td><span class="badge method-get">GET</span></td><td><code>/api/agents/{id}</code></td><td>&ndash;</td><td>Public metadata</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/{id}/challenge</code></td><td>&ndash;</td><td>Request an agent challenge</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/{id}/authenticate</code></td><td>Ed25519</td><td>Exchange a signature for an Agent JWT</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/verify-jwt</code></td><td>Agent JWT</td><td>Introspect a token</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/tokens/revoke</code></td><td>Agent JWT</td><td>Revoke own token</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/messages</code></td><td>Agent JWT + Ed25519</td><td>Relay a signed message</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/interactions</code></td><td>Agent JWT + Ed25519</td><td>Record an interaction</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="errors" class="doc-section">
+                <h2>⚠️ Errors</h2>
+                <p>Errors return an HTTP status and a machine-readable code:</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Error body</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{ "detail": { "agent_error": "invalid_signature" } }</pre>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Status</th><th>Typical codes</th></tr></thead>
+                        <tbody>
+                            <tr><td>400</td><td><code>invalid_public_key</code>, <code>invalid_audience</code></td></tr>
+                            <tr><td>401</td><td><code>missing_bearer</code>, <code>invalid_challenge</code>, <code>invalid_signature</code>, <code>key_mismatch</code>, <code>owner_mismatch</code>, <code>revoked_key</code>, <code>revoked_agent</code>, <code>message_signature_invalid</code>, <code>expired_message</code>, <code>message_replay</code></td></tr>
+                            <tr><td>403</td><td><code>forbidden</code>, <code>capability_denied</code></td></tr>
+                            <tr><td>404</td><td><code>unknown_agent</code>, <code>unknown_key</code></td></tr>
+                            <tr><td>409</td><td><code>duplicate</code>, <code>duplicate_public_key</code>, <code>too_many_active_keys</code></td></tr>
+                            <tr><td>429</td><td><code>rate_limited</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="security" class="doc-section">
+                <h2>🛡️ Security model</h2>
+                <ul class="doc-list">
+                    <li><strong>Private keys stay with the agent.</strong> AEra stores only public keys.</li>
+                    <li><strong>Single-use challenges.</strong> Owner challenges (120 s) and agent challenges (60 s) are bound to their context and consumed atomically.</li>
+                    <li><strong>Separate replay stores.</strong> Owner challenges, agent challenges, token IDs and message IDs each have their own replay store.</li>
+                    <li><strong>Audience separation.</strong> A relay token cannot call the API and vice versa. A2A peer credentials are never accepted as Agent JWTs, and Agent JWTs are never accepted as peer credentials.</li>
+                    <li><strong>Cascading revocation.</strong> Revoking a key or an agent immediately revokes the tokens that depend on it.</li>
+                    <li><strong>Canonical JSON.</strong> Signed payloads use a restricted canonical JSON profile, so signatures are byte-identical across languages.</li>
+                </ul>
+            </section>
+
+            <section id="not-implemented" class="doc-section">
+                <h2>🚧 Not implemented</h2>
+                <p>These items are on the roadmap and are <strong>not</strong> available today:</p>
+                <ul class="doc-list">
+                    <li>Per-request proof-of-possession nonces</li>
+                    <li>An on-chain agent registry</li>
+                    <li>Direct peer-to-peer agent transport (messages go through AEra)</li>
+                    <li>A public JWKS for agent tokens</li>
+                    <li>Capability delegation between agents</li>
+                </ul>
+            </section>
+
+            <section id="next" class="doc-section">
+                <h2>➡️ Next steps</h2>
+                <div class="doc-next">
+                    <a href="/docs/a2a.html">A2A Gateway<span>Let external agents reach your AEra agent</span></a>
+                    <a href="/docs/agent-card.html">A2A Agent Card<span>How agents discover the gateway</span></a>
+                    <a href="/sdk-docs">SDK Documentation<span>Human login &amp; OAuth for websites</span></a>
+                    <a href="/user-dashboard.html">AEra Core<span>Register and manage your agents</span></a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<!-- AERA:SHELL-FOOTER -->
+    <footer class="site-footer">
+        <div class="site-footer-grid">
+            <div>
+                <a href="/" class="site-footer-brand"><span class="site-logo-icon" aria-hidden="true">🌀</span><span>AEraLogIn</span></a>
+                <p>Identity for Humans. Identity for Agents. Trust for Agent Networks.</p>
+                <p>Live on BASE Mainnet.</p>
+            </div>
+            <div>
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="/#identity">Human Identity</a></li>
+                    <li><a href="/#agents">Agent Identity</a></li>
+                    <li><a href="/#a2a">A2A Communication</a></li>
+                    <li><a href="/#trust">Trust Assessment</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="/docs/agent-api.html">Agent API</a></li>
+                    <li><a href="/docs/a2a.html">A2A Gateway</a></li>
+                    <li><a href="/docs/agent-card.html">A2A Agent Card</a></li>
+                    <li><a href="/sdk-docs">SDK Documentation</a></li>
+                    <li><a href="/examples/snippets/basic-integration.html">Code Examples</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/security-concept.html">Security Concept</a></li>
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/user-dashboard.html">AEra Core (Agents)</a></li>
+                    <li><a href="/logo.html">Logo</a></li>
+                    <li><a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="https://x.com/AEraResonant" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>On-chain</h4>
+                <ul>
+                    <li><a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank" rel="noopener noreferrer">Identity NFT Contract</a></li>
+                    <li><a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank" rel="noopener noreferrer">Score Contract</a></li>
+                    <li><a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank" rel="noopener noreferrer">Registry Contract</a></li>
+                    <li><a href="https://base.org" target="_blank" rel="noopener noreferrer">BASE L2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="site-footer-bottom">
+            <span>&copy; 2025&ndash;2026 AEraLogIn &middot; VEra-Resonance Project &middot; Apache 2.0</span>
+            <span><a href="/privacy-policy">Privacy Policy</a> &middot; <a href="/security-concept.html">Security</a></span>
+        </div>
+    </footer>
+    <script src="/docs/assets/site-shell.js?v=20260926"></script>
+    <!-- /AERA:SHELL-FOOTER -->
+    <script src="/docs/assets/docs.js?v=20260926"></script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/favicon.png?v=20251229a">
+    <title>AEraLogIn - A2A Gateway Documentation</title>
+    <meta name="description" content="The AEra A2A gateway: standard A2A 0.3 over JSON-RPC, external peers, scoped and revocable peer credentials, replay protection, rate limiting and behaviour-based trust assessment.">
+    <link rel="canonical" href="https://aeralogin.com/docs/a2a.html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AEraLogIn">
+    <meta property="og:title" content="AEraLogIn - A2A Gateway Documentation">
+    <meta property="og:description" content="How external agents reach AEra agents through the A2A gateway, how peer credentials work, and what trust assessment does and does not do.">
+    <meta property="og:url" content="https://aeralogin.com/docs/a2a.html">
+    <meta name="twitter:card" content="summary">
+
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+
+    <link rel="stylesheet" href="/docs/assets/docs.css?v=20260926">
+    <link rel="stylesheet" href="/docs/assets/site-shell.css?v=20260926">
+</head>
+<body>
+    <div class="bg-animation" id="bgCanvas"></div>
+
+<!-- AERA:SHELL-HEADER -->
+    <a class="site-skip-link" href="#main-content">Skip to content</a>
+    <div class="site-menu-backdrop" id="siteMenuBackdrop"></div>
+    <header class="site-header">
+        <a href="/" class="site-logo" aria-label="AEraLogIn home">
+            <span class="site-logo-icon" aria-hidden="true">🌀</span>
+            <span>AEraLogIn</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Platform</button>
+                <div class="site-dropdown-menu">
+                    <a href="/#identity">Human Identity<small>Proof of Human, Identity NFT, ownership</small></a>
+                    <a href="/#agents">Agent Identity<small>Own keys, rotation, revocation</small></a>
+                    <a href="/#a2a">A2A Communication<small>Gateway, external peers</small></a>
+                    <a href="/#trust">Trust Assessment<small>Evidence-based monitoring</small></a>
+                </div>
+            </div>
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Developers</button>
+                <div class="site-dropdown-menu">
+                    <a href="/docs/agent-api.html">Agent API<small>Register, authenticate, message</small></a>
+                    <a href="/docs/a2a.html">A2A Gateway<small>JSON-RPC, peer credentials</small></a>
+                    <a href="/docs/agent-card.html">A2A Agent Card<small>Public discovery document</small></a>
+                    <a href="/sdk-docs">SDK Documentation<small>AEra Gate SDK &amp; OAuth 2.0</small></a>
+                </div>
+            </div>
+            <a href="/security-concept.html">Security</a>
+            <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="/dashboard.html">Dashboard</a>
+        </nav>
+        <button type="button" class="site-menu-toggle" id="siteMenuToggle" aria-label="Toggle menu" aria-controls="siteMobileMenu" aria-expanded="false">☰</button>
+    </header>
+    <nav class="site-mobile-menu" id="siteMobileMenu" aria-label="Mobile">
+        <span class="site-mobile-group">Platform</span>
+        <a href="/">Home</a>
+        <a href="/#identity">Human Identity</a>
+        <a href="/#agents">Agent Identity</a>
+        <a href="/#a2a">A2A Communication</a>
+        <a href="/#trust">Trust Assessment</a>
+        <span class="site-mobile-group">Developers</span>
+        <a href="/docs/agent-api.html">Agent API</a>
+        <a href="/docs/a2a.html">A2A Gateway</a>
+        <a href="/docs/agent-card.html">A2A Agent Card</a>
+        <a href="/sdk-docs">SDK Documentation</a>
+        <span class="site-mobile-group">Resources</span>
+        <a href="/security-concept.html">Security Concept</a>
+        <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/user-dashboard.html">AEra Core (Agents)</a>
+    </nav>
+    <!-- /AERA:SHELL-HEADER -->
+
+    <div class="doc-container">
+        <aside class="doc-sidebar" aria-label="On this page">
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">A2A Gateway</h4>
+                <ul>
+                    <li><a href="#overview" class="active">Overview</a></li>
+                    <li><a href="#architecture">Architecture</a></li>
+                    <li><a href="#discovery">Discovery</a></li>
+                    <li><a href="#request">Sending a request</a></li>
+                    <li><a href="#skills">Skills</a></li>
+                </ul>
+            </div>
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">External peers</h4>
+                <ul>
+                    <li><a href="#peers">Peer identity</a></li>
+                    <li><a href="#credentials">Peer credentials</a></li>
+                    <li><a href="#authorization">Authorization</a></li>
+                </ul>
+            </div>
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">Protection</h4>
+                <ul>
+                    <li><a href="#replay">Replay protection</a></li>
+                    <li><a href="#rate-limits">Rate limiting</a></li>
+                    <li><a href="#trust">Trust assessment</a></li>
+                </ul>
+            </div>
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">Reference</h4>
+                <ul>
+                    <li><a href="#errors">Errors</a></li>
+                    <li><a href="#limits">Limits &amp; scope</a></li>
+                    <li><a href="#next">Next steps</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="doc-main" id="main-content">
+            <section id="overview" class="doc-section">
+                <h1>A2A Gateway</h1>
+                <p class="doc-lead">
+                    The AEra A2A gateway lets agents <strong>outside AEra</strong> talk to AEra agents using the open <strong>Agent2Agent (A2A)</strong> protocol, without becoming AEra agents themselves.
+                </p>
+                <div class="doc-grid">
+                    <div class="doc-card"><h4>Endpoint</h4><div class="doc-card-value"><code>POST /api/a2a</code></div></div>
+                    <div class="doc-card"><h4>Discovery</h4><div class="doc-card-value"><code>/.well-known/agent-card.json</code></div></div>
+                    <div class="doc-card"><h4>Protocol</h4><div class="doc-card-value">A2A 0.3 &middot; JSON-RPC 2.0</div></div>
+                    <div class="doc-card"><h4>Method</h4><div class="doc-card-value"><code>message/send</code></div></div>
+                </div>
+                <div class="info-box">
+                    <div class="info-box-title">The gateway is a door, not a promise</div>
+                    <p>Reaching the gateway does not make a caller trusted and grants no permissions by itself. AEra resolves every target agent from its own records, never from what the caller claims.</p>
+                </div>
+            </section>
+
+            <section id="architecture" class="doc-section">
+                <h2>🗺️ Architecture</h2>
+                <div class="doc-flow" role="img" aria-label="Human owns an AEra identity, which owns an agent. The agent runs in an agent runtime behind the A2A gateway. External agents connect to the gateway as a separate trust domain.">
+                    <div class="doc-flow-node"><strong>Human</strong><span>AEra human identity &middot; wallet</span></div>
+                    <div class="doc-flow-arrow" aria-hidden="true">▼ owns</div>
+                    <div class="doc-flow-node"><strong>AEra Agent</strong><span>own Ed25519 identity &middot; <a href="/docs/agent-api.html">Agent API</a></span></div>
+                    <div class="doc-flow-arrow" aria-hidden="true">▼ runs in</div>
+                    <div class="doc-flow-node"><strong>Agent Runtime</strong><span>holds the private key &middot; produces replies</span></div>
+                    <div class="doc-flow-arrow" aria-hidden="true">▲ authenticated internal channel</div>
+                    <div class="doc-flow-node"><strong>A2A Gateway</strong><span>rate limiting &middot; validation &middot; replay protection &middot; authorization</span></div>
+                    <div class="doc-flow-arrow" aria-hidden="true">▲ standard A2A over HTTPS</div>
+                    <div class="doc-flow-node dashed"><strong>External Agent / Peer</strong><span>separate identity and trust domain</span></div>
+                </div>
+                <p>The runtime is the process that actually <em>is</em> the agent: it holds the agent's private key, authenticates to AEra and answers messages. The gateway forwards messages to it over an authenticated internal channel. Inbound message text is treated as <strong>untrusted data</strong>: it cannot grant capabilities or trigger actions.</p>
+            </section>
+
+            <section id="discovery" class="doc-section">
+                <h2>🔎 Discovery</h2>
+                <p>A2A clients start by reading the public Agent Card at <code>https://aeralogin.com/.well-known/agent-card.json</code>. It describes the endpoint, transport, supported skills and the accepted security scheme.</p>
+                <div class="doc-cta">
+                    <a class="doc-btn" href="/docs/agent-card.html">Explore the Agent Card</a>
+                    <a class="doc-btn secondary" href="/.well-known/agent-card.json">View raw Agent Card</a>
+                </div>
+            </section>
+
+            <section id="request" class="doc-section">
+                <h2>📨 Sending a request</h2>
+                <p>Send a JSON-RPC 2.0 <code>message/send</code> call. Name the AEra agent you want to reach in <code>metadata.aera_target_agent</code>. Each <code>messageId</code> must be unique.</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">cURL</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>curl -X POST https://aeralogin.com/api/a2a \
+  -H "Content-Type: application/json" \
+  -H "A2A-Version: 0.3" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "message/send",
+    "params": {
+      "message": {
+        "kind": "message",
+        "role": "user",
+        "messageId": "b3f1c2de-0000-4000-8000-000000000001",
+        "parts": [{ "kind": "text", "text": "agent.read.profile" }],
+        "metadata": { "aera_target_agent": "did:aera:agent:&lt;id&gt;" }
+      }
+    }
+  }'</pre>
+                </div>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Response 200</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "kind": "message",
+    "messageId": "…",
+    "role": "agent",
+    "parts": [
+      { "kind": "text", "text": "…" },
+      { "kind": "data", "data": { "…": "…" } }
+    ]
+  }
+}</pre>
+                </div>
+                <p>If you hold an AEra peer credential, add <code>Authorization: Bearer &lt;your peer credential&gt;</code>. Keep the credential secret and never put it in the message body.</p>
+            </section>
+
+            <section id="skills" class="doc-section">
+                <h2>🧰 Skills</h2>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Skill</th><th>What it does</th><th>Target agent needs</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>agent.read.profile</code></td><td>Returns the public profile of the target agent: identifier, status and declared capabilities.</td><td>the <code>agent.read.profile</code> capability</td></tr>
+                            <tr><td><code>agent.communicate</code></td><td>Delivers a text message to the agent's own runtime and returns its reply. Select it with <code>metadata.skillId</code>.</td><td>the <code>agent.communicate</code> capability and a running runtime</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="info-box warning">
+                    <div class="info-box-title">Advertised only when available</div>
+                    <p><code>agent.communicate</code> appears on the Agent Card only while at least one agent runtime is reachable. The <a href="/docs/agent-card.html">live Agent Card</a> always shows what is available right now.</p>
+                </div>
+            </section>
+
+            <section id="peers" class="doc-section">
+                <h2>🌐 External peers</h2>
+                <p>Every caller of the gateway is an <strong>external peer</strong>: a separate identity domain from AEra agents and from AEra humans.</p>
+                <ul class="doc-list">
+                    <li>Without a credential, a caller is an <strong>anonymous external peer</strong>. Whether anonymous calls are accepted depends on the gateway's authentication policy, which the Agent Card declares.</li>
+                    <li>With a valid AEra peer credential, the caller is an <strong>authenticated external peer</strong> with a stable peer identity.</li>
+                    <li>An external peer <strong>never becomes an AEra agent</strong>, whatever it claims about itself and however long it behaves well.</li>
+                </ul>
+                <div class="info-box">
+                    <div class="info-box-title">Human ≠ Agent ≠ External peer</div>
+                    <p>Each has its own credentials. AEra Agent JWTs are refused at the gateway, and peer credentials are refused by the Agent API.</p>
+                </div>
+            </section>
+
+            <section id="credentials" class="doc-section">
+                <h2>🎟️ Peer credentials</h2>
+                <p>An agent owner issues a credential to a named external peer through AEra's owner dashboard API, which requires the owner's signed-in dashboard session. There is no self-registration. The credential is handed to the peer out of band.</p>
+                <div class="doc-grid">
+                    <div class="doc-card"><h3>Scoped</h3><p>Limited to specific agents (which must belong to the issuing owner) and specific skills.</p></div>
+                    <div class="doc-card"><h3>Expiring</h3><p>Every credential has an expiry date.</p></div>
+                    <div class="doc-card"><h3>Revocable</h3><p>The owner can revoke it at any time, effective on the next request.</p></div>
+                    <div class="doc-card"><h3>Stable peer identity</h3><p>The peer identity survives credential rotation, so history stays with the peer.</p></div>
+                </div>
+                <p>The credential is an opaque bearer secret, shown to the owner <strong>once</strong> at issuance. AEra stores only a one-way hash of it.</p>
+            </section>
+
+            <section id="authorization" class="doc-section">
+                <h2>✅ Authorization</h2>
+                <p>Authentication answers <em>who</em> is calling. Authorization is a separate step that decides <em>what</em> they may reach:</p>
+                <ol class="doc-list">
+                    <li>The target agent must exist, be active and hold the capability for the requested skill.</li>
+                    <li>For an authenticated peer, the target agent and skill must both be inside the credential's scope.</li>
+                    <li>Expired or revoked credentials are refused. No other signal can revive them.</li>
+                </ol>
+            </section>
+
+            <section id="replay" class="doc-section">
+                <h2>🔁 Replay protection</h2>
+                <p>Each inbound <code>messageId</code> is accepted once. A duplicate within the replay window (10 minutes) is refused, and requests with timestamps that are too old or too far in the future are rejected.</p>
+            </section>
+
+            <section id="rate-limits" class="doc-section">
+                <h2>⏱️ Rate limiting</h2>
+                <p>The gateway checks a global budget and a per-caller budget <strong>before</strong> it reads the request body, and a per-target budget before it contacts an agent. Refused requests get HTTP <code>429</code> with a <code>Retry-After</code> header and JSON-RPC error <code>-32010</code>. The response does not reveal which limit was hit.</p>
+            </section>
+
+            <section id="trust" class="doc-section">
+                <h2>📈 Trust assessment</h2>
+                <p>AEra derives trust assessments from <strong>observable evidence</strong>. For authenticated external peers, AEra can record security metadata about requests it has already authenticated (successful requests, denied authorizations, rejected replays, rate-limit hits, invalid requests) and compute an assessment from that evidence.</p>
+                <div class="doc-grid">
+                    <div class="doc-card"><h3>Level</h3><p><code>untrusted</code>, <code>unknown</code>, <code>minimal</code>, <code>limited</code> or <code>established</code>. New peers start as <code>unknown</code>.</p></div>
+                    <div class="doc-card"><h3>Confidence</h3><p>How much evidence exists. A high level requires enough evidence, so silence is never mistaken for a good reputation.</p></div>
+                    <div class="doc-card"><h3>Derived, not declared</h3><p>Trust claims sent by a caller are ignored. An owner's standing is one bounded input and never decides the result alone.</p></div>
+                    <div class="doc-card"><h3>Private</h3><p>Only the owner of the agents a peer talks to can see the assessment. It is not published on the public Agent Card.</p></div>
+                </div>
+                <div class="info-box warning">
+                    <div class="info-box-title">Monitoring, not enforcement</div>
+                    <p>Trust assessment runs <strong>independently</strong> of authentication and authorization. It does not replace credential validation, scope checks, revocation, replay protection or rate limiting, and it does <strong>not</strong> change any access decision today. There is no enforcement mode. Evidence is only recorded while the operator runs the gateway in observation mode.</p>
+                </div>
+            </section>
+
+            <section id="errors" class="doc-section">
+                <h2>⚠️ Errors</h2>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>-32700</code></td><td>Parse error (invalid JSON)</td></tr>
+                            <tr><td><code>-32600</code></td><td>Invalid request (e.g. body over 64 KB)</td></tr>
+                            <tr><td><code>-32601</code></td><td>Method not found</td></tr>
+                            <tr><td><code>-32602</code></td><td>Invalid params</td></tr>
+                            <tr><td><code>-32004</code></td><td>Unsupported operation (a known A2A method that is not implemented)</td></tr>
+                            <tr><td><code>-32005</code></td><td>Content type not supported</td></tr>
+                            <tr><td><code>-32009</code></td><td>A2A version not supported</td></tr>
+                            <tr><td><code>-32010</code></td><td>Rate limit exceeded (with HTTP 429 and <code>Retry-After</code>)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="limits" class="doc-section">
+                <h2>📏 Limits &amp; scope</h2>
+                <ul class="doc-list">
+                    <li>Request body: at most 64 KB. Up to 16 parts, 8,000 characters of text and 20 metadata keys.</li>
+                    <li>Input: <code>text/plain</code>. Output: <code>text/plain</code> and <code>application/json</code>.</li>
+                    <li><strong>Not supported:</strong> streaming (<code>message/stream</code>), push notifications, task retrieval or cancellation (<code>tasks/*</code>), the authenticated extended card, gRPC and HTTP+JSON transports.</li>
+                </ul>
+            </section>
+
+            <section id="next" class="doc-section">
+                <h2>➡️ Next steps</h2>
+                <div class="doc-next">
+                    <a href="/docs/agent-card.html">A2A Agent Card<span>The live discovery document, explained</span></a>
+                    <a href="/docs/agent-api.html">Agent API<span>Create the agent that peers talk to</span></a>
+                    <a href="/sdk-docs">SDK Documentation<span>Human login for your website</span></a>
+                    <a href="/user-dashboard.html">AEra Core<span>Register and manage your agents</span></a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<!-- AERA:SHELL-FOOTER -->
+    <footer class="site-footer">
+        <div class="site-footer-grid">
+            <div>
+                <a href="/" class="site-footer-brand"><span class="site-logo-icon" aria-hidden="true">🌀</span><span>AEraLogIn</span></a>
+                <p>Identity for Humans. Identity for Agents. Trust for Agent Networks.</p>
+                <p>Live on BASE Mainnet.</p>
+            </div>
+            <div>
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="/#identity">Human Identity</a></li>
+                    <li><a href="/#agents">Agent Identity</a></li>
+                    <li><a href="/#a2a">A2A Communication</a></li>
+                    <li><a href="/#trust">Trust Assessment</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="/docs/agent-api.html">Agent API</a></li>
+                    <li><a href="/docs/a2a.html">A2A Gateway</a></li>
+                    <li><a href="/docs/agent-card.html">A2A Agent Card</a></li>
+                    <li><a href="/sdk-docs">SDK Documentation</a></li>
+                    <li><a href="/examples/snippets/basic-integration.html">Code Examples</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/security-concept.html">Security Concept</a></li>
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/user-dashboard.html">AEra Core (Agents)</a></li>
+                    <li><a href="/logo.html">Logo</a></li>
+                    <li><a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="https://x.com/AEraResonant" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>On-chain</h4>
+                <ul>
+                    <li><a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank" rel="noopener noreferrer">Identity NFT Contract</a></li>
+                    <li><a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank" rel="noopener noreferrer">Score Contract</a></li>
+                    <li><a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank" rel="noopener noreferrer">Registry Contract</a></li>
+                    <li><a href="https://base.org" target="_blank" rel="noopener noreferrer">BASE L2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="site-footer-bottom">
+            <span>&copy; 2025&ndash;2026 AEraLogIn &middot; VEra-Resonance Project &middot; Apache 2.0</span>
+            <span><a href="/privacy-policy">Privacy Policy</a> &middot; <a href="/security-concept.html">Security</a></span>
+        </div>
+    </footer>
+    <script src="/docs/assets/site-shell.js?v=20260926"></script>
+    <!-- /AERA:SHELL-FOOTER -->
+    <script src="/docs/assets/docs.js?v=20260926"></script>
+</body>
+</html>

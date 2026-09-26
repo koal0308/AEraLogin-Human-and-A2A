@@ -1,0 +1,2117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="/favicon.png?v=20251229a">
+    <title>AEraLogIn - SDK Documentation</title>
+    <meta name="description" content="AEra Gate SDK and OAuth 2.0: add AEra human identity login and NFT-gated access to your website, and find the Agent API and A2A gateway for autonomous agents.">
+    <link rel="canonical" href="https://aeralogin.com/sdk-docs">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AEraLogIn">
+    <meta property="og:title" content="AEraLogIn - SDK Documentation">
+    <meta property="og:description" content="Integrate AEra human identity with the AEra Gate SDK and OAuth 2.0.">
+    <meta property="og:url" content="https://aeralogin.com/sdk-docs">
+    <meta name="twitter:card" content="summary">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #0052ff;
+            --secondary: #00d4ff;
+            --dark: #0a0e27;
+            --darker: #050814;
+            --light: #f0f4ff;
+            --accent: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            min-height: 100vh;
+            color: var(--light);
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background - Canvas Particles */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .bg-animation canvas {
+            display: block;
+        }
+        
+        /* Header */
+        header {
+            padding: 0.79rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.8);
+            width: 100%;
+            margin: 0;
+        }
+
+        .logo {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 2.7rem;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: currentColor !important;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            color: var(--secondary);
+            opacity: 1;
+        }
+        
+        nav a.active {
+            color: var(--secondary);
+            opacity: 1;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--light);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        .menu-toggle:hover {
+            color: var(--secondary);
+        }
+
+        /* Mobile Menu */
+        .nav-menu.mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            backdrop-filter: blur(20px);
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 5rem 2rem 2rem;
+            gap: 1.5rem;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+            border-left: 1px solid rgba(99, 102, 241, 0.3);
+            overflow-y: auto;
+        }
+
+        .nav-menu.mobile-menu.active {
+            right: 0;
+        }
+
+        .nav-menu.mobile-menu a {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu.mobile-menu a:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Menu Backdrop */
+        .menu-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            nav.nav-menu:not(.mobile-menu) {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 2rem;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 40px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sidebar-section {
+            margin-bottom: 28px;
+        }
+        
+        .sidebar-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .sidebar-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--secondary);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        
+        .sidebar-links {
+            list-style: none;
+        }
+        
+        .sidebar-links li {
+            margin-bottom: 4px;
+        }
+        
+        .sidebar-links a {
+            display: block;
+            color: rgba(240, 244, 255, 0.6);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-left: 2px solid transparent;
+            font-size: 0.9rem;
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-links a:hover,
+        .sidebar-links a.active {
+            color: var(--light);
+            border-left-color: var(--secondary);
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 100%;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 15px 50px rgba(0, 82, 255, 0.15);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--light), var(--secondary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            font-weight: 700;
+        }
+        
+        h3 {
+            font-size: 1.15rem;
+            margin: 28px 0 14px;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+        
+        p {
+            color: rgba(240, 244, 255, 0.7);
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+        
+        /* Code Blocks */
+        .code-block {
+            background: rgba(5, 8, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .code-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-lang {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .copy-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .copy-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 82, 255, 0.3);
+        }
+        
+        .code-content {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .code-content code {
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: #e6edf3;
+        }
+        
+        .code-content .comment { color: #6b7280; font-style: italic; }
+        .code-content .string { color: var(--secondary); }
+        .code-content .keyword { color: #f472b6; }
+        .code-content .function { color: #a78bfa; }
+        .code-content .property { color: #60a5fa; }
+        .code-content .number { color: #fbbf24; }
+        
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        th {
+            background: rgba(0, 82, 255, 0.15);
+            color: var(--light);
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+        }
+        
+        td {
+            color: rgba(240, 244, 255, 0.7);
+        }
+        
+        td code {
+            background: rgba(0, 212, 255, 0.15);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+        
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        /* Info Boxes */
+        .info-box {
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 20px 0;
+        }
+        
+        .info-box.warning {
+            background: rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .info-box.success {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .info-box-title {
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--light);
+            font-size: 1rem;
+        }
+        
+        .info-box ul {
+            margin-left: 24px;
+            color: rgba(240, 244, 255, 0.7);
+        }
+        
+        .info-box ul li {
+            margin-bottom: 6px;
+            line-height: 1.6;
+        }
+        
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        
+        .badge.required {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        
+        .badge.optional {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--secondary);
+        }
+        
+        /* Links */
+        a {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        a:hover {
+            color: var(--light);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 24px;
+            }
+        }
+
+        /* Mobile Optimizations for SDK Docs */
+        @media (max-width: 768px) {
+            /* Overall container padding */
+            .container {
+                padding: 1rem 3% !important;
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            /* Main content area */
+            .main-content {
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+
+            /* All sections */
+            .section {
+                padding: 1rem !important;
+                margin-bottom: 1.5rem !important;
+                border-radius: 12px !important;
+            }
+
+            /* Main heading */
+            h1 {
+                font-size: 1.8rem !important;
+            }
+
+            /* Section headings */
+            h2 {
+                font-size: 1.3rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            /* Sub-headings */
+            h3 {
+                font-size: 1rem !important;
+                margin: 1rem 0 0.75rem !important;
+            }
+
+            /* Paragraphs */
+            p {
+                font-size: 0.9rem !important;
+                line-height: 1.6 !important;
+            }
+
+            /* Code blocks */
+            .code-block {
+                margin: 1rem 0 !important;
+                border-radius: 8px !important;
+            }
+
+            .code-header {
+                padding: 0.75rem 1rem !important;
+            }
+
+            .code-lang {
+                font-size: 0.75rem !important;
+            }
+
+            .copy-btn {
+                font-size: 0.7rem !important;
+                padding: 5px 10px !important;
+            }
+
+            .code-content {
+                padding: 0.75rem !important;
+            }
+
+            .code-content code {
+                font-size: 0.7rem !important;
+                line-height: 1.5 !important;
+                word-break: break-word !important;
+            }
+
+            /* Tables */
+            .table-container {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                margin: 1rem -1rem !important;
+                padding: 0 1rem !important;
+            }
+
+            table {
+                font-size: 0.75rem !important;
+                min-width: 500px !important;
+            }
+
+            th, td {
+                padding: 8px 10px !important;
+                font-size: 0.75rem !important;
+            }
+
+            td code {
+                font-size: 0.7rem !important;
+                padding: 2px 6px !important;
+            }
+
+            /* Info boxes */
+            .info-box {
+                padding: 1rem !important;
+                margin: 1rem 0 !important;
+                border-radius: 8px !important;
+            }
+
+            .info-box-title {
+                font-size: 0.9rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            .info-box p {
+                font-size: 0.85rem !important;
+            }
+
+            .info-box ul {
+                font-size: 0.85rem !important;
+                margin-left: 1.25rem !important;
+            }
+
+            .info-box ul li {
+                margin-bottom: 0.5rem !important;
+            }
+
+            /* Badges */
+            .badge {
+                font-size: 0.65rem !important;
+                padding: 3px 8px !important;
+            }
+
+            /* SPECIFIC TARGETING - Like landing.html */
+            
+            /* "Ready to Get Started" CTA Box - blue gradient */
+            section div[style*="background: linear-gradient"][style*="rgba(0, 82, 255"][style*="text-align: center"] {
+                padding: 1.5rem !important;
+                margin: 1.5rem 0 !important;
+            }
+
+            section div[style*="background: linear-gradient"][style*="rgba(0, 82, 255"] h2 {
+                font-size: 1.4rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            section div[style*="background: linear-gradient"][style*="rgba(0, 82, 255"] p {
+                font-size: 0.9rem !important;
+                margin-bottom: 1rem !important;
+                max-width: 100% !important;
+            }
+
+            /* Buttons in CTA box */
+            section div[style*="background: linear-gradient"][style*="rgba(0, 82, 255"] div[style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+            }
+
+            section div[style*="background: linear-gradient"][style*="rgba(0, 82, 255"] div[style*="display: flex"] a {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 0.85rem 1.5rem !important;
+                font-size: 0.9rem !important;
+                margin: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+            }
+
+            /* OAuth 2.0 Integration Box - cyan with border-left */
+            section div[style*="background: rgba(0, 212, 255"][style*="border-left: 4px solid"] {
+                padding: 1.5rem !important;
+                margin: 1.5rem 0 !important;
+            }
+
+            /* OAuth heading with icon */
+            section div[style*="border-left: 4px solid"] div[style*="display: flex"][style*="align-items: center"] {
+                flex-direction: row !important;
+                gap: 0.5rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            section div[style*="border-left: 4px solid"] div[style*="display: flex"][style*="align-items: center"] span {
+                font-size: 2rem !important;
+            }
+
+            section div[style*="border-left: 4px solid"] div[style*="display: flex"][style*="align-items: center"] h2 {
+                font-size: 1.3rem !important;
+                margin: 0 !important;
+            }
+
+            section div[style*="border-left: 4px solid"] > p {
+                font-size: 0.9rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            /* OAuth nested containers */
+            section div[style*="border-left: 4px solid"] div[style*="margin-top: 24px"] {
+                margin-top: 1.5rem !important;
+            }
+
+            section div[style*="border-left: 4px solid"] div[style*="margin-top: 24px"] h3 {
+                font-size: 1.1rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            section div[style*="border-left: 4px solid"] div[style*="margin-top: 24px"] p {
+                font-size: 0.85rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            /* OAuth Demo Buttons */
+            section div[style*="border-left: 4px solid"] div[style*="display: flex"][style*="gap: 12px"] {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+            }
+
+            section div[style*="border-left: 4px solid"] div[style*="display: flex"][style*="gap: 12px"] a {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 0.75rem 1.25rem !important;
+                font-size: 0.85rem !important;
+                margin: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+            }
+
+            /* Generic styled divs with padding */
+            section div[style*="padding: 32px"] {
+                padding: 1.5rem !important;
+            }
+
+            section div[style*="padding: 24px"] {
+                padding: 1.25rem !important;
+            }
+
+            section div[style*="padding: 20px"] {
+                padding: 1rem !important;
+            }
+
+            /* All paragraphs with max-width */
+            section p[style*="max-width"] {
+                max-width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            /* All divs with max-width */
+            section div[style*="max-width"] {
+                max-width: 100% !important;
+            }
+
+            /* Generic flex containers */
+            section div[style*="display: flex"][style*="justify-content: center"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+
+            section div[style*="display: flex"][style*="flex-wrap: wrap"] {
+                flex-direction: column !important;
+            }
+
+            /* All inline-styled links/buttons */
+            section a[style*="padding"] {
+                padding: 0.75rem 1rem !important;
+                font-size: 0.85rem !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                margin: 0.5rem 0 !important;
+            }
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+        
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .section {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .section:nth-child(1) { animation-delay: 0.1s; }
+        .section:nth-child(2) { animation-delay: 0.2s; }
+        .section:nth-child(3) { animation-delay: 0.3s; }
+    </style>
+    <link rel="stylesheet" href="/docs/assets/site-shell.css?v=20260926">
+</head>
+<body>
+    <div class="bg-animation" id="bgCanvas"></div>
+    
+<!-- AERA:SHELL-HEADER -->
+    <a class="site-skip-link" href="#main-content">Skip to content</a>
+    <div class="site-menu-backdrop" id="siteMenuBackdrop"></div>
+    <header class="site-header">
+        <a href="/" class="site-logo" aria-label="AEraLogIn home">
+            <span class="site-logo-icon" aria-hidden="true">🌀</span>
+            <span>AEraLogIn</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Platform</button>
+                <div class="site-dropdown-menu">
+                    <a href="/#identity">Human Identity<small>Proof of Human, Identity NFT, ownership</small></a>
+                    <a href="/#agents">Agent Identity<small>Own keys, rotation, revocation</small></a>
+                    <a href="/#a2a">A2A Communication<small>Gateway, external peers</small></a>
+                    <a href="/#trust">Trust Assessment<small>Evidence-based monitoring</small></a>
+                </div>
+            </div>
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Developers</button>
+                <div class="site-dropdown-menu">
+                    <a href="/docs/agent-api.html">Agent API<small>Register, authenticate, message</small></a>
+                    <a href="/docs/a2a.html">A2A Gateway<small>JSON-RPC, peer credentials</small></a>
+                    <a href="/docs/agent-card.html">A2A Agent Card<small>Public discovery document</small></a>
+                    <a href="/sdk-docs">SDK Documentation<small>AEra Gate SDK &amp; OAuth 2.0</small></a>
+                </div>
+            </div>
+            <a href="/security-concept.html">Security</a>
+            <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="/dashboard.html">Dashboard</a>
+        </nav>
+        <button type="button" class="site-menu-toggle" id="siteMenuToggle" aria-label="Toggle menu" aria-controls="siteMobileMenu" aria-expanded="false">☰</button>
+    </header>
+    <nav class="site-mobile-menu" id="siteMobileMenu" aria-label="Mobile">
+        <span class="site-mobile-group">Platform</span>
+        <a href="/">Home</a>
+        <a href="/#identity">Human Identity</a>
+        <a href="/#agents">Agent Identity</a>
+        <a href="/#a2a">A2A Communication</a>
+        <a href="/#trust">Trust Assessment</a>
+        <span class="site-mobile-group">Developers</span>
+        <a href="/docs/agent-api.html">Agent API</a>
+        <a href="/docs/a2a.html">A2A Gateway</a>
+        <a href="/docs/agent-card.html">A2A Agent Card</a>
+        <a href="/sdk-docs">SDK Documentation</a>
+        <span class="site-mobile-group">Resources</span>
+        <a href="/security-concept.html">Security Concept</a>
+        <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/user-dashboard.html">AEra Core (Agents)</a>
+    </nav>
+    <!-- /AERA:SHELL-HEADER -->
+    
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Getting Started</h4>
+                <ul class="sidebar-links">
+                    <li><a href="#introduction" class="active">Introduction</a></li>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#quick-start">Quick Start</a></li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">JavaScript SDK</h4>
+                <ul class="sidebar-links">
+                    <li><a href="#init">AEraGate.init()</a></li>
+                    <li><a href="#login">AEraGate.login()</a></li>
+                    <li><a href="#logout">AEraGate.logout()</a></li>
+                    <li><a href="#getuser">AEraGate.getUser()</a></li>
+                    <li><a href="#events">Events</a></li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Server Integration</h4>
+                <ul class="sidebar-links">
+                    <li><a href="#register-app">Register Your App</a></li>
+                    <li><a href="#oauth">OAuth Flow</a></li>
+                    <li><a href="#api-verify">API Verification</a></li>
+                    <li><a href="#middleware">Middleware</a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Agents &amp; A2A</h4>
+                <ul class="sidebar-links">
+                    <li><a href="#agents">Humans vs. agents</a></li>
+                    <li><a href="/docs/agent-api.html">Agent API &rarr;</a></li>
+                    <li><a href="/docs/a2a.html">A2A Gateway &rarr;</a></li>
+                    <li><a href="/docs/agent-card.html">A2A Agent Card &rarr;</a></li>
+                </ul>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content" id="main-content">
+            <!-- Introduction -->
+            <section id="introduction" class="section">
+                <h1>AEra Gate SDK</h1>
+                <p>
+                    The AEra Gate SDK brings the <strong>AEra human identity layer</strong> to your website. Users sign in with their wallet, AEra verifies that they own an AEra Identity NFT, and you can protect content or entire member areas with NFT-based access control.
+                </p>
+                <p>
+                    This page covers the <strong>human</strong> side: the JavaScript SDK and OAuth 2.0. Autonomous agents have their own identity; see <a href="#agents">Humans vs. agents</a>.
+                </p>
+                
+                <div class="info-box success">
+                    <div class="info-box-title">✨ Benefits</div>
+                    <ul>
+                        <li>No custom login system required</li>
+                        <li>Decentralized authentication via wallet</li>
+                        <li>Automatic protection of HTML elements</li>
+                        <li>Easy integration in 5 minutes</li>
+                    </ul>
+                </div>
+                
+                <!-- Quick Start CTA -->
+                <div style="background: linear-gradient(135deg, rgba(0, 82, 255, 0.1), rgba(99, 102, 241, 0.15)); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 16px; padding: 32px; margin-top: 32px; text-align: center;">
+                    <h2 style="font-size: 1.8rem; margin-bottom: 16px; color: var(--light);">🎯 Ready to Get Started?</h2>
+                    <p style="max-width: 600px; margin: 0 auto 24px; font-size: 1.05rem; color: rgba(240, 244, 255, 0.9);">
+                        Integrate AEra Gate in minutes and offer your users a secure, decentralized authentication experience.
+                    </p>
+                    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                        <a href="#quick-start" style="padding: 14px 28px; font-size: 1rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s;">
+                            📋 View Example
+                        </a>
+                        <a href="/example-oauth/" target="_blank" rel="noopener noreferrer" style="padding: 14px 28px; font-size: 1rem; border: 2px solid var(--secondary); border-radius: 8px; color: var(--secondary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s;">
+                            🛡️ Try AEra Login
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- OAuth 2.0 Integration Section -->
+                <div style="background: rgba(0, 212, 255, 0.08); border: 1px solid rgba(0, 212, 255, 0.3); border-left: 4px solid var(--secondary); border-radius: 16px; padding: 32px; margin-top: 32px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <span style="font-size: 2.5rem;">🔐</span>
+                        <h2 style="font-size: 1.8rem; margin: 0; color: var(--light);">OAuth 2.0 Integration</h2>
+                    </div>
+                    <p style="font-size: 1.05rem; color: rgba(240, 244, 255, 0.9); margin-bottom: 20px; line-height: 1.7;">
+                        Enable third-party applications to authenticate users with AEraLogIn OAuth 2.0. Perfect for MiniApps, integrations, and external services.
+                    </p>
+                    
+                    <div class="info-box" style="background: rgba(99, 102, 241, 0.1); border-color: var(--accent);">
+                        <div class="info-box-title">🚀 OAuth Features</div>
+                        <ul>
+                            <li><strong>Standard OAuth 2.0 Flow:</strong> Industry-standard authorization code flow</li>
+                            <li><strong>Smart Wallet Support:</strong> Works with Coinbase Smart Wallet & BASE App</li>
+                            <li><strong>Identity NFT Verification:</strong> Automatic NFT ownership validation</li>
+                            <li><strong>Secure Sessions:</strong> JWT-based token management with configurable expiry</li>
+                            <li><strong>Developer Dashboard:</strong> Register and manage OAuth applications</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 24px;">
+                        <h3 style="font-size: 1.3rem; margin-bottom: 12px; color: var(--light);">📱 Try Live Demo</h3>
+                        <p style="font-size: 0.95rem; color: rgba(240, 244, 255, 0.85); margin-bottom: 16px;">
+                            Experience OAuth authentication in action with our interactive MiniApp demo:
+                        </p>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <a href="https://aera-miniapp-demo.vercel.app/app" target="_blank" rel="noopener noreferrer" style="padding: 12px 24px; background: linear-gradient(135deg, var(--secondary), #0088cc); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s;">
+                                <span>🚀</span>
+                                <span>Open OAuth Demo App</span>
+                                <span style="font-size: 1.1rem;">↗</span>
+                            </a>
+                            <a href="/dashboard" style="padding: 12px 24px; border: 2px solid var(--secondary); border-radius: 8px; color: var(--secondary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s;">
+                                <span>⚙️</span>
+                                <span>Register OAuth App</span>
+                            </a>
+                        </div>
+                        <p style="font-size: 0.85rem; color: rgba(240, 244, 255, 0.6); margin-top: 12px;">
+                            ℹ️ Requires AEra Identity NFT • The full server-side flow is documented in <a href="#oauth">OAuth 2.0 Flow</a>
+                        </p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Installation -->
+            <section id="installation" class="section">
+                <h2>🔧 Installation</h2>
+                
+                <h3>Via CDN (Recommended)</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">HTML</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="keyword">&lt;script</span> <span class="property">src</span>=<span class="string">"https://aeralogin.com/sdk/aera-gate.js"</span><span class="keyword">&gt;&lt;/script&gt;</span></code>
+                    </div>
+                </div>
+                
+                <h3>Via NPM</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Terminal</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code>npm install @aera/gate-sdk</code>
+                    </div>
+                </div>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JavaScript</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="keyword">import</span> { AEraGate } <span class="keyword">from</span> <span class="string">'@aera/gate-sdk'</span>;</code>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Quick Start -->
+            <section id="quick-start" class="section">
+                <h2>🚀 Quick Start</h2>
+                
+                <p>
+                    The simplest setup requires only a few lines of code. The SDK 
+                    automatically protects all elements with the <code>data-aera-protect</code> attribute.
+                </p>
+                
+                <div class="info-box">
+                    <div class="info-box-title">💡 Attribute Names</div>
+                    <p>
+                        Both <code>data-aera-protect</code> and <code>data-aera-protected</code> are supported.
+                        Use whichever fits your coding style better.
+                    </p>
+                </div>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">HTML</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="comment">&lt;!-- Public Content --&gt;</span>
+<span class="keyword">&lt;div&gt;</span>This content is visible to everyone.<span class="keyword">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Protected Content --&gt;</span>
+<span class="keyword">&lt;div</span> <span class="property">data-aera-protect</span><span class="keyword">&gt;</span>
+  Only visible to NFT holders!
+<span class="keyword">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Protected with minimum score --&gt;</span>
+<span class="keyword">&lt;div</span> <span class="property">data-aera-protect</span> <span class="property">data-min-score</span>=<span class="string">"50"</span><span class="keyword">&gt;</span>
+  Requires Score ≥ 50
+<span class="keyword">&lt;/div&gt;</span>
+
+<span class="comment">&lt;!-- Load and initialize SDK --&gt;</span>
+<span class="keyword">&lt;script</span> <span class="property">src</span>=<span class="string">"https://aeralogin.com/sdk/aera-gate.js"</span><span class="keyword">&gt;&lt;/script&gt;</span>
+<span class="keyword">&lt;script&gt;</span>
+  AEraGate.<span class="function">init</span>({
+    <span class="property">clientId</span>: <span class="string">'your-client-id'</span>,
+    <span class="property">autoProtect</span>: <span class="keyword">true</span>
+  });
+<span class="keyword">&lt;/script&gt;</span></code>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- AEraGate.init() -->
+            <section id="init" class="section">
+                <h2>⚙️ AEraGate.init(options)</h2>
+                <p>Initializes the SDK with the specified options.</p>
+                
+                <h3>Parameters</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>clientId</code> <span class="badge required">Required</span></td>
+                                <td>string</td>
+                                <td>-</td>
+                                <td>Your Client ID from the AEra Dashboard</td>
+                            </tr>
+                            <tr>
+                                <td><code>autoProtect</code></td>
+                                <td>boolean</td>
+                                <td><code>true</code></td>
+                                <td>Automatically protect elements with data-aera-protected</td>
+                            </tr>
+                            <tr>
+                                <td><code>mode</code></td>
+                                <td>string</td>
+                                <td><code>'modal'</code></td>
+                                <td>Login mode: 'modal' or 'redirect'</td>
+                            </tr>
+                            <tr>
+                                <td><code>theme</code></td>
+                                <td>string</td>
+                                <td><code>'dark'</code></td>
+                                <td>UI theme: 'dark' or 'light'</td>
+                            </tr>
+                            <tr>
+                                <td><code>requireNFT</code></td>
+                                <td>boolean</td>
+                                <td><code>true</code></td>
+                                <td>NFT ownership required</td>
+                            </tr>
+                            <tr>
+                                <td><code>minScore</code></td>
+                                <td>number</td>
+                                <td><code>0</code></td>
+                                <td>Minimum Resonance Score</td>
+                            </tr>
+                            <tr>
+                                <td><code>onAuthenticated</code></td>
+                                <td>function</td>
+                                <td>-</td>
+                                <td>Callback after successful authentication</td>
+                            </tr>
+                            <tr>
+                                <td><code>onLogout</code></td>
+                                <td>function</td>
+                                <td>-</td>
+                                <td>Callback after logout</td>
+                            </tr>
+                            <tr>
+                                <td><code>onError</code></td>
+                                <td>function</td>
+                                <td>-</td>
+                                <td>Callback on errors</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3>Example</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JavaScript</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code>AEraGate.<span class="function">init</span>({
+  <span class="property">clientId</span>: <span class="string">'my-website-client'</span>,
+  <span class="property">autoProtect</span>: <span class="keyword">true</span>,
+  <span class="property">mode</span>: <span class="string">'modal'</span>,
+  <span class="property">theme</span>: <span class="string">'dark'</span>,
+  <span class="property">minScore</span>: <span class="number">50</span>,
+  
+  <span class="function">onAuthenticated</span>: <span class="keyword">function</span>(user) {
+    <span class="keyword">console</span>.<span class="function">log</span>(<span class="string">'Welcome!'</span>, user.wallet);
+    <span class="keyword">console</span>.<span class="function">log</span>(<span class="string">'Score:'</span>, user.score);
+  },
+  
+  <span class="function">onLogout</span>: <span class="keyword">function</span>() {
+    <span class="keyword">console</span>.<span class="function">log</span>(<span class="string">'Goodbye!'</span>);
+  },
+  
+  <span class="function">onError</span>: <span class="keyword">function</span>(error) {
+    <span class="keyword">console</span>.<span class="function">error</span>(<span class="string">'Error:'</span>, error);
+  }
+});</code>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- AEraGate.login() -->
+            <section id="login" class="section">
+                <h2>🔐 AEraGate.login(options)</h2>
+                <p>Starts the login process. Opens a modal or redirects to the AEra Login page depending on configuration.</p>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JavaScript</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="comment">// Simple call</span>
+AEraGate.<span class="function">login</span>();
+
+<span class="comment">// With options</span>
+AEraGate.<span class="function">login</span>({
+  <span class="property">returnUrl</span>: <span class="string">'/dashboard'</span>,
+  <span class="property">forceModal</span>: <span class="keyword">true</span>
+});</code>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- AEraGate.logout() -->
+            <section id="logout" class="section">
+                <h2>🚪 AEraGate.logout()</h2>
+                <p>Ends the current session and removes all stored tokens.</p>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JavaScript</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code>AEraGate.<span class="function">logout</span>();</code>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- AEraGate.getUser() -->
+            <section id="getuser" class="section">
+                <h2>👤 AEraGate.getUser()</h2>
+                <p>Returns the data of the currently authenticated user, or <code>null</code> if not authenticated.</p>
+                
+                <h3>Return Value</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JavaScript</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="keyword">const</span> user = AEraGate.<span class="function">getUser</span>();
+
+<span class="comment">// user object:</span>
+{
+  <span class="property">wallet</span>: <span class="string">"0x1234...5678"</span>,       <span class="comment">// Wallet address</span>
+  <span class="property">score</span>: <span class="number">150</span>,                     <span class="comment">// Resonance Score</span>
+  <span class="property">hasNFT</span>: <span class="keyword">true</span>,                   <span class="comment">// Has AEra Identity NFT</span>
+  <span class="property">token</span>: <span class="string">"eyJ..."</span>,                <span class="comment">// Session Token</span>
+  <span class="property">expiresAt</span>: <span class="string">"2025-12-08T..."</span>    <span class="comment">// Token expiry</span>
+}</code>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Events -->
+            <section id="events" class="section">
+                <h2>📡 Events</h2>
+                <p>
+                    Das SDK löst Events aus, auf die Sie reagieren können. Verwenden Sie 
+                    <code>AEraGate.on()</code> um Event-Listener zu registrieren.
+                </p>
+                
+                <h3>Verfügbare Events</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Beschreibung</th>
+                                <th>Callback Parameter</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>login</code></td>
+                                <td>Benutzer hat sich erfolgreich angemeldet</td>
+                                <td><code>{ wallet, score, hasNFT }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>logout</code></td>
+                                <td>Benutzer hat sich abgemeldet</td>
+                                <td><code>{ wallet }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>sessionExpired</code></td>
+                                <td>Session Token ist abgelaufen</td>
+                                <td><code>{ wallet, expiredAt }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>error</code></td>
+                                <td>Ein Fehler ist aufgetreten</td>
+                                <td><code>{ code, message }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3>Beispiel</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JavaScript</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="comment">// Login-Event abfangen</span>
+AEraGate.<span class="function">on</span>(<span class="string">'login'</span>, (user) => {
+  console.<span class="function">log</span>(<span class="string">'User logged in:'</span>, user.wallet);
+  console.<span class="function">log</span>(<span class="string">'Resonance Score:'</span>, user.score);
+});
+
+<span class="comment">// Session-Ablauf behandeln</span>
+AEraGate.<span class="function">on</span>(<span class="string">'sessionExpired'</span>, (data) => {
+  console.<span class="function">log</span>(<span class="string">'Session expired, please login again'</span>);
+  <span class="comment">// Optionaler Re-Login</span>
+  AEraGate.<span class="function">login</span>();
+});
+
+<span class="comment">// Fehlerbehandlung</span>
+AEraGate.<span class="function">on</span>(<span class="string">'error'</span>, (error) => {
+  console.<span class="function">error</span>(<span class="string">'AEra Error:'</span>, error.message);
+});</code>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Register Your App -->
+            <section id="register-app" class="section">
+                <h2>📱 Register Your Application</h2>
+                <p>
+                    Before using the OAuth flow, you need to register your application to get a 
+                    <code>client_id</code> and <code>client_secret</code>.
+                </p>
+                
+                <div class="info-box success">
+                    <div class="info-box-title">✅ Prerequisites</div>
+                    <ul>
+                        <li>An AEra Identity NFT (mint one at <a href="/user-dashboard">AEraCore Dashboard</a>)</li>
+                        <li>Your website URL and callback URL ready</li>
+                    </ul>
+                </div>
+                
+                <h3>Option 1: Via Dashboard (Recommended)</h3>
+                <p>
+                    1. Go to <a href="/user-dashboard">AEraCore Dashboard</a><br>
+                    2. Connect your wallet and sign in<br>
+                    3. Navigate to "SDK Apps" section<br>
+                    4. Click "Register New App" and fill in the details<br>
+                    5. Copy and securely store your <code>client_id</code> and <code>client_secret</code>
+                </p>
+                
+                <h3>Option 2: Via API</h3>
+                <p>Register programmatically using a JWT token from dashboard login:</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">HTTP Request</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code>POST https://aeralogin.com/api/oauth/my-apps/register
+Authorization: Bearer &lt;your_dashboard_jwt_token&gt;
+Content-Type: application/json
+
+{
+  "app_name": "My Awesome Website",
+  "website_url": "https://mywebsite.com",
+  "redirect_uri": "https://mywebsite.com/callback",
+  "description": "My protected web application"
+}</code>
+                    </div>
+                </div>
+                
+                <h3>Response</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                    </div>
+                    <div class="code-content">
+<code>{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"client_id"</span>: <span class="string">"aera_1a2b3c4d5e6f7g8h..."</span>,
+  <span class="string">"client_secret"</span>: <span class="string">"AbCdEfGhIjKlMnOpQrStUvWxYz..."</span>,
+  <span class="string">"message"</span>: <span class="string">"⚠️ Save your client_secret NOW! It cannot be retrieved later."</span>
+}</code>
+                    </div>
+                </div>
+                
+                <div class="info-box warning">
+                    <div class="info-box-title">⚠️ Security Notice</div>
+                    <ul>
+                        <li>The <code>client_secret</code> is shown ONLY ONCE at registration</li>
+                        <li>Store it securely (e.g., environment variables, secrets manager)</li>
+                        <li>NEVER commit secrets to version control</li>
+                        <li>If compromised, regenerate via the dashboard</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- OAuth Flow -->
+            <section id="oauth" class="section">
+                <h2>🔑 OAuth 2.0 Flow (Server-Side)</h2>
+                <p>
+                    For server-side verification, use the OAuth 2.0 Authorization Code flow. 
+                    This provides maximum security as the token exchange happens on your server
+                    with your <code>client_secret</code> (never exposed to the browser).
+                </p>
+                
+                <div class="info-box warning">
+                    <div class="info-box-title">⚠️ Important: Server-Side Required</div>
+                    <p>
+                        The <code>client_secret</code> must NEVER be used in frontend code!
+                        The Token Exchange (Step 2) must happen on your backend server.
+                    </p>
+                </div>
+                
+                <h3>OAuth Flow Overview</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Flow Diagram</span>
+                    </div>
+                    <div class="code-content">
+<code><span class="comment">┌─────────────┐         ┌─────────────┐         ┌─────────────┐</span>
+<span class="comment">│   Browser   │         │ Your Server │         │  AEraLogIn  │</span>
+<span class="comment">└──────┬──────┘         └──────┬──────┘         └──────┬──────┘</span>
+       │                       │                       │
+       │ 1. Click Login        │                       │
+       │──────────────────────>│                       │
+       │                       │                       │
+       │ 2. Redirect to AEra   │                       │
+       │<──────────────────────│                       │
+       │                       │                       │
+       │ 3. /oauth/authorize ──────────────────────────>│
+       │                       │                       │
+       │ 4. User signs with wallet                     │
+       │<──────────────────────────────────────────────│
+       │                       │                       │
+       │ 5. Redirect with ?code=xxx                    │
+       │──────────────────────>│                       │
+       │                       │                       │
+       │                       │ 6. POST /oauth/token  │
+       │                       │──────────────────────>│
+       │                       │                       │
+       │                       │ 7. access_token       │
+       │                       │<──────────────────────│
+       │                       │                       │
+       │ 8. Set session cookie │                       │
+       │<──────────────────────│                       │
+       │                       │                       │</code>
+                    </div>
+                </div>
+                
+                <h3>1. Authorization URL (Frontend)</h3>
+                <p>Redirect the user to the AEraLogIn authorization page:</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">URL Parameters</span>
+                    </div>
+                    <div class="code-content">
+<code>https://aeralogin.com/oauth/authorize
+  ?client_id=YOUR_CLIENT_ID
+  &redirect_uri=https://yoursite.com/callback
+  &response_type=code
+  &state=RANDOM_STATE_FOR_CSRF_PROTECTION</code>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>client_id</code></td>
+                                <td><span class="badge required">Required</span></td>
+                                <td>Your OAuth Client ID from the AEra Dashboard</td>
+                            </tr>
+                            <tr>
+                                <td><code>redirect_uri</code></td>
+                                <td><span class="badge required">Required</span></td>
+                                <td>Must match exactly one of your registered redirect URIs</td>
+                            </tr>
+                            <tr>
+                                <td><code>response_type</code></td>
+                                <td><span class="badge required">Required</span></td>
+                                <td>Always <code>code</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>state</code></td>
+                                <td><span class="badge optional">Recommended</span></td>
+                                <td>Random string for CSRF protection. Returned unchanged.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3>2. Token Exchange (Server-Side) ⚠️</h3>
+                <p>After successful authentication, the user is redirected to your <code>redirect_uri</code> with a <code>code</code> parameter. Your server must exchange this for an Access Token:</p>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Node.js / Express</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="comment">// Express.js callback route</span>
+app.<span class="function">get</span>(<span class="string">'/callback'</span>, <span class="keyword">async</span> (req, res) => {
+  <span class="keyword">const</span> { code, state } = req.query;
+  
+  <span class="comment">// 1. Validate state parameter (CSRF protection)</span>
+  <span class="keyword">if</span> (state !== req.session.oauthState) {
+    <span class="keyword">return</span> res.<span class="function">status</span>(<span class="number">403</span>).<span class="function">send</span>(<span class="string">'Invalid state parameter'</span>);
+  }
+  
+  <span class="comment">// 2. Exchange code for access token</span>
+  <span class="keyword">const</span> tokenResponse = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'https://aeralogin.com/oauth/token'</span>, {
+    <span class="property">method</span>: <span class="string">'POST'</span>,
+    <span class="property">headers</span>: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+    <span class="property">body</span>: JSON.<span class="function">stringify</span>({
+      <span class="property">grant_type</span>: <span class="string">'authorization_code'</span>,
+      <span class="property">code</span>: code,
+      <span class="property">redirect_uri</span>: <span class="string">'https://yoursite.com/callback'</span>,
+      <span class="property">client_id</span>: process.env.AERA_CLIENT_ID,
+      <span class="property">client_secret</span>: process.env.AERA_CLIENT_SECRET  <span class="comment">// ⚠️ Server-side only!</span>
+    })
+  });
+  
+  <span class="keyword">const</span> tokenData = <span class="keyword">await</span> tokenResponse.<span class="function">json</span>();
+  
+  <span class="comment">// 3. Check for errors</span>
+  <span class="keyword">if</span> (tokenData.error) {
+    <span class="keyword">return</span> res.<span class="function">status</span>(<span class="number">400</span>).<span class="function">json</span>({ error: tokenData.error_description });
+  }
+  
+  <span class="comment">// 4. Store session and redirect</span>
+  req.session.aeraToken = tokenData.access_token;
+  req.session.wallet = tokenData.wallet;
+  req.session.score = tokenData.score;
+  req.session.hasNFT = tokenData.has_nft;
+  
+  res.<span class="function">redirect</span>(<span class="string">'/dashboard'</span>);
+});</code>
+                    </div>
+                </div>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Python / Flask</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="keyword">import</span> requests, os
+<span class="keyword">from</span> flask <span class="keyword">import</span> Flask, request, session, redirect
+
+<span class="function">@app.route</span>(<span class="string">'/callback'</span>)
+<span class="keyword">def</span> <span class="function">oauth_callback</span>():
+    code = request.args.<span class="function">get</span>(<span class="string">'code'</span>)
+    state = request.args.<span class="function">get</span>(<span class="string">'state'</span>)
+    
+    <span class="comment"># 1. Validate state</span>
+    <span class="keyword">if</span> state != session.<span class="function">get</span>(<span class="string">'oauth_state'</span>):
+        <span class="keyword">return</span> <span class="string">'Invalid state'</span>, <span class="number">403</span>
+    
+    <span class="comment"># 2. Exchange code for token</span>
+    token_response = requests.<span class="function">post</span>(
+        <span class="string">'https://aeralogin.com/oauth/token'</span>,
+        json={
+            <span class="string">'grant_type'</span>: <span class="string">'authorization_code'</span>,
+            <span class="string">'code'</span>: code,
+            <span class="string">'redirect_uri'</span>: <span class="string">'https://yoursite.com/callback'</span>,
+            <span class="string">'client_id'</span>: os.environ[<span class="string">'AERA_CLIENT_ID'</span>],
+            <span class="string">'client_secret'</span>: os.environ[<span class="string">'AERA_CLIENT_SECRET'</span>]
+        }
+    )
+    
+    token_data = token_response.<span class="function">json</span>()
+    
+    <span class="keyword">if</span> <span class="string">'error'</span> <span class="keyword">in</span> token_data:
+        <span class="keyword">return</span> f<span class="string">"Error: {token_data['error_description']}"</span>, <span class="number">400</span>
+    
+    <span class="comment"># 3. Store in session</span>
+    session[<span class="string">'aera_token'</span>] = token_data[<span class="string">'access_token'</span>]
+    session[<span class="string">'wallet'</span>] = token_data[<span class="string">'wallet'</span>]
+    session[<span class="string">'score'</span>] = token_data[<span class="string">'score'</span>]
+    session[<span class="string">'has_nft'</span>] = token_data[<span class="string">'has_nft'</span>]
+    
+    <span class="keyword">return</span> <span class="function">redirect</span>(<span class="string">'/dashboard'</span>)</code>
+                    </div>
+                </div>
+                
+                <h3>Token Response</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON Response</span>
+                    </div>
+                    <div class="code-content">
+<code>{
+  <span class="string">"access_token"</span>: <span class="string">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
+  <span class="string">"token_type"</span>: <span class="string">"Bearer"</span>,
+  <span class="string">"expires_in"</span>: <span class="number">86400</span>,
+  <span class="string">"wallet"</span>: <span class="string">"0x1234567890abcdef1234567890abcdef12345678"</span>,
+  <span class="string">"score"</span>: <span class="number">55</span>,
+  <span class="string">"has_nft"</span>: <span class="keyword">true</span>
+}</code>
+                    </div>
+                </div>
+                
+                <h3>3. Token Verification (Optional Server-Side Check)</h3>
+                <p>You can verify a stored token at any time using the <code>/api/v1/verify</code> endpoint:</p>
+                
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Node.js - Token Verification</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="comment">// Verify token on each protected request</span>
+<span class="keyword">async function</span> <span class="function">verifyAeraToken</span>(accessToken) {
+  <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'https://aeralogin.com/api/v1/verify'</span>, {
+    <span class="property">method</span>: <span class="string">'POST'</span>,
+    <span class="property">headers</span>: {
+      <span class="string">'Authorization'</span>: <span class="string">`Bearer ${accessToken}`</span>
+    }
+  });
+  
+  <span class="keyword">return</span> <span class="keyword">await</span> response.<span class="function">json</span>();
+}
+
+<span class="comment">// Usage in middleware</span>
+app.<span class="function">use</span>(<span class="string">'/protected'</span>, <span class="keyword">async</span> (req, res, next) => {
+  <span class="keyword">const</span> token = req.session.aeraToken;
+  <span class="keyword">if</span> (!token) <span class="keyword">return</span> res.<span class="function">redirect</span>(<span class="string">'/login'</span>);
+  
+  <span class="keyword">const</span> result = <span class="keyword">await</span> <span class="function">verifyAeraToken</span>(token);
+  
+  <span class="keyword">if</span> (!result.valid) {
+    <span class="keyword">delete</span> req.session.aeraToken;
+    <span class="keyword">return</span> res.<span class="function">redirect</span>(<span class="string">'/login'</span>);
+  }
+  
+  <span class="comment">// Check NFT requirement</span>
+  <span class="keyword">if</span> (!result.has_nft) {
+    <span class="keyword">return</span> res.<span class="function">status</span>(<span class="number">403</span>).<span class="function">send</span>(<span class="string">'NFT required'</span>);
+  }
+  
+  req.user = result;
+  <span class="function">next</span>();
+});</code>
+                    </div>
+                </div>
+                
+                <h3>4. NFT Verification Endpoint (Alternative)</h3>
+                <p>For additional security, you can verify NFT ownership directly with client credentials:</p>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JavaScript (Node.js)</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="keyword">const</span> verification = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'https://aeralogin.com/api/oauth/verify-nft'</span>, {
+  <span class="property">method</span>: <span class="string">'POST'</span>,
+  <span class="property">headers</span>: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+  <span class="property">body</span>: JSON.<span class="function">stringify</span>({
+    <span class="property">access_token</span>: accessToken,
+    <span class="property">client_id</span>: process.env.AERA_CLIENT_ID,
+    <span class="property">client_secret</span>: process.env.AERA_CLIENT_SECRET
+  })
+});
+
+<span class="keyword">const</span> result = <span class="keyword">await</span> verification.<span class="function">json</span>();
+<span class="comment">// { valid: true, wallet: "0x...", has_nft: true, score: 150, chain_id: 8453 }</span></code>
+                    </div>
+                </div>
+                
+                <h3>Error Handling</h3>
+                <p>Common OAuth errors and how to handle them:</p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Error</th>
+                                <th>Description</th>
+                                <th>Solution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>invalid_client</code></td>
+                                <td>Unknown client or invalid secret</td>
+                                <td>Check your client_id and client_secret</td>
+                            </tr>
+                            <tr>
+                                <td><code>invalid_grant</code></td>
+                                <td>Authorization code expired or already used</td>
+                                <td>Code is valid for 60 seconds and single-use only</td>
+                            </tr>
+                            <tr>
+                                <td><code>unsupported_grant_type</code></td>
+                                <td>Wrong grant_type value</td>
+                                <td>Use <code>authorization_code</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>invalid_request</code></td>
+                                <td>Missing required parameters</td>
+                                <td>Include all required fields in your request</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- API Verification -->
+            <section id="api-verify" class="section">
+                <h2>🔍 API Verification</h2>
+                <p>
+                    Use the <code>/api/v1/verify</code> endpoint to verify a user's session token 
+                    server-side. This is useful when you need to validate authentication state 
+                    from your backend.
+                </p>
+                
+                <h3>Request</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">HTTP</span>
+                    </div>
+                    <div class="code-content">
+<code>POST https://aeralogin.com/api/v1/verify
+Authorization: Bearer &lt;aera_session_token&gt;</code>
+                    </div>
+                </div>
+                
+                <h3>Response (Success)</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                    </div>
+                    <div class="code-content">
+<code>{
+  <span class="string">"valid"</span>: <span class="keyword">true</span>,
+  <span class="string">"authenticated"</span>: <span class="keyword">true</span>,
+  <span class="string">"wallet"</span>: <span class="string">"0x1234...abcd"</span>,
+  <span class="string">"score"</span>: <span class="number">42</span>,
+  <span class="string">"has_nft"</span>: <span class="keyword">true</span>,
+  <span class="string">"chain_id"</span>: <span class="number">8453</span>,
+  <span class="string">"issued_at"</span>: <span class="string">"2025-01-01T00:00:00Z"</span>,
+  <span class="string">"expires_at"</span>: <span class="string">"2025-01-02T00:00:00Z"</span>
+}</code>
+                    </div>
+                </div>
+                
+                <h3>Response (Failure)</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                    </div>
+                    <div class="code-content">
+<code>{
+  <span class="string">"valid"</span>: <span class="keyword">false</span>,
+  <span class="string">"authenticated"</span>: <span class="keyword">false</span>,
+  <span class="string">"error"</span>: <span class="string">"Token expired"</span>
+}</code>
+                    </div>
+                </div>
+                
+                <h3>Example (Node.js)</h3>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JavaScript</span>
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    </div>
+                    <div class="code-content">
+<code><span class="keyword">const</span> response = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="string">'https://aeralogin.com/api/v1/verify'</span>, {
+  <span class="property">method</span>: <span class="string">'POST'</span>,
+  <span class="property">headers</span>: {
+    <span class="string">'Authorization'</span>: <span class="string">`Bearer ${sessionToken}`</span>
+  }
+});
+
+<span class="keyword">const</span> result = <span class="keyword">await</span> response.<span class="function">json</span>();
+
+<span class="keyword">if</span> (result.valid && result.has_nft) {
+  <span class="comment">// User is authenticated and has NFT</span>
+  console.<span class="function">log</span>(<span class="string">'User wallet:'</span>, result.wallet);
+} <span class="keyword">else</span> {
+  <span class="comment">// Authentication failed</span>
+  console.<span class="function">log</span>(<span class="string">'Error:'</span>, result.error);
+}</code>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-box-title">💡 Hinweis</div>
+                    <p>
+                        Der Session Token wird beim Login automatisch generiert und kann 
+                        über <code>AEraGate.getSessionToken()</code> im Frontend abgerufen werden.
+                    </p>
+                </div>
+            </section>
+            
+            <!-- Middleware -->
+            <section id="middleware" class="section">
+                <h2>🧩 Server Middleware</h2>
+                <p>
+                    We provide ready-to-use middleware solutions for various frameworks:
+                </p>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Framework</th>
+                                <th>Middleware</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Express.js</td>
+                                <td><code>express-middleware.js</code></td>
+                                <td><a href="/examples/middleware/express-middleware.js">Download</a></td>
+                            </tr>
+                            <tr>
+                                <td>Next.js</td>
+                                <td><code>nextjs-middleware.ts</code></td>
+                                <td><a href="/examples/middleware/nextjs-middleware.ts">Download</a></td>
+                            </tr>
+                            <tr>
+                                <td>PHP</td>
+                                <td><code>php-middleware.php</code></td>
+                                <td><a href="/examples/middleware/php-middleware.php">Download</a></td>
+                            </tr>
+                            <tr>
+                                <td>Python/Flask</td>
+                                <td><code>python-middleware.py</code></td>
+                                <td><a href="/examples/middleware/python-middleware.py">Download</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="info-box">
+                    <div class="info-box-title">💡 Tip</div>
+                    <p>
+                        For maximum security, we recommend using server-side 
+                        middleware in combination with the JavaScript SDK.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Humans vs. Agents -->
+            <section id="agents" class="section">
+                <h2>🤖 Humans vs. Agents</h2>
+                <p>
+                    AEra has separate identity layers, and each one has its own integration path. Their credentials are never interchangeable: an OAuth token is not an Agent JWT, and an Agent JWT is not an A2A peer credential.
+                </p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>You want to…</th>
+                                <th>Use</th>
+                                <th>Documentation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Log humans in or gate content on your website</td>
+                                <td>AEra Gate SDK, OAuth 2.0</td>
+                                <td><a href="#introduction">This page</a></td>
+                            </tr>
+                            <tr>
+                                <td>Give an autonomous agent its own identity and keys</td>
+                                <td>Agent API (Ed25519, Agent JWT)</td>
+                                <td><a href="/docs/agent-api.html">Agent API</a></td>
+                            </tr>
+                            <tr>
+                                <td>Let an external agent talk to an AEra agent</td>
+                                <td>A2A gateway (JSON-RPC, peer credentials)</td>
+                                <td><a href="/docs/a2a.html">A2A Gateway</a></td>
+                            </tr>
+                            <tr>
+                                <td>Discover the gateway from an A2A client</td>
+                                <td>Agent Card</td>
+                                <td><a href="/docs/agent-card.html">A2A Agent Card</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="info-box">
+                    <div class="info-box-title">🔗 How the layers connect</div>
+                    <p>
+                        A human signs in with AEra (this SDK) and owns an AEra identity. With that identity's wallet, the human can register agents in <a href="/user-dashboard.html">AEra Core</a>. Agents then authenticate with their own keys, never with the human's session.
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+<!-- AERA:SHELL-FOOTER -->
+    <footer class="site-footer">
+        <div class="site-footer-grid">
+            <div>
+                <a href="/" class="site-footer-brand"><span class="site-logo-icon" aria-hidden="true">🌀</span><span>AEraLogIn</span></a>
+                <p>Identity for Humans. Identity for Agents. Trust for Agent Networks.</p>
+                <p>Live on BASE Mainnet.</p>
+            </div>
+            <div>
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="/#identity">Human Identity</a></li>
+                    <li><a href="/#agents">Agent Identity</a></li>
+                    <li><a href="/#a2a">A2A Communication</a></li>
+                    <li><a href="/#trust">Trust Assessment</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="/docs/agent-api.html">Agent API</a></li>
+                    <li><a href="/docs/a2a.html">A2A Gateway</a></li>
+                    <li><a href="/docs/agent-card.html">A2A Agent Card</a></li>
+                    <li><a href="/sdk-docs">SDK Documentation</a></li>
+                    <li><a href="/examples/snippets/basic-integration.html">Code Examples</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/security-concept.html">Security Concept</a></li>
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/user-dashboard.html">AEra Core (Agents)</a></li>
+                    <li><a href="/logo.html">Logo</a></li>
+                    <li><a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="https://x.com/AEraResonant" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>On-chain</h4>
+                <ul>
+                    <li><a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank" rel="noopener noreferrer">Identity NFT Contract</a></li>
+                    <li><a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank" rel="noopener noreferrer">Score Contract</a></li>
+                    <li><a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank" rel="noopener noreferrer">Registry Contract</a></li>
+                    <li><a href="https://base.org" target="_blank" rel="noopener noreferrer">BASE L2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="site-footer-bottom">
+            <span>&copy; 2025&ndash;2026 AEraLogIn &middot; VEra-Resonance Project &middot; Apache 2.0</span>
+            <span><a href="/privacy-policy">Privacy Policy</a> &middot; <a href="/security-concept.html">Security</a></span>
+        </div>
+    </footer>
+    <script src="/docs/assets/site-shell.js?v=20260926"></script>
+    <!-- /AERA:SHELL-FOOTER -->
+    
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                button.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.style.background = 'linear-gradient(135deg, var(--primary), var(--accent))';
+                }, 2000);
+            });
+        }
+        
+        // Active link tracking
+        document.querySelectorAll('.sidebar-links a').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelector('.sidebar-links a.active')?.classList.remove('active');
+                this.classList.add('active');
+            });
+        });
+        
+        // Intersection Observer for active section highlighting
+        const sections = document.querySelectorAll('.section[id]');
+        const sidebarLinks = document.querySelectorAll('.sidebar-links a');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    sidebarLinks.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -80% 0px' });
+        
+        sections.forEach(section => observer.observe(section));
+    </script>
+    
+    <!-- Canvas Particle Animation -->
+    <script>
+        // Particle animation for background (from landing.html)
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        document.getElementById('bgCanvas').appendChild(canvas);
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 50;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(0, 212, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            // Draw connections between nearby particles
+            particles.forEach((p1, i) => {
+                particles.slice(i + 1).forEach(p2 => {
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.strokeStyle = `rgba(0, 212, 255, ${0.2 * (1 - distance / 150)})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+    
+    <!-- ===== AERA CHAT WIDGET ===== -->
+    <link rel="stylesheet" href="/aera-chat.css?v=20251209002">
+    <script src="/aera-chat.js?v=20251209001"></script>
+    <script>
+        if (typeof initAeraChat === 'function') {
+            initAeraChat();
+            console.log('🌀 AEra Chat Widget initialized on sdk-documentation.html');
+        }
+    </script>
+</body>
+</html>

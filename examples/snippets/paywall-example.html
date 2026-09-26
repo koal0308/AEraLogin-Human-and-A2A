@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/favicon.png?v=20251225c">
+    <title>AEra Gate - Paywall Example</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #0052ff;
+            --secondary: #00d4ff;
+            --dark: #0a0e27;
+            --darker: #050814;
+            --light: #f0f4ff;
+            --accent: #6366f1;
+            --success: #10b981;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            min-height: 100vh;
+            color: #1a1a2e;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .nav-links a {
+            color: #6b7280;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        
+        /* User Badge */
+        .user-badge {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 82, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 24px;
+        }
+        
+        .user-badge.visible {
+            display: flex;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: white;
+        }
+        
+        .user-wallet {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        /* Article */
+        .article-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 24px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .back-link:hover {
+            color: var(--accent);
+        }
+        
+        .article {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .article-header {
+            padding: 48px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .article-category {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .article-title {
+            font-size: 2.2rem;
+            margin-bottom: 16px;
+            line-height: 1.3;
+            color: var(--dark);
+            font-weight: 800;
+        }
+        
+        .article-meta {
+            color: #9ca3af;
+            font-size: 0.95rem;
+        }
+        
+        .article-content {
+            padding: 48px;
+            line-height: 1.9;
+            font-size: 1.1rem;
+            color: #374151;
+        }
+        
+        .article-content p {
+            margin-bottom: 24px;
+        }
+        
+        /* Preview Text */
+        .preview-text {
+            position: relative;
+        }
+        
+        .preview-text::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(transparent, white);
+        }
+        
+        /* Paywall */
+        .paywall {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            padding: 60px 48px;
+            text-align: center;
+            color: var(--light);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .paywall::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 82, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+            animation: bgMove 20s ease-in-out infinite;
+            z-index: 0;
+        }
+        
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(30px, -30px) rotate(5deg); }
+        }
+        
+        .paywall > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .paywall-icon {
+            font-size: 3.5rem;
+            margin-bottom: 24px;
+        }
+        
+        .paywall h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+        
+        .paywall p {
+            color: rgba(240, 244, 255, 0.7);
+            margin-bottom: 32px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
+        }
+        
+        .paywall-benefits {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .benefit {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(240, 244, 255, 0.9);
+            font-weight: 500;
+        }
+        
+        .benefit-icon {
+            color: var(--success);
+            font-weight: 700;
+        }
+        
+        .connect-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 16px 48px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0, 82, 255, 0.3);
+        }
+        
+        .connect-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 82, 255, 0.4);
+        }
+        
+        .paywall-footer {
+            margin-top: 32px;
+            color: rgba(240, 244, 255, 0.5);
+            font-size: 0.95rem;
+        }
+        
+        .paywall-footer a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .paywall-footer a:hover {
+            color: var(--light);
+        }
+        
+        /* Premium Content (hidden by default) */
+        .premium-content {
+            display: none;
+        }
+        
+        .premium-content.unlocked {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🌀 News Portal</div>
+            <nav class="nav-links">
+                <a href="#">Home</a>
+                <a href="#">Premium</a>
+                <a href="#">About</a>
+            </nav>
+            <div class="user-badge" id="userBadge">
+                <div class="user-avatar">🌀</div>
+                <span class="user-wallet" id="userWallet"></span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Article -->
+    <div class="article-container">
+        <a href="/sdk-docs" class="back-link">← Back to Documentation</a>
+        
+        <article class="article">
+            <div class="article-header">
+                <span class="article-category">Premium</span>
+                <h1 class="article-title">Exclusive Analysis: The Future of Decentralized Identity</h1>
+                <div class="article-meta">
+                    By John Smith • December 8, 2025 • 12 min read
+                </div>
+            </div>
+            
+            <!-- Preview Content (always visible) -->
+            <div class="article-content">
+                <div class="preview-text">
+                    <p>
+                        Digital identity is facing a fundamental transformation. While 
+                        traditional systems rely on centralized databases and passwords, 
+                        blockchain technology opens up entirely new possibilities 
+                        for self-sovereign, decentralized identity solutions.
+                    </p>
+                    <p>
+                        In this exclusive article, we analyze the most important developments 
+                        and show why NFT-based identity systems could represent the future of 
+                        digital authentication...
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Paywall (shown when not authenticated) -->
+            <div class="paywall" id="paywall">
+                <div class="paywall-icon">🔒</div>
+                <h2>Unlock Premium Content</h2>
+                <p>
+                    This article is exclusively available to AEra Identity NFT holders. 
+                    Connect your wallet to read the full article.
+                </p>
+                
+                <div class="paywall-benefits">
+                    <div class="benefit">
+                        <span class="benefit-icon">✓</span>
+                        <span>Unlimited Access</span>
+                    </div>
+                    <div class="benefit">
+                        <span class="benefit-icon">✓</span>
+                        <span>Exclusive Analysis</span>
+                    </div>
+                    <div class="benefit">
+                        <span class="benefit-icon">✓</span>
+                        <span>No Ads</span>
+                    </div>
+                </div>
+                
+                <button class="connect-btn" onclick="AEraGate.login()">
+                    🔗 Connect Wallet
+                </button>
+                
+                <p class="paywall-footer">
+                    Don't have an AEra Identity NFT yet? <a href="https://aeralogin.com" target="_blank">Get one now</a>
+                </p>
+            </div>
+            
+            <!-- Premium Content (shown when authenticated) -->
+            <div class="article-content premium-content" id="premiumContent" data-aera-protected>
+                <p>
+                    <strong>The Full Article:</strong>
+                </p>
+                <p>
+                    The development of decentralized identity systems has made 
+                    significant progress in recent years. Particularly interesting is the 
+                    approach of using Non-Fungible Tokens (NFTs) as carriers of identity information.
+                </p>
+                <p>
+                    An NFT-based identity system offers several decisive advantages:
+                </p>
+                <ul style="margin: 24px 0 24px 32px; line-height: 2;">
+                    <li>Self-sovereign control over your own data</li>
+                    <li>Immutable traceability</li>
+                    <li>Interoperability between different platforms</li>
+                    <li>Protection against identity theft</li>
+                </ul>
+                <p>
+                    The AEra Identity System exemplifies how such a solution can 
+                    work in practice. Through the combination of SIWE 
+                    (Sign-In with Ethereum) and NFT verification, a robust 
+                    authentication system emerges that is both secure and user-friendly.
+                </p>
+                <p>
+                    Particularly noteworthy is the "Resonance Score" system, which measures 
+                    user interaction with the ecosystem and rewards it. This 
+                    creates incentives for active participation while enabling 
+                    differentiated access control.
+                </p>
+                <p>
+                    <em>The article continues with a detailed technical 
+                    analysis of the implementation...</em>
+                </p>
+            </div>
+        </article>
+    </div>
+    
+    <!-- AEra Gate SDK -->
+    <script src="https://aeralogin.com/sdk/aera-gate.js"></script>
+    <script>
+        AEraGate.init({
+            clientId: 'news-portal-demo',
+            autoProtect: false,
+            mode: 'modal',
+            
+            onAuthenticated: function(user) {
+                document.getElementById('paywall').style.display = 'none';
+                document.getElementById('premiumContent').classList.add('unlocked');
+                
+                const userBadge = document.getElementById('userBadge');
+                const userWallet = document.getElementById('userWallet');
+                userBadge.classList.add('visible');
+                userWallet.textContent = user.wallet.substring(0, 6) + '...' + user.wallet.slice(-4);
+            },
+            
+            onLogout: function() {
+                document.getElementById('paywall').style.display = 'block';
+                document.getElementById('premiumContent').classList.remove('unlocked');
+                document.getElementById('userBadge').classList.remove('visible');
+            }
+        });
+        
+        if (AEraGate.isAuthenticated()) {
+            const user = AEraGate.getUser();
+            document.getElementById('paywall').style.display = 'none';
+            document.getElementById('premiumContent').classList.add('unlocked');
+            document.getElementById('userBadge').classList.add('visible');
+            document.getElementById('userWallet').textContent = 
+                user.wallet.substring(0, 6) + '...' + user.wallet.slice(-4);
+        }
+    </script>
+    
+    <!-- ===== AERA CHAT WIDGET ===== -->
+    <link rel="stylesheet" href="/aera-chat.css?v=20251209002">
+    <script src="/aera-chat.js?v=20251209001"></script>
+    <script>
+        if (typeof initAeraChat === 'function') {
+            initAeraChat();
+            console.log('🌀 AEra Chat Widget initialized on paywall-example.html');
+        }
+    </script>
+</body>
+</html>

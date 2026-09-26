@@ -1,0 +1,18 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+python-dotenv==1.0.0
+web3==6.13.0
+eth-account==0.10.0
+eth-keys==0.4.0
+hexbytes==0.3.1
+jinja2>=3.0.0
+aiohttp>=3.9.0
+
+httpx>=0.25.0
+
+# Telegram Group Bot
+python-telegram-bot>=20.0
+
+# OAuth/JWT support
+PyJWT>=2.8.0

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/favicon.png?v=20251229a">
+    <title>AEraLogIn - A2A Agent Card</title>
+    <meta name="description" content="What the AEra A2A Agent Card is, what each field means, and the live Agent Card of the AEra A2A gateway.">
+    <link rel="canonical" href="https://aeralogin.com/docs/agent-card.html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AEraLogIn">
+    <meta property="og:title" content="AEraLogIn - A2A Agent Card">
+    <meta property="og:description" content="The public discovery document of the AEra A2A gateway, explained field by field and rendered live.">
+    <meta property="og:url" content="https://aeralogin.com/docs/agent-card.html">
+    <meta name="twitter:card" content="summary">
+
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+
+    <link rel="stylesheet" href="/docs/assets/docs.css?v=20260926">
+    <link rel="stylesheet" href="/docs/assets/site-shell.css?v=20260926">
+</head>
+<body>
+    <div class="bg-animation" id="bgCanvas"></div>
+
+<!-- AERA:SHELL-HEADER -->
+    <a class="site-skip-link" href="#main-content">Skip to content</a>
+    <div class="site-menu-backdrop" id="siteMenuBackdrop"></div>
+    <header class="site-header">
+        <a href="/" class="site-logo" aria-label="AEraLogIn home">
+            <span class="site-logo-icon" aria-hidden="true">🌀</span>
+            <span>AEraLogIn</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Platform</button>
+                <div class="site-dropdown-menu">
+                    <a href="/#identity">Human Identity<small>Proof of Human, Identity NFT, ownership</small></a>
+                    <a href="/#agents">Agent Identity<small>Own keys, rotation, revocation</small></a>
+                    <a href="/#a2a">A2A Communication<small>Gateway, external peers</small></a>
+                    <a href="/#trust">Trust Assessment<small>Evidence-based monitoring</small></a>
+                </div>
+            </div>
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Developers</button>
+                <div class="site-dropdown-menu">
+                    <a href="/docs/agent-api.html">Agent API<small>Register, authenticate, message</small></a>
+                    <a href="/docs/a2a.html">A2A Gateway<small>JSON-RPC, peer credentials</small></a>
+                    <a href="/docs/agent-card.html">A2A Agent Card<small>Public discovery document</small></a>
+                    <a href="/sdk-docs">SDK Documentation<small>AEra Gate SDK &amp; OAuth 2.0</small></a>
+                </div>
+            </div>
+            <a href="/security-concept.html">Security</a>
+            <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="/dashboard.html">Dashboard</a>
+        </nav>
+        <button type="button" class="site-menu-toggle" id="siteMenuToggle" aria-label="Toggle menu" aria-controls="siteMobileMenu" aria-expanded="false">☰</button>
+    </header>
+    <nav class="site-mobile-menu" id="siteMobileMenu" aria-label="Mobile">
+        <span class="site-mobile-group">Platform</span>
+        <a href="/">Home</a>
+        <a href="/#identity">Human Identity</a>
+        <a href="/#agents">Agent Identity</a>
+        <a href="/#a2a">A2A Communication</a>
+        <a href="/#trust">Trust Assessment</a>
+        <span class="site-mobile-group">Developers</span>
+        <a href="/docs/agent-api.html">Agent API</a>
+        <a href="/docs/a2a.html">A2A Gateway</a>
+        <a href="/docs/agent-card.html">A2A Agent Card</a>
+        <a href="/sdk-docs">SDK Documentation</a>
+        <span class="site-mobile-group">Resources</span>
+        <a href="/security-concept.html">Security Concept</a>
+        <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/user-dashboard.html">AEra Core (Agents)</a>
+    </nav>
+    <!-- /AERA:SHELL-HEADER -->
+
+    <div class="doc-container">
+        <aside class="doc-sidebar" aria-label="On this page">
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">Agent Card</h4>
+                <ul>
+                    <li><a href="#what" class="active">What is it?</a></li>
+                    <li><a href="#live">Live card</a></li>
+                    <li><a href="#capabilities">Capabilities</a></li>
+                    <li><a href="#security">Security</a></li>
+                    <li><a href="#skills">Skills</a></li>
+                </ul>
+            </div>
+            <div class="doc-sidebar-section">
+                <h4 class="doc-sidebar-title">Reference</h4>
+                <ul>
+                    <li><a href="#fields">Field reference</a></li>
+                    <li><a href="#not-in-card">What is not in the card</a></li>
+                    <li><a href="#usage">Using the card</a></li>
+                    <li><a href="#raw">Raw JSON</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="doc-main" id="main-content">
+            <section id="what" class="doc-section">
+                <h1>A2A Agent Card</h1>
+                <p class="doc-lead">
+                    The Agent Card is the <strong>public business card</strong> of the AEra A2A gateway. It is a small JSON document at a well-known address that tells other agents how to reach AEra agents, which skills are available and how callers can authenticate.
+                </p>
+                <p>
+                    It follows the A2A protocol's discovery convention, so any A2A-compatible client can find it. The card is generated from the gateway's actual configuration every time it is requested: it never advertises a skill, capability or security requirement that the gateway does not really have.
+                </p>
+                <div class="doc-cta">
+                    <a class="doc-btn" href="#live">See the live card</a>
+                    <a class="doc-btn secondary" href="/.well-known/agent-card.json">View raw Agent Card</a>
+                </div>
+            </section>
+
+            <section id="live" class="doc-section" aria-live="polite">
+                <h2>🪪 Live card</h2>
+                <p id="card-status">Loading the current Agent Card…</p>
+                <noscript><p>JavaScript is disabled. <a href="/.well-known/agent-card.json">Open the raw Agent Card</a>.</p></noscript>
+                <div class="doc-grid" id="card-overview"></div>
+                <p id="card-description"></p>
+            </section>
+
+            <section id="capabilities" class="doc-section">
+                <h2>⚙️ Capabilities</h2>
+                <p>Optional A2A protocol features and whether the gateway supports them. The communication model is simple request/response: one <code>message/send</code> call, one reply.</p>
+                <div id="card-capabilities"><p>&ndash;</p></div>
+            </section>
+
+            <section id="security" class="doc-section">
+                <h2>🔐 Security</h2>
+                <p><code>securitySchemes</code> names the credentials the gateway understands. <code>security</code> lists the ones that are <strong>required</strong>; an empty list means anonymous calls are accepted and the credential is optional. The card reflects the gateway's current authentication policy.</p>
+                <div id="card-security"><p>&ndash;</p></div>
+                <p>Peer credentials are issued by AEra agent owners to named external peers. <a href="/docs/a2a.html#credentials">How peer credentials work &rarr;</a></p>
+            </section>
+
+            <section id="skills" class="doc-section">
+                <h2>🧰 Skills</h2>
+                <p>Each skill corresponds to an existing AEra agent capability. <code>agent.communicate</code> is only listed while an agent runtime is reachable.</p>
+                <div id="card-skills"><p>&ndash;</p></div>
+            </section>
+
+            <section id="fields" class="doc-section">
+                <h2>📖 Field reference</h2>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>name</code>, <code>description</code></td><td>Human-readable name and description of the gateway.</td></tr>
+                            <tr><td><code>url</code></td><td>The JSON-RPC endpoint to send requests to.</td></tr>
+                            <tr><td><code>preferredTransport</code></td><td>The transport to use: <code>JSONRPC</code>.</td></tr>
+                            <tr><td><code>protocolVersion</code></td><td>The A2A protocol version the gateway speaks.</td></tr>
+                            <tr><td><code>version</code></td><td>Version of the gateway itself.</td></tr>
+                            <tr><td><code>provider</code></td><td>The organisation operating the gateway.</td></tr>
+                            <tr><td><code>capabilities</code></td><td>Optional protocol features (streaming, push notifications, state history).</td></tr>
+                            <tr><td><code>defaultInputModes</code> / <code>defaultOutputModes</code></td><td>Accepted and returned media types.</td></tr>
+                            <tr><td><code>securitySchemes</code> / <code>security</code></td><td>Understood credentials, and which of them are required.</td></tr>
+                            <tr><td><code>supportsAuthenticatedExtendedCard</code></td><td>Whether a richer card is available to authenticated callers.</td></tr>
+                            <tr><td><code>skills</code></td><td>What callers can ask for, with descriptions and examples.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="not-in-card" class="doc-section">
+                <h2>🙈 What is deliberately not in the card</h2>
+                <ul class="doc-list">
+                    <li><strong>No trust information.</strong> AEra's internal trust assessment of external peers is never published.</li>
+                    <li><strong>No list of agents.</strong> Callers name a target agent themselves; the card does not enumerate AEra agents.</li>
+                    <li><strong>No secrets or internal details.</strong> Before it is served, the card passes a self-check against leaking anything that is not meant to be public.</li>
+                </ul>
+            </section>
+
+            <section id="usage" class="doc-section">
+                <h2>🚀 Using the card</h2>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">cURL</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>curl https://aeralogin.com/.well-known/agent-card.json</pre>
+                </div>
+                <p>Point an A2A client at <code>https://aeralogin.com</code>. It reads the card, then sends <code>message/send</code> requests to the <code>url</code> from the card. Full request examples are in the <a href="/docs/a2a.html#request">A2A Gateway documentation</a>.</p>
+            </section>
+
+            <section id="raw" class="doc-section">
+                <h2>🧾 Raw JSON</h2>
+                <p>The unmodified card as served at <a href="/.well-known/agent-card.json"><code>/.well-known/agent-card.json</code></a>:</p>
+                <details class="doc-details">
+                    <summary>Show raw Agent Card</summary>
+                    <div class="code-block">
+                        <div class="code-header"><span class="code-lang">JSON</span><button class="copy-btn" type="button">Copy</button></div>
+                        <pre id="card-raw">&ndash;</pre>
+                    </div>
+                </details>
+                <div class="doc-next" style="margin-top: 20px;">
+                    <a href="/docs/a2a.html">A2A Gateway<span>How requests, peers and credentials work</span></a>
+                    <a href="/docs/agent-api.html">Agent API<span>Create the agents behind the gateway</span></a>
+                    <a href="/sdk-docs">SDK Documentation<span>Human login &amp; OAuth</span></a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<!-- AERA:SHELL-FOOTER -->
+    <footer class="site-footer">
+        <div class="site-footer-grid">
+            <div>
+                <a href="/" class="site-footer-brand"><span class="site-logo-icon" aria-hidden="true">🌀</span><span>AEraLogIn</span></a>
+                <p>Identity for Humans. Identity for Agents. Trust for Agent Networks.</p>
+                <p>Live on BASE Mainnet.</p>
+            </div>
+            <div>
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="/#identity">Human Identity</a></li>
+                    <li><a href="/#agents">Agent Identity</a></li>
+                    <li><a href="/#a2a">A2A Communication</a></li>
+                    <li><a href="/#trust">Trust Assessment</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="/docs/agent-api.html">Agent API</a></li>
+                    <li><a href="/docs/a2a.html">A2A Gateway</a></li>
+                    <li><a href="/docs/agent-card.html">A2A Agent Card</a></li>
+                    <li><a href="/sdk-docs">SDK Documentation</a></li>
+                    <li><a href="/examples/snippets/basic-integration.html">Code Examples</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/security-concept.html">Security Concept</a></li>
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/user-dashboard.html">AEra Core (Agents)</a></li>
+                    <li><a href="/logo.html">Logo</a></li>
+                    <li><a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="https://x.com/AEraResonant" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>On-chain</h4>
+                <ul>
+                    <li><a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank" rel="noopener noreferrer">Identity NFT Contract</a></li>
+                    <li><a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank" rel="noopener noreferrer">Score Contract</a></li>
+                    <li><a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank" rel="noopener noreferrer">Registry Contract</a></li>
+                    <li><a href="https://base.org" target="_blank" rel="noopener noreferrer">BASE L2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="site-footer-bottom">
+            <span>&copy; 2025&ndash;2026 AEraLogIn &middot; VEra-Resonance Project &middot; Apache 2.0</span>
+            <span><a href="/privacy-policy">Privacy Policy</a> &middot; <a href="/security-concept.html">Security</a></span>
+        </div>
+    </footer>
+    <script src="/docs/assets/site-shell.js?v=20260926"></script>
+    <!-- /AERA:SHELL-FOOTER -->
+    <script src="/docs/assets/docs.js?v=20260926"></script>
+    <script>
+    (function () {
+        var CARD_URL = '/.well-known/agent-card.json';
+        function esc(v) {
+            return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function card(title, html) {
+            return '<div class="doc-card"><h4>' + esc(title) + '</h4><div class="doc-card-value">' + html + '</div></div>';
+        }
+        function badges(list) {
+            return (list || []).map(function (x) { return '<span class="badge">' + esc(x) + '</span>'; }).join('') || '&ndash;';
+        }
+        function extLink(u) {
+            return /^https:\/\//.test(u || '') ? '<a href="' + esc(u) + '" rel="noopener noreferrer">' + esc(u) + '</a>' : esc(u);
+        }
+        function set(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
+
+        fetch(CARD_URL, { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (d) {
+                set('card-status', 'Loaded from <a href="' + CARD_URL + '"><code>' + CARD_URL + '</code></a>. This is exactly what A2A clients see right now.');
+                set('card-overview',
+                    card('Name', esc(d.name)) +
+                    card('Endpoint', '<code>' + esc(d.url) + '</code>') +
+                    card('Transport', esc(d.preferredTransport)) +
+                    card('A2A protocol', esc(d.protocolVersion)) +
+                    card('Gateway version', esc(d.version)) +
+                    card('Provider', d.provider ? esc(d.provider.organization) + '<br>' + extLink(d.provider.url) : '&ndash;') +
+                    card('Input', badges(d.defaultInputModes)) +
+                    card('Output', badges(d.defaultOutputModes)));
+                set('card-description', esc(d.description));
+
+                var caps = d.capabilities || {};
+                var capHtml = Object.keys(caps).map(function (k) {
+                    return '<span class="badge ' + (caps[k] ? 'on' : 'off') + '">' + (caps[k] ? '✓ ' : '✗ ') + esc(k) + '</span>';
+                }).join('');
+                if (d.supportsAuthenticatedExtendedCard !== undefined) {
+                    capHtml += '<span class="badge ' + (d.supportsAuthenticatedExtendedCard ? 'on' : 'off') + '">' +
+                        (d.supportsAuthenticatedExtendedCard ? '✓ ' : '✗ ') + 'authenticated extended card</span>';
+                }
+                set('card-capabilities', '<p>' + (capHtml || '&ndash;') + '</p>');
+
+                var schemes = d.securitySchemes || {};
+                var required = (d.security || []).length > 0;
+                var secHtml = Object.keys(schemes).map(function (k) {
+                    var s = schemes[k] || {};
+                    return '<div class="doc-card" style="margin-bottom:12px;"><h3>' + esc(k) + '</h3><p>' +
+                        badges([s.type, s.scheme].filter(Boolean)) + '</p>' +
+                        (s.description ? '<p>' + esc(s.description) + '</p>' : '') + '</div>';
+                }).join('') || '<p>No security schemes declared.</p>';
+                secHtml += '<p>Authentication is currently <span class="badge ' + (required ? 'on' : 'off') + '">' +
+                    (required ? 'required' : 'optional') + '</span></p>';
+                set('card-security', secHtml);
+
+                var skills = (d.skills || []).map(function (s) {
+                    return '<div class="doc-card" style="margin-bottom:14px;"><h3>' + esc(s.name || s.id) + '</h3>' +
+                        '<p><code>' + esc(s.id) + '</code></p>' +
+                        (s.description ? '<p>' + esc(s.description) + '</p>' : '') +
+                        (s.tags && s.tags.length ? '<p>' + badges(s.tags) + '</p>' : '') +
+                        (s.examples && s.examples.length ? '<div class="code-block"><div class="code-header"><span class="code-lang">Example message</span></div><pre>' +
+                            s.examples.map(function (e) {
+                                try { return esc(JSON.stringify(JSON.parse(e), null, 2)); } catch (x) { return esc(e); }
+                            }).join('\n\n') + '</pre></div>' : '') +
+                        '</div>';
+                }).join('');
+                set('card-skills', skills || '<p>No skills are advertised at the moment.</p>');
+                set('card-raw', esc(JSON.stringify(d, null, 2)));
+            })
+            .catch(function () {
+                set('card-status', 'The live Agent Card could not be loaded. <a href="' + CARD_URL + '">Open the raw Agent Card</a>.');
+            });
+    })();
+    </script>
+</body>
+</html>

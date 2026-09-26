@@ -1,0 +1,27 @@
+{
+  "name": "vera-resonance-paymaster",
+  "version": "1.0.0",
+  "description": "VEra-Resonance with Alchemy Paymaster Integration",
+  "main": "server.py",
+  "scripts": {
+    "install-aa": "npm install @alchemy/aa-sdk @alchemy/aa-alchemy @alchemy/aa-core ethers@^6",
+    "test-paymaster": "node test_paymaster.js"
+  },
+  "keywords": [
+    "account-abstraction",
+    "paymaster",
+    "alchemy",
+    "gasless",
+    "web3"
+  ],
+  "author": "Karlheinz Beismann - VEra-Resonance",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@account-kit/core": "^4.0.0",
+    "@account-kit/infra": "^4.0.0",
+    "@account-kit/smart-contracts": "^4.0.0",
+    "@alchemy/aa-core": "^3.19.0",
+    "@coinbase/onchainkit": "^1.1.2",
+    "viem": "^2.21.0"
+  }
+}

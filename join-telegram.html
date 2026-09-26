@@ -1,0 +1,1873 @@
+<!--
+VEra-Resonance — Decentralized Proof-of-Human System
+© 2025 Karlheinz Beismann — VEra-Resonance Project
+Licensed under the Apache License, Version 2.0
+Platform: Telegram Gate
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png?v=20251225c">
+    <title>Join AEra Telegram Community | NFT-Gated Access</title>
+    <meta name="description" content="Join the exclusive AEra Telegram community - Identity NFT required">
+    
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+    
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        :root {
+            --platform-color: #0088cc;
+            --platform-gradient: linear-gradient(135deg, #0088cc, #00aae7);
+            --primary: #0052ff;
+            --secondary: #00d4ff;
+            --dark: #0a0e27;
+            --darker: #050814;
+            --light: #f0f4ff;
+            --accent: #6366f1;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 0;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        header {
+            padding: 0.79rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.8);
+            width: 100%;
+            margin: 0;
+        }
+
+        .header-logo {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .header-logo-icon {
+            font-size: 2.7rem;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: currentColor !important;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .header-nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        .header-nav a:hover {
+            color: var(--secondary);
+            opacity: 1;
+        }
+
+        /* Main Content Wrapper */
+        .main-wrapper {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* Animated Background Particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--platform-color);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-100px) translateX(50px); }
+            50% { transform: translateY(-50px) translateX(-50px); }
+            75% { transform: translateY(-150px) translateX(100px); }
+        }
+        
+        /* Platform Badge */
+        .platform-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--platform-gradient);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: slideIn 0.6s ease-out;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(120px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Main Container */
+        .container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+            padding: 48px;
+            max-width: 520px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .content-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+        
+        .content-logo { 
+            font-size: 4rem; 
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.4));
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.05);
+                opacity: 0.85;
+            }
+        }
+        
+        .content-title { 
+            font-size: 32px; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .tagline { 
+            font-size: 13px; 
+            color: rgba(240, 244, 255, 0.6);
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Buttons */
+        .button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.3px;
+        }
+        
+        .button:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 30px rgba(0, 82, 255, 0.4);
+        }
+        
+        .button:active {
+            transform: translateY(-1px);
+        }
+        
+        .button:disabled { 
+            opacity: 0.4; 
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Status Messages */
+        .status {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: none;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .status.show { display: block; }
+        .status.success { 
+            background: rgba(16, 185, 129, 0.15); 
+            color: var(--success); 
+            border-color: var(--success); 
+        }
+        .status.error { 
+            background: rgba(239, 68, 68, 0.15); 
+            color: var(--error); 
+            border-color: var(--error); 
+        }
+        .status.info { 
+            background: rgba(0, 212, 255, 0.15); 
+            color: #00d4ff; 
+            border-color: #00d4ff; 
+        }
+        
+        /* Info Box */
+        .info-box {
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-left: 4px solid #00d4ff;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: rgba(240, 244, 255, 0.9);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        
+        /* Details Section */
+        .details {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 24px;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .details.show { 
+            display: block;
+            animation: fadeInUp 0.4s ease-out;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+        
+        .detail-row:last-child { border-bottom: none; }
+        
+        .detail-label { 
+            color: rgba(240, 244, 255, 0.7); 
+            font-weight: 600; 
+        }
+        
+        .detail-value { 
+            color: var(--light); 
+            text-align: right; 
+            flex: 1; 
+            margin-left: 16px; 
+            word-break: break-all;
+            font-weight: 500;
+        }
+        
+        .score-badge {
+            background: var(--platform-gradient);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 24px;
+            font-weight: 800;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+        
+        /* Footer */
+        footer {
+            padding: 3rem 5%;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(240, 244, 255, 0.6);
+            margin-top: 28px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(240, 244, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.85rem;
+        }
+
+        .footer-links a:hover {
+            color: #00d4ff;
+        }
+        
+        /* Debug Info */
+        .debug-info {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            color: rgba(240, 244, 255, 0.7);
+            font-family: 'Courier New', monospace;
+            margin-top: 16px;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .debug-info.show { display: block; }
+        
+        /* Mobile Device Info */
+        .mobile-info {
+            background: rgba(0, 136, 204, 0.1);
+            border: 1px solid rgba(0, 136, 204, 0.3);
+            border-left: 4px solid #0088cc;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            color: rgba(240, 244, 255, 0.9);
+            margin-bottom: 16px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .mobile-info.show { display: block; }
+        
+        .mobile-info.android {
+            background: rgba(61, 220, 132, 0.1);
+            border-color: rgba(61, 220, 132, 0.3);
+            border-left-color: #3DDC84;
+        }
+        
+        .mobile-info.ios {
+            background: rgba(0, 122, 255, 0.1);
+            border-color: rgba(0, 122, 255, 0.3);
+            border-left-color: #007AFF;
+        }
+        
+        .mobile-info .device-icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+        
+        /* Name Input */
+        .name-input-section {
+            margin-bottom: 20px;
+        }
+        
+        .name-input-section label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgba(240, 244, 255, 0.9);
+        }
+        
+        .name-input-section input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--light);
+            transition: all 0.3s ease;
+        }
+        
+        .name-input-section input:focus {
+            outline: none;
+            border-color: var(--platform-color);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+        
+        .name-input-section input::placeholder {
+            color: rgba(240, 244, 255, 0.4);
+        }
+        
+        /* Return Button */
+        .return-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .return-button:hover {
+            background: #00d4ff;
+            color: var(--dark);
+            border-color: #00d4ff;
+            transform: translateX(-4px);
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--light);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        .menu-toggle:hover {
+            color: var(--secondary);
+        }
+
+        /* Mobile Menu Overlay */
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        .nav-menu a:hover {
+            color: var(--secondary);
+            opacity: 1;
+        }
+
+        .nav-menu.mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            backdrop-filter: blur(20px);
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 5rem 2rem 2rem;
+            gap: 1.5rem;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+            border-left: 1px solid rgba(99, 102, 241, 0.3);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-menu.mobile-menu.active {
+            right: 0;
+        }
+
+        .nav-menu.mobile-menu a {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-menu.mobile-menu a:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--secondary);
+        }
+
+        /* Menu Backdrop */
+        .menu-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 0.75rem 3%;
+            }
+
+            .header-logo {
+                font-size: 1.8rem;
+            }
+
+            .header-logo-icon {
+                font-size: 2rem;
+            }
+
+            /* Show mobile menu toggle */
+            .menu-toggle {
+                display: block;
+            }
+
+            /* Hide desktop nav */
+            .nav-menu:not(.mobile-menu) {
+                display: none;
+            }
+
+            .container {
+                padding: 32px 24px;
+            }
+            
+            .content-logo {
+                font-size: 3rem;
+            }
+            
+            .content-title {
+                font-size: 24px;
+            }
+            
+            .platform-badge {
+                top: 12px;
+                right: 12px;
+                font-size: 10px;
+                padding: 8px 14px;
+            }
+        }
+
+        /* Desktop: Always show nav, hide mobile elements */
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none !important;
+            }
+
+            .nav-menu.mobile-menu {
+                display: none !important;
+            }
+
+            .menu-backdrop {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Particles -->
+    <div class="bg-particles">
+        <div class="particle" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 80%; top: 40%; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 30%; top: 60%; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 70%; top: 80%; animation-delay: 6s;"></div>
+        <div class="particle" style="left: 50%; top: 30%; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 20%; top: 70%; animation-delay: 3s;"></div>
+    </div>
+
+    <!-- Menu Backdrop -->
+    <div class="menu-backdrop" id="menuBackdrop"></div>
+
+    <!-- Header -->
+    <header>
+        <a href="/" class="header-logo">
+            <span class="header-logo-icon" style="color: #3b82f6; animation: pulse 2s ease-in-out infinite;">🌀</span>
+            <span>AEraLogIn</span>
+        </a>
+        
+        <!-- Desktop Navigation -->
+        <nav class="nav-menu">
+            <a href="/">Home</a>
+            <a href="/logo.html">Logo</a>
+            <a href="/dashboard">Dashboard</a>
+        </nav>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+            ☰
+        </button>
+    </header>
+
+    <!-- Mobile Navigation (outside header for proper z-index stacking) -->
+    <nav class="nav-menu mobile-menu" id="mobileMenu">
+        <a href="/">Home</a>
+        <a href="/logo.html">Logo</a>
+        <a href="/dashboard">Dashboard</a>
+    </nav>
+    
+    <!-- Platform Badge removed for Telegram gate page -->
+    
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="content-header">
+                <div class="content-logo">✈️</div>
+                <div class="content-title">Join AEra Telegram</div>
+                <div class="tagline">NFT-Gated Community Access</div>
+            </div>
+        
+        <div class="info-box">
+            💡 Verify your Identity NFT to access the exclusive AEra Telegram community. Bot-free, on-chain verified members only.
+        </div>
+        
+        <!-- Mobile Device Info (shown dynamically) -->
+        <div id="mobileInfo" class="mobile-info"></div>
+        
+        <div id="status" class="status"></div>
+        
+        <div id="desktopView">
+            <button id="connectBtn" class="button" style="background: linear-gradient(135deg, var(--primary), var(--accent));">🦊 Connect Wallet</button>
+            <button id="verifyBtn" class="button" style="display: none; background: linear-gradient(135deg, #0088cc, #00aae7);">✈️ Join Telegram</button>
+            <button id="disconnectBtn" class="button" style="display: none; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">✕ Disconnect</button>
+        </div>
+        
+        <div id="details" class="details">
+            <div class="detail-row">
+                <span class="detail-label">🔐 Status:</span>
+                <span class="detail-value" id="statusValue">—</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">💼 Wallet:</span>
+                <span class="detail-value" id="addressValue">—</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">📊 Resonance Score:</span>
+                <span class="detail-value" id="scoreValue">—</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">🔄 Total Logins:</span>
+                <span class="detail-value" id="loginCountValue">—</span>
+            </div>
+        </div>
+        
+        <div id="debugInfo" class="debug-info"></div>
+        
+        <footer>
+            <div class="footer-links">
+                <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank">⭐ GitHub</a>
+                <a href="https://x.com/AEraResonant" target="_blank">𝕏 X/Twitter</a>
+                <a href="/privacy-policy" style="color: #10b981;">🔒 Privacy Policy</a>
+                <a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank">Identity NFT Contract</a>
+                <a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank">Score Contract</a>
+                <a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank">Registry Contract</a>
+                <a href="https://base.org" target="_blank">BASE L2</a>
+            </div>
+            <p>
+                &copy; 2025 AEraLogIn. Built on Coinbase BASE L2.<br>
+                Powered by Alchemy, Blockscout & Web3.py
+            </p>
+            <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.7;">
+                🚀 Live on BASE Mainnet
+            </p>
+        </footer>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        
+        // Read platform and group from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const PLATFORM = urlParams.get('platform') || 'telegram';
+        const GROUP_ID = urlParams.get('group') || null;  // For multi-gate support
+        
+        // Dynamic styling based on platform
+        const PLATFORM_CONFIG = {
+            telegram: {
+                name: 'Telegram',
+                color: '#0088cc',
+                gradient: 'linear-gradient(135deg, #0088cc, #00aae7)',
+                emoji: '✈️',
+                icon: '✈️'
+            },
+            discord: {
+                name: 'Discord',
+                color: '#5865F2',
+                gradient: 'linear-gradient(135deg, #5865F2, #7289DA)',
+                emoji: '💬',
+                icon: '🎮'
+            }
+        };
+        
+        const platformConfig = PLATFORM_CONFIG[PLATFORM] || PLATFORM_CONFIG.telegram;
+        
+        // Apply dynamic platform styling
+        document.documentElement.style.setProperty('--platform-color', platformConfig.color);
+        document.documentElement.style.setProperty('--platform-gradient', platformConfig.gradient);
+        
+        // Update page title and text
+        document.title = `Join ${platformConfig.name} Community - AEra Gate`;
+        
+        const SESSION_TIMEOUT_MINUTES = 2;  // 2 Minuten Session-Timeout
+        const SESSION_TIMEOUT_MS = SESSION_TIMEOUT_MINUTES * 60 * 1000;  // In Millisekunden
+        
+        let connectBtn, verifyBtn, disconnectBtn, statusDiv, detailsDiv, debugInfo;
+        let currentAddress = null;
+        let currentToken = null;
+        let sessionTimeoutId = null;
+        let isVerified = false;  // Track if user has verified in this session
+        
+        /**
+         * Startet den Session-Timeout-Timer neu
+         * Nach 2 Minuten wird die Session automatisch beendet
+         */
+        function resetSessionTimeout() {
+            if (sessionTimeoutId) {
+                clearTimeout(sessionTimeoutId);
+            }
+            
+            sessionTimeoutId = setTimeout(() => {
+                log('⏰ SESSION TIMEOUT: 2 minutes inactive');
+                showStatus('⏰ Session expired - Automatic logout', 'info');
+                disconnectWallet();
+            }, SESSION_TIMEOUT_MS);
+            
+            log(`🕐 Session timeout updated (${SESSION_TIMEOUT_MINUTES} min)`);
+        }
+        
+        function log(msg) {
+            console.log('[AEra]', msg);
+            if (debugInfo) {
+                debugInfo.classList.add('show');
+                debugInfo.innerHTML = msg + '<br>' + debugInfo.innerHTML;
+                if (debugInfo.children.length > 50) {
+                    debugInfo.innerHTML = debugInfo.innerHTML.substring(0, debugInfo.innerHTML.lastIndexOf('<br>', debugInfo.innerHTML.length - 100));
+                }
+            }
+        }
+        
+        function showStatus(message, type = 'info') {
+            if (statusDiv) {
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${type} show`;
+            }
+            log(`[${type}] ${message}`);
+        }
+        
+        /**
+         * Detect device and show appropriate info to user
+         */
+        function detectAndShowMobileInfo() {
+            const ua = navigator.userAgent;
+            const isAndroid = /Android/i.test(ua);
+            const isIOS = /iPhone|iPad|iPod/i.test(ua);
+            // Extended detection for Base Wallet, Coinbase Wallet, and other Web3 wallets
+            const isInAppBrowser = /MetaMask|Trust|Coinbase|CoinbaseWallet|Base|Rainbow|Phantom|Zerion|Uniswap|1inch|Wallet/i.test(ua);
+            
+            const mobileInfoDiv = document.getElementById('mobileInfo');
+            if (!mobileInfoDiv) return;
+            
+            if (isAndroid && isInAppBrowser) {
+                mobileInfoDiv.innerHTML = `
+                    <span class="device-icon">🤖</span>
+                    <strong>Android + Wallet Browser erkannt</strong><br>
+                    <small>Telegram öffnet sich automatisch nach Verifizierung.</small>
+                `;
+                mobileInfoDiv.className = 'mobile-info android show';
+                log('📱 Device: Android + In-App Browser (Intent-Bridge ready)');
+            } else if (isIOS && isInAppBrowser) {
+                mobileInfoDiv.innerHTML = `
+                    <span class="device-icon">🍎</span>
+                    <strong>iOS + Wallet Browser erkannt</strong><br>
+                    <small>Optimierte Weiterleitung zu Telegram aktiviert.</small>
+                `;
+                mobileInfoDiv.className = 'mobile-info ios show';
+                log('📱 Device: iOS + In-App Browser (Universal Link ready)');
+            } else if (isAndroid || isIOS) {
+                log('📱 Device: Mobile Standard Browser');
+            } else {
+                log('🖥️ Device: Desktop Browser');
+            }
+        }
+        
+        /**
+         * Robust wallet signing with multiple fallback strategies
+         * Handles different wallet implementations (MetaMask, Coinbase, Base, Rainbow, etc.)
+         * 
+         * Strategy Order:
+         * 1. Base Wallet SIWE Capabilities (wallet_connect with signInWithEthereum)
+         * 2. Standard personal_sign [message, address] (MetaMask, Rainbow, Trust)
+         * 3. Reversed personal_sign [address, message] (some Coinbase versions)
+         * 4. Hex-encoded personal_sign (fallback)
+         */
+        async function robustWalletSign(message, address) {
+            const ua = navigator.userAgent.toLowerCase();
+            const isBaseWallet = ua.includes('base') || 
+                                 ua.includes('coinbasewallet') || 
+                                 (window.ethereum && window.ethereum.isCoinbaseWallet);
+            
+            log(`🔐 Attempting signature (Base/Coinbase detected: ${isBaseWallet})`);
+            
+            // Extract nonce from SIWE message (if present)
+            const nonceMatch = message.match(/Nonce: ([a-zA-Z0-9]+)/);
+            const nonce = nonceMatch ? nonceMatch[1] : Date.now().toString();
+            
+            // ========================================
+            // STRATEGY 1: Base Wallet SIWE Capabilities
+            // Uses wallet_connect with signInWithEthereum capability
+            // ========================================
+            if (isBaseWallet && window.ethereum) {
+                try {
+                    log('📱 Trying Base Wallet SIWE Capabilities...');
+                    
+                    const result = await window.ethereum.request({
+                        method: 'wallet_connect',
+                        params: [{
+                            version: '1',
+                            capabilities: {
+                                signInWithEthereum: {
+                                    nonce: nonce,
+                                    chainId: '0x2105'  // Base Mainnet (8453)
+                                }
+                            }
+                        }]
+                    });
+                    
+                    if (result && result.signature) {
+                        log('✅ Base Wallet SIWE Capabilities successful!');
+                        return result.signature;
+                    }
+                } catch (siweError) {
+                    log(`⚠️ Base SIWE Capabilities not supported: ${siweError.message}`);
+                    // Continue to fallback methods
+                }
+            }
+            
+            // ========================================
+            // STRATEGY 2: Standard personal_sign [message, address]
+            // Works for: MetaMask, Rainbow, Trust Wallet
+            // ========================================
+            try {
+                log('📝 Trying standard personal_sign [message, address]...');
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, address]
+                });
+                if (signature) {
+                    log('✅ Standard personal_sign successful!');
+                    return signature;
+                }
+            } catch (error1) {
+                log(`⚠️ Standard method failed: ${error1.message}`);
+                
+                // ========================================
+                // STRATEGY 3: Reversed params [address, message]
+                // Some older Coinbase/Base versions use this order
+                // ========================================
+                try {
+                    log('🔄 Trying reversed personal_sign [address, message]...');
+                    const signature = await window.ethereum.request({
+                        method: 'personal_sign',
+                        params: [address, message]
+                    });
+                    if (signature) {
+                        log('✅ Reversed personal_sign successful!');
+                        return signature;
+                    }
+                } catch (error2) {
+                    log(`⚠️ Reversed method failed: ${error2.message}`);
+                    
+                    // ========================================
+                    // STRATEGY 4: Hex-encoded message
+                    // Last resort fallback
+                    // ========================================
+                    try {
+                        log('🔢 Trying hex-encoded personal_sign...');
+                        const hexMessage = '0x' + Array.from(new TextEncoder().encode(message))
+                            .map(b => b.toString(16).padStart(2, '0')).join('');
+                        const signature = await window.ethereum.request({
+                            method: 'personal_sign',
+                            params: [hexMessage, address]
+                        });
+                        if (signature) {
+                            log('✅ Hex-encoded personal_sign successful!');
+                            return signature;
+                        }
+                    } catch (error3) {
+                        log(`❌ All signature methods failed`);
+                        throw new Error(`Signature rejected: ${error1.message}`);
+                    }
+                }
+            }
+            
+            throw new Error('No signature received');
+        }
+
+        async function tryAutoLogin() {
+            const savedToken = localStorage.getItem('aera_token');
+            const savedAddress = localStorage.getItem('aera_address');
+            if (!savedToken || !savedAddress) {
+                log('ℹ️ No saved token found');
+                return false;
+            }
+            
+            try {
+                log('🔐 Attempting auto-login with wallet verification...');
+                
+                if (typeof window.ethereum === 'undefined') {
+                    log('❌ No Web3 wallet detected - Auto-login blocked');
+                    localStorage.removeItem('aera_token');
+                    localStorage.removeItem('aera_address');
+                    return false;
+                }
+                
+                let accounts = [];
+                try {
+                    // IMPORTANT: eth_accounts only READS accounts, does NOT open popup!
+                    accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                } catch (e) {
+                    log('❌ Wallet not active: ' + e.message);
+                    localStorage.removeItem('aera_token');
+                    localStorage.removeItem('aera_address');
+                    return false;
+                }
+                
+                if (!accounts || accounts.length === 0) {
+                    log('ℹ️ No wallet accounts available - User must connect manually');
+                    return false;
+                }
+                
+                const currentWallet = accounts[0].toLowerCase();
+                const savedWallet = savedAddress.toLowerCase();
+                
+                if (currentWallet !== savedWallet) {
+                    log('❌ WALLET MISMATCH - Auto-login blocked');
+                    localStorage.removeItem('aera_token');
+                    localStorage.removeItem('aera_address');
+                    return false;
+                }
+                
+                log('✓ Wallet security check passed');
+                
+                // Nonce anfordern
+                const nonceResponse = await fetch(`${API_BASE}/api/nonce`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: currentWallet }),
+                    signal: AbortSignal.timeout(5000)
+                });
+                
+                if (!nonceResponse.ok) throw new Error(`Nonce Request HTTP ${nonceResponse.status}`);
+                
+                const nonceData = await nonceResponse.json();
+                if (!nonceData.success) throw new Error('Nonce generation failed');
+                
+                // 🔐 SIWE (EIP-4361) compliant message format
+                const domain = window.location.host;
+                const uri = window.location.origin;
+                const issuedAt = new Date().toISOString();
+                const messageToSign = `${domain} wants you to sign in with your Ethereum account:
+${currentWallet}
+
+Sign in to AEraLogIn - Decentralized Identity
+
+URI: ${uri}
+Version: 1
+Chain ID: 8453
+Nonce: ${nonceData.nonce}
+Issued At: ${issuedAt}`;
+                log('✓ Nonce received');
+                
+                // Wallet Signature using robust method with multiple fallbacks
+                let signature;
+                try {
+                    signature = await robustWalletSign(messageToSign, currentWallet);
+                } catch (signError) {
+                    log('❌ Signature rejected: ' + signError.message);
+                    localStorage.removeItem('aera_token');
+                    localStorage.removeItem('aera_address');
+                    return false;
+                }
+                
+                if (!signature) {
+                    log('❌ No signature received');
+                    localStorage.removeItem('aera_token');
+                    localStorage.removeItem('aera_address');
+                    return false;
+                }
+                
+                log('✓ Signature received');
+                
+                // Verify token
+                const response = await fetch(`${API_BASE}/api/verify-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token: savedToken,
+                        address: currentWallet,
+                        nonce: nonceData.nonce,
+                        message: messageToSign,
+                        signature: signature
+                    }),
+                    signal: AbortSignal.timeout(30000)  // 30 seconds for potential NFT minting
+                });
+                
+                const data = await response.json();
+                
+                if (!data.valid) {
+                    log('⚠️ Token invalid or expired');
+                    localStorage.removeItem('aera_token');
+                    localStorage.removeItem('aera_address');
+                    return false;
+                }
+                
+                currentAddress = data.address;
+                currentToken = savedToken;
+                isVerified = true;  // Mark as verified for auto-login
+                
+                log('✅ Auto-login successful!');
+                showStatus(`✓ Auto-login successful - Session: ${SESSION_TIMEOUT_MINUTES} min`, 'success');
+                
+                document.getElementById('addressValue').textContent = currentAddress;
+                document.getElementById('statusValue').textContent = '✅ Auto-Login';
+                document.getElementById('scoreValue').innerHTML = 
+                    `<span class="score-badge">${data.resonance_score}/100</span>`;
+                document.getElementById('loginCountValue').textContent = data.login_count;
+                
+                connectBtn.style.display = 'none';
+                verifyBtn.style.display = 'none';
+                disconnectBtn.style.display = 'block';
+                detailsDiv.classList.add('show');
+                
+                // 🔐 IMPORTANT: Start session timeout (2 minutes)
+                resetSessionTimeout();
+                
+                return true;
+                
+            } catch (error) {
+                log('❌ Auto-login error: ' + error.message);
+                localStorage.removeItem('aera_token');
+                localStorage.removeItem('aera_address');
+                return false;
+            }
+        }
+        
+        async function connectWallet() {
+            try {
+                log('⏳ Starting wallet connection...');
+                
+                if (typeof window.ethereum === 'undefined') {
+                    log('❌ No Web3 wallet detected');
+                    showStatus('❌ No Web3 wallet detected! Please install MetaMask, Coinbase Wallet, or another Web3 wallet.', 'error');
+                    return;
+                }
+                
+                connectBtn.disabled = true;
+                
+                log('🔍 Establishing wallet connection...');
+                showStatus('⏳ Waiting for wallet connection...', 'info');
+                
+                let accounts = [];
+                try {
+                    accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts'
+                    });
+                } catch (popupError) {
+                    log('❌ Wallet connection rejected: ' + popupError.message);
+                    showStatus('❌ Wallet connection rejected!', 'error');
+                    connectBtn.disabled = false;
+                    return;
+                }
+                
+                // 🔗 Auto-switch to BASE Mainnet (Chain ID: 8453 = 0x2105)
+                try {
+                    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                    if (chainId !== '0x2105') {
+                        log('🔄 Switching to BASE Mainnet...');
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_switchEthereumChain',
+                                params: [{ chainId: '0x2105' }]
+                            });
+                            log('✓ Switched to BASE Mainnet');
+                        } catch (switchError) {
+                            if (switchError.code === 4902) {
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: '0x2105',
+                                        chainName: 'Base Mainnet',
+                                        rpcUrls: ['https://mainnet.base.org'],
+                                        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                                        blockExplorerUrls: ['https://basescan.org']
+                                    }]
+                                });
+                                log('✓ BASE Mainnet added and switched');
+                            } else {
+                                throw switchError;
+                            }
+                        }
+                    }
+                } catch (chainError) {
+                    log('⚠️ Network switch failed: ' + chainError.message);
+                }
+                
+                if (!accounts || accounts.length === 0) {
+                    log('❌ No accounts found in wallet');
+                    showStatus('❌ No wallet accounts found!', 'error');
+                    connectBtn.disabled = false;
+                    return;
+                }
+                
+                currentAddress = accounts[0];
+                log('✅ Wallet connected: ' + currentAddress);
+                
+                // � Track wallet connection
+                if (typeof AEraAnalytics !== 'undefined') {
+                    AEraAnalytics.walletConnect(currentAddress);
+                }
+                
+                // �🔒 Check if already a follower (if owner parameter present)
+                const urlParams = new URLSearchParams(window.location.search);
+                const ownerParam = urlParams.get('owner');
+                const sourceParam = urlParams.get('source') || 'direct';
+                
+                if (ownerParam) {
+                    try {
+                        const checkResponse = await fetch(`${API_BASE}/api/check-follower-status`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                address: currentAddress,
+                                owner: ownerParam,
+                                source: sourceParam
+                            })
+                        });
+                        
+                        if (checkResponse.ok) {
+                            const checkData = await checkResponse.json();
+                            if (checkData.is_follower && checkData.confirmed) {
+                                log('⚠️ Already registered as follower');
+                                showStatus(`⚠️ You are already registered as a follower on ${sourceParam}!`, 'error');
+                                document.getElementById('addressValue').textContent = currentAddress;
+                                document.getElementById('statusValue').textContent = '⚠️ Already Follower';
+                                document.getElementById('nameInputSection').style.display = 'none';
+                                connectBtn.style.display = 'none';
+                                verifyBtn.style.display = 'block';
+                                verifyBtn.textContent = '⚠️ Already Follower';
+                                verifyBtn.disabled = true;
+                                verifyBtn.style.opacity = '0.6';
+                                verifyBtn.style.cursor = 'not-allowed';
+                                disconnectBtn.style.display = 'block';
+                                detailsDiv.classList.add('show');
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        log('⚠️ Could not check follower status: ' + error.message);
+                    }
+                }
+                
+                // Use platform from existing sourceParam for dynamic message
+                const platformNameMsg = sourceParam === 'discord' ? 'Discord' : 'Telegram';
+                showStatus(`✓ Wallet connected. Now click "Join ${platformNameMsg}"!`, 'success');
+                
+                document.getElementById('addressValue').textContent = currentAddress;
+                document.getElementById('statusValue').textContent = '🔗 Connected';
+                
+                connectBtn.style.display = 'none';
+                verifyBtn.style.display = 'block';
+                verifyBtn.disabled = false;
+                disconnectBtn.style.display = 'block';
+                detailsDiv.classList.add('show');
+                
+            } catch (error) {
+                log('❌ connectWallet error: ' + error.message);
+                showStatus('❌ Error: ' + error.message, 'error');
+                connectBtn.disabled = false;
+            }
+        }
+        
+        async function verifyWallet() {
+            if (!currentAddress) {
+                log('❌ No wallet connected');
+                return;
+            }
+            
+            // 🔒 Prevent multiple verifications in same session
+            if (isVerified) {
+                log('✓ Already verified in this session');
+                showStatus('✓ Already verified!', 'success');
+                return;
+            }
+            
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    log('❌ Web3 wallet not available');
+                    showStatus('❌ Web3 wallet not available!', 'error');
+                    return;
+                }
+                
+                log('🔐 Security check...');
+                
+                let accounts = [];
+                try {
+                    accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                } catch (e) {
+                    log('❌ Wallet not active: ' + e.message);
+                    showStatus('❌ Wallet not active!', 'error');
+                    return;
+                }
+                
+                // 🔗 Auto-switch to BASE Mainnet (Chain ID: 8453 = 0x2105)
+                try {
+                    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                    if (chainId !== '0x2105') {
+                        log('🔄 Switching to BASE Mainnet...');
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_switchEthereumChain',
+                                params: [{ chainId: '0x2105' }]
+                            });
+                            log('✓ Switched to BASE Mainnet');
+                        } catch (switchError) {
+                            if (switchError.code === 4902) {
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: '0x2105',
+                                        chainName: 'Base Mainnet',
+                                        rpcUrls: ['https://mainnet.base.org'],
+                                        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                                        blockExplorerUrls: ['https://basescan.org']
+                                    }]
+                                });
+                                log('✓ BASE Mainnet added and switched');
+                            } else {
+                                throw switchError;
+                            }
+                        }
+                    }
+                } catch (chainError) {
+                    log('⚠️ Network switch failed: ' + chainError.message);
+                }
+                
+                if (!accounts || accounts.length === 0) {
+                    log('❌ No wallet available');
+                    showStatus('❌ Web3 wallet not active!', 'error');
+                    return;
+                }
+                
+                if (accounts[0].toLowerCase() !== currentAddress.toLowerCase()) {
+                    log('❌ Wallet changed');
+                    showStatus('❌ Wallet address has changed!', 'error');
+                    return;
+                }
+                
+                log('✓ Security check passed');
+                verifyBtn.disabled = true;
+                showStatus('⏳ Verification in progress...', 'info');
+                
+                // Nonce anfordern
+                const nonceResponse = await fetch(`${API_BASE}/api/nonce`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address: currentAddress }),
+                    signal: AbortSignal.timeout(5000)
+                });
+                
+                if (!nonceResponse.ok) throw new Error(`Nonce Request HTTP ${nonceResponse.status}`);
+                
+                const nonceData = await nonceResponse.json();
+                if (!nonceData.success) throw new Error('Nonce generation failed');
+                
+                // 🔐 SIWE (EIP-4361) compliant message format
+                const domain = window.location.host;
+                const uri = window.location.origin;
+                const issuedAt = new Date().toISOString();
+                const messageToSign = `${domain} wants you to sign in with your Ethereum account:
+${currentAddress}
+
+Sign in to AEraLogIn - Decentralized Identity
+
+URI: ${uri}
+Version: 1
+Chain ID: 8453
+Nonce: ${nonceData.nonce}
+Issued At: ${issuedAt}`;
+                log('✓ Nonce received');
+                
+                // Wallet Signature using robust method with multiple fallbacks
+                let signature;
+                try {
+                    signature = await robustWalletSign(messageToSign, currentAddress);
+                } catch (signError) {
+                    log('❌ Signature rejected: ' + signError.message);
+                    showStatus('❌ Signature rejected!', 'error');
+                    verifyBtn.disabled = false;
+                    return;
+                }
+                
+                if (!signature) {
+                    log('❌ No signature received');
+                    showStatus('❌ No signature received!', 'error');
+                    verifyBtn.disabled = false;
+                    return;
+                }
+                
+                log('✓ Signature received');
+                
+                // Get owner parameter from URL if present
+                const urlParams = new URLSearchParams(window.location.search);
+                const ownerParam = urlParams.get('owner');
+                
+                // Verifizieren
+                const verifyPayload = {
+                    address: currentAddress,
+                    nonce: nonceData.nonce,
+                    message: messageToSign,
+                    signature: signature
+                };
+                
+                // Add owner if provided (for follower tracking)
+                if (ownerParam) {
+                    verifyPayload.owner = ownerParam;
+                    log(`👥 Owner Account: ${ownerParam.substring(0, 10)}...`);
+                }
+                
+                // Add source platform from URL or use PLATFORM constant
+                const sourceParam = new URLSearchParams(window.location.search).get('source');
+                if (sourceParam) {
+                    verifyPayload.source = sourceParam;
+                    log(`📱 Platform Source: ${sourceParam}`);
+                }
+                
+                const response = await fetch(`${API_BASE}/api/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(verifyPayload),
+                    signal: AbortSignal.timeout(30000)  // 30 seconds for NFT minting
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                
+                // Special handling for "already follower" error
+                if (data.already_follower) {
+                    log('⚠️ Already registered as follower');
+                    showStatus('⚠️ You are already registered as a follower for this link!', 'error');
+                    verifyBtn.textContent = '⚠️ Already Follower';
+                    verifyBtn.disabled = true;
+                    verifyBtn.style.opacity = '0.6';
+                    verifyBtn.style.cursor = 'not-allowed';
+                    return;
+                }
+                
+                if (data.error) throw new Error(data.error);
+                if (!data.is_human) throw new Error('Signature verification failed');
+                
+                log('✅ Verification successful!');
+                
+                // 🔒 Mark as verified to prevent multiple verifications
+                isVerified = true;
+                
+                document.getElementById('scoreValue').innerHTML = 
+                    `<span class="score-badge">${data.resonance_score}/100</span>`;
+                // ⏳ Don't show "Access Granted" yet - wait for score check!
+                document.getElementById('statusValue').textContent = '⏳ Checking access...';
+                document.getElementById('loginCountValue').textContent = data.login_count;
+                
+                if (data.token) {
+                    currentToken = data.token;
+                    localStorage.setItem('aera_token', data.token);
+                    localStorage.setItem('aera_address', currentAddress);
+                    log('💾 Token saved');
+                }
+                
+                // 🔐 IMPORTANT: Start session timeout (2 minutes)
+                resetSessionTimeout();
+                
+                // ✈️ COMMUNITY GATE: Request invite link (Telegram or Discord)
+                const platform = sourceParam === 'discord' ? 'discord' : 'telegram';
+                const platformName = platform === 'discord' ? 'Discord' : 'Telegram';
+                const platformIcon = platform === 'discord' ? '💜' : '✈️';
+                
+                showStatus(`${platformIcon} Getting ${platformName} invite link...`, 'info');
+                
+                try {
+                    const inviteResponse = await fetch(`${API_BASE}/api/telegram/invite`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            address: currentAddress,
+                            owner_wallet: ownerParam || null,
+                            platform: platform,
+                            group_id: GROUP_ID,  // For multi-gate support (identifies specific group)
+                            user_agent: navigator.userAgent  // NEW: Send User-Agent for device detection
+                        }),
+                        signal: AbortSignal.timeout(10000)
+                    });
+                    
+                    const inviteData = await inviteResponse.json();
+                    
+                    // ========================================
+                    // NEW: HANDLE DIFFERENT RESPONSE METHODS
+                    // ========================================
+                    
+                    if (inviteData.success) {
+                        
+                        // ✅ SUCCESS: Update status to "Access Granted"
+                        document.getElementById('statusValue').innerHTML = '<span style="color: #00ff88;">✅ Access Granted</span>';
+                        
+                        // 📊 Track Gate Access Success
+                        if (typeof AEraAnalytics !== 'undefined') {
+                            AEraAnalytics.gateAccess('telegram', 'granted');
+                        }
+                        
+                        // 🤖 INTENT-BRIDGE: Android + In-App Browser (MetaMask, Trust Wallet, etc.)
+                        if (inviteData.method === "intent_bridge") {
+                            log(`🤖 Intent-Bridge aktiviert für Android + In-App Browser`);
+                            log(`Intent URL: ${inviteData.intent_url}`);
+                            showStatus(`📱 ${platformName} wird direkt geöffnet...`, 'success');
+                            
+                            verifyBtn.textContent = `📱 Öffne ${platformName}...`;
+                            verifyBtn.disabled = true;
+                            verifyBtn.style.opacity = '0.6';
+                            verifyBtn.style.cursor = 'not-allowed';
+                            
+                            // Redirect via Android Intent (bypasses WebView limitations)
+                            setTimeout(() => {
+                                window.location.href = inviteData.intent_url;
+                            }, 500);
+                            
+                            // Fallback: After 3 seconds, open Play Store if Telegram not installed
+                            setTimeout(() => {
+                                // Only trigger if still on this page (Telegram didn't open)
+                                if (document.hasFocus()) {
+                                    log('⚠️ Telegram scheint nicht installiert zu sein, öffne Play Store...');
+                                    window.location.href = inviteData.fallback_url || "market://details?id=org.telegram.messenger";
+                                }
+                            }, 3000);
+                            
+                            return;
+                        }
+                        
+                        // 🍎 iOS UNIVERSAL LINK: iOS + In-App Browser
+                        if (inviteData.method === "ios_universal_link") {
+                            log(`🍎 iOS Universal Link aktiviert`);
+                            showStatus(`📱 ${platformName} wird geöffnet... Welcome! 🎉`, 'success');
+                            
+                            verifyBtn.textContent = `✅ Öffne ${platformName}...`;
+                            verifyBtn.disabled = true;
+                            verifyBtn.style.opacity = '0.6';
+                            verifyBtn.style.cursor = 'not-allowed';
+                            
+                            // Redirect via secure token endpoint
+                            setTimeout(() => {
+                                window.location.href = inviteData.redirect_url;
+                            }, 1000);
+                            
+                            return;
+                        }
+                        
+                        // 🖥️ STANDARD REDIRECT: Desktop / Normal Mobile Browser
+                        if (inviteData.method === "standard_redirect" && inviteData.redirect_url) {
+                            log(`🖥️ Standard Redirect (${inviteData.device})`);
+                            log(`✅ ${platformName} secure redirect token received`);
+                            showStatus(`✅ Opening ${platformName}... Welcome to the community! 🎉`, 'success');
+                            
+                            // Redirect via secure token endpoint (link is hidden)
+                            setTimeout(() => {
+                                window.location.href = inviteData.redirect_url;
+                            }, 1500);  // 1.5 second delay to show success message
+                            
+                            verifyBtn.textContent = `✅ Redirecting to ${platformName}...`;
+                            verifyBtn.disabled = true;
+                            verifyBtn.style.opacity = '0.6';
+                            verifyBtn.style.cursor = 'not-allowed';
+                            
+                            return;
+                        }
+                        
+                        // 🔐 LEGACY FALLBACK: Old response format (redirect_url without method)
+                        if (inviteData.redirect_url) {
+                            log(`✅ ${platformName} secure redirect token received (legacy)`);
+                            showStatus(`✅ Opening ${platformName}... Welcome to the community! 🎉`, 'success');
+                            
+                            setTimeout(() => {
+                                window.location.href = inviteData.redirect_url;
+                            }, 1500);
+                            
+                            verifyBtn.textContent = `✅ Redirecting to ${platformName}...`;
+                            verifyBtn.disabled = true;
+                            verifyBtn.style.opacity = '0.6';
+                            verifyBtn.style.cursor = 'not-allowed';
+                            
+                            return;
+                        }
+                    }
+                    
+                    // ========================================
+                    // ERROR HANDLING: Score too low or other errors
+                    // ========================================
+                    const errorMsg = inviteData.error || 'Unknown error';
+                    log(`⚠️ Could not get ${platformName} invite: ` + errorMsg);
+                    
+                    // Check if it's a SCORE error (access denied due to low score)
+                    if (errorMsg.includes('Access denied') || errorMsg.includes('Score') || inviteData.score_required) {
+                        // 🚫 ACCESS DENIED - Update UI to reflect this!
+                        document.getElementById('statusValue').innerHTML = '<span style="color: #f0a040;">⚠️ Score Required</span>';
+                        
+                        const requiredScore = inviteData.score_required || inviteData.error_details?.required_score || '?';
+                        const userScore = inviteData.your_onchain_score || inviteData.error_details?.your_score || data.resonance_score;
+                        const missingPoints = inviteData.error_details?.missing_points || (requiredScore - userScore);
+                        const groupName = inviteData.error_details?.group_name || 'This community';
+                        
+                        showStatus(`⚠️ ${groupName} requires a minimum score of ${requiredScore}. Your score: ${userScore}. You need ${missingPoints} more points.`, 'warning');
+                        verifyBtn.textContent = '⚠️ Score too low';
+                        verifyBtn.disabled = true;
+                        verifyBtn.style.opacity = '0.7';
+                        verifyBtn.style.cursor = 'not-allowed';
+                    } else {
+                        // Other errors (NFT verified but invite failed for other reason)
+                        showStatus(`✅ NFT Verified! Score: ${data.resonance_score}/100`, 'success');
+                        verifyBtn.textContent = '✓ Verified';
+                        verifyBtn.disabled = true;
+                        verifyBtn.style.opacity = '0.6';
+                        verifyBtn.style.cursor = 'not-allowed';
+                    }
+                } catch (inviteError) {
+                    log(`⚠️ ${platformName} invite error: ` + inviteError.message);
+                    showStatus(`✅ NFT Verified! Score: ${data.resonance_score}/100`, 'success');
+                    verifyBtn.textContent = '✓ Verified';
+                    verifyBtn.disabled = true;
+                    verifyBtn.style.opacity = '0.6';
+                    verifyBtn.style.cursor = 'not-allowed';
+                }
+                
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                showStatus('Error: ' + error.message, 'error');
+                verifyBtn.textContent = '✓ Verify Identity';
+                verifyBtn.disabled = false;  // Only re-enable on error
+            }
+        }
+        
+        function disconnectWallet() {
+            // 🔐 Stop session timeout
+            if (sessionTimeoutId) {
+                clearTimeout(sessionTimeoutId);
+                sessionTimeoutId = null;
+            }
+            
+            currentAddress = null;
+            currentToken = null;
+            isVerified = false;  // Reset verification flag
+            
+            localStorage.removeItem('aera_token');
+            localStorage.removeItem('aera_address');
+            
+            document.getElementById('addressValue').textContent = '—';
+            document.getElementById('statusValue').textContent = '—';
+            document.getElementById('scoreValue').textContent = '—';
+            document.getElementById('loginCountValue').textContent = '—';
+            
+            connectBtn.style.display = 'block';
+            verifyBtn.style.display = 'none';
+            disconnectBtn.style.display = 'none';
+            verifyBtn.textContent = '✈️ Join Telegram';
+            verifyBtn.disabled = false;
+            verifyBtn.style.opacity = '1';  // Reset opacity
+            verifyBtn.style.cursor = 'pointer';  // Reset cursor
+            detailsDiv.classList.remove('show');
+            
+            showStatus('✓ Wallet disconnected', 'info');
+            log('🗑️ Session cleared');
+        }
+        
+        async function confirmFollow() {
+            if (!currentAddress) {
+                log('❌ No wallet connected');
+                return;
+            }
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const ownerParam = urlParams.get('owner');
+            
+            if (!ownerParam) {
+                log('❌ No owner in URL');
+                return;
+            }
+            
+            const confirmBtn = document.getElementById('confirmFollowBtn');
+            confirmBtn.disabled = true;
+            showStatus('⏳ Confirming follow request...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/confirm-follower`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        owner: ownerParam,
+                        follower: currentAddress
+                    }),
+                    signal: AbortSignal.timeout(30000)  // 30 seconds for blockchain interaction
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                
+                if (!data.success) throw new Error(data.error || 'Follow confirmation failed');
+                
+                log('✅ Follow request confirmed!');
+                showStatus('✅ Follow request confirmed! 🎉', 'success');
+                confirmBtn.textContent = '✓ Confirmed';
+                confirmBtn.disabled = true;
+                confirmBtn.style.opacity = '0.6';  // Visual feedback that it's permanently disabled
+                confirmBtn.style.cursor = 'not-allowed';
+                
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                showStatus('❌ Error: ' + error.message, 'error');
+                confirmBtn.disabled = false;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                connectBtn = document.getElementById('connectBtn');
+                verifyBtn = document.getElementById('verifyBtn');
+                disconnectBtn = document.getElementById('disconnectBtn');
+                statusDiv = document.getElementById('status');
+                detailsDiv = document.getElementById('details');
+                debugInfo = document.getElementById('debugInfo');
+                
+                // 🎯 PLATFORM DETECTION: Use 'platform' parameter (fallback to 'source' for compatibility)
+                // PLATFORM is already defined at top of script from URL params
+                const isDiscord = PLATFORM === 'discord';
+                const platformName = platformConfig.name;
+                const platformIcon = platformConfig.emoji;
+                const platformColor = platformConfig.gradient;
+                
+                // Update page title
+                document.title = `Join AEra ${platformName} Community | NFT-Gated Access`;
+                
+                // Update content header
+                const contentLogo = document.querySelector('.content-logo');
+                const contentTitle = document.querySelector('.content-title');
+                if (contentLogo) contentLogo.textContent = platformIcon;
+                if (contentTitle) contentTitle.textContent = `Join AEra ${platformName}`;
+                
+                // Update info box
+                const infoBox = document.querySelector('.info-box');
+                if (infoBox) {
+                    infoBox.innerHTML = `💡 Verify your Identity NFT to access the exclusive AEra ${platformName} community. Bot-free, on-chain verified members only.`;
+                }
+                
+                // Update verify button
+                if (verifyBtn) {
+                    verifyBtn.textContent = `${platformIcon} Join ${platformName}`;
+                    verifyBtn.style.background = platformColor;
+                }
+                
+                log(`=== AEraLogIn - ${platformName} Gate ===`);
+                log('API: ' + API_BASE);
+                log(`Platform: ${PLATFORM}`);
+                
+                // 📱 NEW: Detect and show mobile device info
+                detectAndShowMobileInfo();
+                
+                connectBtn.addEventListener('click', connectWallet);
+                verifyBtn.addEventListener('click', verifyWallet);
+                disconnectBtn.addEventListener('click', disconnectWallet);
+                
+                // Add event listener for confirm follow button
+                const confirmFollowBtn = document.getElementById('confirmFollowBtn');
+                if (confirmFollowBtn) {
+                    confirmFollowBtn.addEventListener('click', confirmFollow);
+                }
+                
+                // Try auto-login (BUT NOT for follower links!)
+                (async () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const ownerParam = urlParams.get('owner');
+                    
+                    // For follower links: No auto-login, always fresh start
+                    if (ownerParam) {
+                        log('📋 Follower link detected - no auto-login, fresh start');
+                        // Clear any old tokens for clean experience
+                        localStorage.removeItem('aera_token');
+                        localStorage.removeItem('aera_address');
+                        return;
+                    }
+                    
+                    if (typeof window.ethereum !== 'undefined') {
+                        log('Web3 wallet detected - attempting auto-login...');
+                        setTimeout(async () => {
+                            try {
+                                await autoLoginWithToken();
+                            } catch (error) {
+                                log('❌ Auto-login error: ' + error.message);
+                            }
+                        }, 300);
+                    } else {
+                        log('⚠️ No Web3 wallet detected');
+                    }
+                })();
+            } catch (error) {
+                console.error('INIT ERROR:', error);
+                log('❌ INIT ERROR: ' + error.message);
+            }
+        });
+    </script>
+
+    <!-- ===== AERA CHAT WIDGET ===== -->
+    <link rel="stylesheet" href="/aera-chat.css?v=20251209002">
+    <script src="/aera-chat.js?v=20251209001"></script>
+    <script>
+        // Initialize AEra Chat Widget
+        if (typeof initAeraChat === 'function') {
+            initAeraChat();
+            console.log('🌀 AEra Chat Widget initialized');
+        }
+    </script>
+
+    <!-- Mobile Menu Toggle Script -->
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuBackdrop = document.getElementById('menuBackdrop');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('active');
+            menuBackdrop.classList.toggle('active');
+            
+            // Change icon
+            if (mobileMenu.classList.contains('active')) {
+                menuToggle.textContent = '✕';
+            } else {
+                menuToggle.textContent = '☰';
+            }
+        }
+
+        function closeMenu() {
+            mobileMenu.classList.remove('active');
+            menuBackdrop.classList.remove('active');
+            menuToggle.textContent = '☰';
+        }
+
+        // Toggle menu on button click
+        menuToggle.addEventListener('click', toggleMenu);
+
+        // Close menu on backdrop click
+        menuBackdrop.addEventListener('click', closeMenu);
+
+        // Close menu when clicking a link
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', closeMenu);
+        });
+
+        // Close menu on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+                closeMenu();
+            }
+        });
+    </script>
+</body>
+</html>

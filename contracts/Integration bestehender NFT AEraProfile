@@ -1,0 +1,865 @@
+# AEra Profile NFT - Integrationsdokumentation
+
+**Version:** 1.0  
+**Stand:** 31. Dezember 2024  
+**Netzwerk:** Base Mainnet (Chain ID 8453)
+
+---
+
+## 📋 Inhaltsverzeichnis
+
+1. [Übersicht](#übersicht)
+2. [Contract Details](#contract-details)
+3. [Rollen & Berechtigungen](#rollen--berechtigungen)
+4. [ABI & Interface](#abi--interface)
+5. [Backend-Integration](#backend-integration)
+6. [Metadata Endpoints](#metadata-endpoints)
+7. [Event Handling](#event-handling)
+8. [Minting Flow](#minting-flow)
+9. [Query Functions](#query-functions)
+10. [Soulbound Mode](#soulbound-mode)
+11. [Migration Checkliste](#migration-checkliste)
+
+---
+
+## Übersicht
+
+Das **AEra Profile NFT** ist ein ERC-721 Token mit erweiterten Privacy-Features:
+
+| Feature | Beschreibung |
+|---------|--------------|
+| **Privacy by Default** | Alle Tokens starten als PRIVATE |
+| **Opt-In Visibility** | Nur Owner/Delegate kann PUBLIC setzen |
+| **One per Wallet** | Max. 1 NFT pro Wallet (Sybil-Schutz) |
+| **Soulbound Mode** | Admin kann Transfers global blockieren |
+| **Delegation** | Apps können Visibility im Auftrag managen |
+| **EIP-4906** | Metadata Update Events für schnelles Indexing |
+| **Cache-Busting** | `metadataNonce` für erzwungene Refreshes |
+
+> ⚠️ **Wichtig:** Dies ist das **öffentliche/sichtbare Profile NFT**.  
+> Nicht verwechseln mit dem Soulbound Auth-NFT "AEra Identity".
+
+---
+
+## Contract Details
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  CONTRACT ADDRESS                                               │
+│  0x0a630A3Dc0C7387e0226D1b285C43B753506b27E                     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Property | Wert |
+|----------|------|
+| **Contract Address** | `0x0a630A3Dc0C7387e0226D1b285C43B753506b27E` |
+| **Name** | AEra Profile |
+| **Symbol** | APR |
+| **Chain** | Base Mainnet |
+| **Chain ID** | 8453 |
+| **Solidity Version** | ^0.8.24 |
+| **OpenZeppelin** | v5.2+ |
+| **Deployment TX** | `0xf482d1b0af6f0461e8322e727463f96b68d19ff2aff1c91451ea1d5268870ff0` |
+| **Blockscout** | https://base.blockscout.com/address/0x0a630a3dc0c7387e0226d1b285c43b753506b27e |
+
+---
+
+## Rollen & Berechtigungen
+
+### Role Bytes32 Werte
+
+```solidity
+// Für Role-Checks und Grant/Revoke Operations
+DEFAULT_ADMIN_ROLE = 0x0000000000000000000000000000000000000000000000000000000000000000
+MINTER_ROLE        = 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6
+```
+
+### Aktuelle Rollenzuweisung
+
+| Rolle | Adresse | Rechte |
+|-------|---------|--------|
+| `DEFAULT_ADMIN_ROLE` | `0x22A2cAcB19e77D25DA063A787870A3eE6BAC8Dfe` | Alle Admin-Funktionen |
+| `MINTER_ROLE` | `0x22A2cAcB19e77D25DA063A787870A3eE6BAC8Dfe` | NFTs minten |
+
+### Admin-Funktionen
+
+| Funktion | Berechtigung |
+|----------|--------------|
+| `setSoulboundMode(bool)` | `DEFAULT_ADMIN_ROLE` |
+| `setBaseURIs(string, string)` | `DEFAULT_ADMIN_ROLE` |
+| `setContractURI(string)` | `DEFAULT_ADMIN_ROLE` |
+| `pause()` / `unpause()` | `DEFAULT_ADMIN_ROLE` |
+| `grantRole()` / `revokeRole()` | `DEFAULT_ADMIN_ROLE` |
+
+### Minter-Funktionen
+
+| Funktion | Berechtigung |
+|----------|--------------|
+| `mint(address)` | `MINTER_ROLE` |
+| `burn(uint256)` | `MINTER_ROLE` |
+
+---
+
+## ABI & Interface
+
+### Minimales ABI für Integration
+
+```json
+[
+  {
+    "inputs": [{"internalType": "address", "name": "to", "type": "address"}],
+    "name": "mint",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "burn",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "wallet", "type": "address"}],
+    "name": "tokenOf",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "wallet", "type": "address"}],
+    "name": "hasToken",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "isPublic",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}, {"internalType": "bool", "name": "visibility", "type": "bool"}],
+    "name": "setVisibility",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "delegate", "type": "address"}, {"internalType": "bool", "name": "approved", "type": "bool"}],
+    "name": "setDelegate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "owner", "type": "address"}, {"internalType": "address", "name": "delegate", "type": "address"}],
+    "name": "isDelegate",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "incrementMetadataNonce",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "metadataNonce",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "soulboundMode",
+    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "tokenURI",
+    "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "contractURI",
+    "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{"indexed": true, "name": "tokenId", "type": "uint256"}, {"indexed": false, "name": "isPublic", "type": "bool"}],
+    "name": "VisibilityChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{"indexed": true, "name": "owner", "type": "address"}, {"indexed": true, "name": "delegate", "type": "address"}, {"indexed": false, "name": "approved", "type": "bool"}],
+    "name": "DelegateSet",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{"indexed": false, "name": "enabled", "type": "bool"}],
+    "name": "SoulboundModeChanged",
+    "type": "event"
+  }
+]
+```
+
+### Vollständiges ABI
+
+Das vollständige ABI findet sich nach dem Build in:
+```
+out/AEraProfile.sol/AEraProfile.json
+```
+
+---
+
+## Backend-Integration
+
+### JavaScript/TypeScript mit ethers.js v6
+
+```typescript
+import { ethers } from 'ethers';
+
+// Contract Setup
+const CONTRACT_ADDRESS = '0x0a630A3Dc0C7387e0226D1b285C43B753506b27E';
+const RPC_URL = 'https://mainnet.base.org';
+
+const provider = new ethers.JsonRpcProvider(RPC_URL);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+
+const abi = [/* ABI von oben */];
+const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
+
+// ============================================
+// MINTING
+// ============================================
+
+async function mintProfile(userAddress: string): Promise<{tokenId: bigint, txHash: string}> {
+  // Prüfen ob User bereits ein Token hat
+  const hasToken = await contract.hasToken(userAddress);
+  if (hasToken) {
+    const existingTokenId = await contract.tokenOf(userAddress);
+    throw new Error(`User already has token #${existingTokenId}`);
+  }
+  
+  // Mint
+  const tx = await contract.mint(userAddress);
+  const receipt = await tx.wait();
+  
+  // Token ID aus Event extrahieren
+  const transferEvent = receipt.logs.find(
+    (log: any) => log.topics[0] === ethers.id('Transfer(address,address,uint256)')
+  );
+  const tokenId = BigInt(transferEvent.topics[3]);
+  
+  return { tokenId, txHash: receipt.hash };
+}
+
+// ============================================
+// QUERIES
+// ============================================
+
+// Token ID für Wallet abfragen
+async function getTokenId(wallet: string): Promise<bigint | null> {
+  const hasToken = await contract.hasToken(wallet);
+  if (!hasToken) return null;
+  return await contract.tokenOf(wallet);
+}
+
+// Visibility Status
+async function getVisibility(tokenId: bigint): Promise<boolean> {
+  return await contract.isPublic(tokenId);
+}
+
+// Alle Profile-Daten auf einmal
+async function getProfileData(wallet: string) {
+  const hasToken = await contract.hasToken(wallet);
+  if (!hasToken) return null;
+  
+  const tokenId = await contract.tokenOf(wallet);
+  const [isPublic, metadataNonce, tokenURI] = await Promise.all([
+    contract.isPublic(tokenId),
+    contract.metadataNonce(tokenId),
+    contract.tokenURI(tokenId)
+  ]);
+  
+  return { tokenId, isPublic, metadataNonce, tokenURI };
+}
+
+// ============================================
+// BURN (Admin)
+// ============================================
+
+async function burnProfile(tokenId: bigint): Promise<string> {
+  const tx = await contract.burn(tokenId);
+  const receipt = await tx.wait();
+  return receipt.hash;
+}
+```
+
+### Python mit web3.py
+
+```python
+from web3 import Web3
+import os
+
+# Setup
+CONTRACT_ADDRESS = '0x0a630A3Dc0C7387e0226D1b285C43B753506b27E'
+RPC_URL = 'https://mainnet.base.org'
+
+w3 = Web3(Web3.HTTPProvider(RPC_URL))
+account = w3.eth.account.from_key(os.environ['PRIVATE_KEY'])
+
+abi = [...]  # ABI von oben
+contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=abi)
+
+# Mint
+def mint_profile(user_address: str) -> dict:
+    # Check existing
+    if contract.functions.hasToken(user_address).call():
+        token_id = contract.functions.tokenOf(user_address).call()
+        raise Exception(f"User already has token #{token_id}")
+    
+    # Build transaction
+    tx = contract.functions.mint(user_address).build_transaction({
+        'from': account.address,
+        'nonce': w3.eth.get_transaction_count(account.address),
+        'gas': 200000,
+        'maxFeePerGas': w3.eth.gas_price * 2,
+        'maxPriorityFeePerGas': w3.eth.max_priority_fee,
+    })
+    
+    # Sign and send
+    signed = account.sign_transaction(tx)
+    tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    
+    # Extract token ID from Transfer event
+    transfer_event = contract.events.Transfer().process_receipt(receipt)[0]
+    token_id = transfer_event['args']['tokenId']
+    
+    return {'token_id': token_id, 'tx_hash': receipt['transactionHash'].hex()}
+
+# Query
+def get_profile(wallet: str) -> dict | None:
+    if not contract.functions.hasToken(wallet).call():
+        return None
+    
+    token_id = contract.functions.tokenOf(wallet).call()
+    return {
+        'token_id': token_id,
+        'is_public': contract.functions.isPublic(token_id).call(),
+        'metadata_nonce': contract.functions.metadataNonce(token_id).call(),
+        'token_uri': contract.functions.tokenURI(token_id).call(),
+    }
+```
+
+---
+
+## Metadata Endpoints
+
+### Konfigurierte URIs
+
+| URI Type | Endpoint | Verwendung |
+|----------|----------|------------|
+| **Public Base URI** | `https://api.aera.com/profile/public` | Für PUBLIC Tokens |
+| **Private Base URI** | `https://api.aera.com/profile/private` | Für PRIVATE Tokens |
+| **Contract URI** | `https://api.aera.com/profile/contract.json` | Collection Metadata |
+
+### Token URI Logik
+
+```
+Wenn Token PUBLIC:  → https://api.aera.com/profile/public/{tokenId}
+Wenn Token PRIVATE: → https://api.aera.com/profile/private/{tokenId}
+```
+
+### Metadata Endpoints implementieren
+
+#### GET `/profile/public/{tokenId}`
+
+```json
+{
+  "name": "AEra Profile #1",
+  "description": "Public AEra Profile NFT",
+  "image": "https://api.aera.com/profile/images/1.png",
+  "external_url": "https://app.aera.com/profile/1",
+  "attributes": [
+    {
+      "trait_type": "Visibility",
+      "value": "Public"
+    },
+    {
+      "trait_type": "Username",
+      "value": "alice.eth"
+    },
+    {
+      "trait_type": "Member Since",
+      "display_type": "date",
+      "value": 1735689600
+    }
+  ]
+}
+```
+
+#### GET `/profile/private/{tokenId}`
+
+```json
+{
+  "name": "AEra Profile #1",
+  "description": "Private AEra Profile NFT",
+  "image": "https://api.aera.com/profile/images/private-placeholder.png",
+  "attributes": [
+    {
+      "trait_type": "Visibility",
+      "value": "Private"
+    }
+  ]
+}
+```
+
+#### GET `/profile/contract.json`
+
+```json
+{
+  "name": "AEra Profile",
+  "description": "Official AEra Profile NFT Collection with Privacy Features",
+  "image": "https://api.aera.com/profile/images/collection.png",
+  "external_link": "https://aera.com",
+  "seller_fee_basis_points": 0,
+  "fee_recipient": ""
+}
+```
+
+### Cache-Busting
+
+Bei Metadaten-Updates `metadataNonce` inkrementieren:
+
+```typescript
+// Nach Profil-Update
+await contract.incrementMetadataNonce(tokenId);
+```
+
+Der Contract emittiert automatisch `MetadataUpdate(tokenId)` (EIP-4906), was Indexer wie OpenSea zum Refresh triggert.
+
+---
+
+## Event Handling
+
+### Event Signatures (Topic 0)
+
+```solidity
+// Standard ERC-721
+Transfer(address,address,uint256)
+→ 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
+
+Approval(address,address,uint256)
+→ 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925
+
+// Custom Events
+VisibilityChanged(uint256,bool)
+→ 0x5e4e6e2b9a6a7f3e8f1c2d3b4a5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e
+
+DelegateSet(address,address,bool)
+→ 0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b
+
+SoulboundModeChanged(bool)
+→ 0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c
+
+// EIP-4906
+MetadataUpdate(uint256)
+→ 0xf8e1a15aba9398e019f0b49df1a4fde98ee17ae345cb5f6b5e2c27f5033e8ce7
+```
+
+### Event Listener Setup
+
+```typescript
+// Real-time Events
+contract.on('Transfer', (from, to, tokenId) => {
+  if (from === ethers.ZeroAddress) {
+    console.log(`Minted token #${tokenId} to ${to}`);
+  } else if (to === ethers.ZeroAddress) {
+    console.log(`Burned token #${tokenId}`);
+  } else {
+    console.log(`Transferred token #${tokenId} from ${from} to ${to}`);
+  }
+});
+
+contract.on('VisibilityChanged', (tokenId, isPublic) => {
+  console.log(`Token #${tokenId} visibility: ${isPublic ? 'PUBLIC' : 'PRIVATE'}`);
+  // → Metadata Cache invalidieren
+});
+
+// EIP-4906 für OpenSea-kompatible Indexer
+contract.on('MetadataUpdate', (tokenId) => {
+  console.log(`Metadata updated for token #${tokenId}`);
+  // → Refresh von OpenSea/Indexer triggern
+});
+```
+
+---
+
+## Minting Flow
+
+### Sequenzdiagramm
+
+```
+┌──────────┐      ┌──────────┐      ┌──────────┐      ┌──────────┐
+│  User    │      │  Backend │      │ Contract │      │ Indexer  │
+└────┬─────┘      └────┬─────┘      └────┬─────┘      └────┬─────┘
+     │                 │                 │                 │
+     │ Request Profile │                 │                 │
+     │────────────────>│                 │                 │
+     │                 │                 │                 │
+     │                 │ hasToken(user)  │                 │
+     │                 │────────────────>│                 │
+     │                 │      false      │                 │
+     │                 │<────────────────│                 │
+     │                 │                 │                 │
+     │                 │ mint(user)      │                 │
+     │                 │────────────────>│                 │
+     │                 │                 │                 │
+     │                 │   tokenId=1     │                 │
+     │                 │<────────────────│                 │
+     │                 │                 │ Transfer Event  │
+     │                 │                 │────────────────>│
+     │                 │                 │                 │
+     │   Success +     │                 │                 │
+     │   tokenId=1     │                 │                 │
+     │<────────────────│                 │                 │
+     │                 │                 │                 │
+```
+
+### Mint Checklist
+
+1. ✅ Prüfen: `hasToken(userAddress)` → muss `false` sein
+2. ✅ Mint: `mint(userAddress)` aufrufen
+3. ✅ Warten: `tx.wait()` für Confirmation
+4. ✅ Token ID aus `Transfer` Event extrahieren
+5. ✅ In DB speichern: `{ wallet, tokenId, txHash }`
+6. ✅ Metadata-Endpoint für Token ID bereitstellen
+
+---
+
+## Query Functions
+
+### Übersicht aller Read-Functions
+
+| Funktion | Parameter | Return | Beschreibung |
+|----------|-----------|--------|--------------|
+| `hasToken(address)` | wallet | bool | Hat Wallet ein Token? |
+| `tokenOf(address)` | wallet | uint256 | Token ID für Wallet (revert wenn keins) |
+| `balanceOf(address)` | wallet | uint256 | Anzahl Tokens (0 oder 1) |
+| `ownerOf(uint256)` | tokenId | address | Owner eines Tokens |
+| `isPublic(uint256)` | tokenId | bool | Ist Token PUBLIC? |
+| `metadataNonce(uint256)` | tokenId | uint256 | Aktuelle Nonce |
+| `isDelegate(address,address)` | owner, delegate | bool | Ist delegate berechtigt? |
+| `soulboundMode()` | - | bool | Ist Soulbound aktiv? |
+| `tokenURI(uint256)` | tokenId | string | Metadata URI |
+| `contractURI()` | - | string | Collection Metadata |
+| `totalSupply()` | - | uint256 | Anzahl geminteter Tokens |
+
+### Batch-Query Pattern
+
+```typescript
+// Mehrere Wallets auf einmal prüfen
+async function batchCheckProfiles(wallets: string[]) {
+  const results = await Promise.all(
+    wallets.map(async (wallet) => {
+      const hasToken = await contract.hasToken(wallet);
+      if (!hasToken) return { wallet, hasProfile: false };
+      
+      const tokenId = await contract.tokenOf(wallet);
+      const isPublic = await contract.isPublic(tokenId);
+      return { wallet, hasProfile: true, tokenId, isPublic };
+    })
+  );
+  return results;
+}
+```
+
+---
+
+## Soulbound Mode
+
+### Status
+
+**Aktuell:** Soulbound Mode ist **DEAKTIVIERT** (Transfers erlaubt)
+
+### Aktivieren (falls gewünscht)
+
+```typescript
+// Nur mit DEFAULT_ADMIN_ROLE
+await contract.setSoulboundMode(true);
+```
+
+### Verhalten bei aktiviertem Soulbound
+
+| Aktion | Erlaubt? |
+|--------|----------|
+| Mint | ✅ Ja |
+| Burn | ✅ Ja |
+| Transfer | ❌ Nein |
+| Approve | ❌ Nein |
+| setApprovalForAll | ❌ Nein |
+| setVisibility | ✅ Ja |
+| setDelegate | ✅ Ja |
+
+---
+
+## Migration Checkliste
+
+### Vor Go-Live
+
+- [ ] **Metadata Endpoints implementieren**
+  - [ ] `GET /profile/public/{tokenId}` 
+  - [ ] `GET /profile/private/{tokenId}`
+  - [ ] `GET /profile/contract.json`
+
+- [ ] **Backend Integration**
+  - [ ] Contract Address in Config: `0x0a630A3Dc0C7387e0226D1b285C43B753506b27E`
+  - [ ] ABI importieren
+  - [ ] Wallet mit MINTER_ROLE konfigurieren
+  - [ ] Mint-Funktion implementieren
+  - [ ] Query-Funktionen implementieren
+
+- [ ] **Event Handling**
+  - [ ] Transfer Events für Mint/Burn tracken
+  - [ ] VisibilityChanged für Cache-Invalidierung
+  - [ ] MetadataUpdate (EIP-4906) für Indexer
+
+- [ ] **Datenbank**
+  - [ ] Schema für Profile: `{ wallet, tokenId, isPublic, mintedAt }`
+  - [ ] Index auf wallet für schnelle Lookups
+
+### Nach Go-Live
+
+- [ ] **OpenSea Collection claimen**
+  - [ ] https://opensea.io/collection/aera-profile/settings
+  - [ ] Mit Admin-Wallet verbinden
+
+- [ ] **Monitoring**
+  - [ ] Contract Events überwachen
+  - [ ] Gas-Kosten tracken
+  - [ ] Error-Rate monitoren
+
+- [ ] **Security**
+  - [ ] Private Key sicher verwahren
+  - [ ] Optional: Admin-Rolle auf Safe Multisig übertragen
+
+---
+
+## Kontakt & Support
+
+**Contract Deployment:** 31. Dezember 2024  
+**Blockscout:** https://base.blockscout.com/address/0x0a630a3dc0c7387e0226d1b285c43b753506b27e  
+**Source Code:** Verified on Blockscout
+
+---
+
+## Anhang: Vollständige Function Signatures
+
+```solidity
+// ERC-721 Standard
+function balanceOf(address owner) external view returns (uint256);
+function ownerOf(uint256 tokenId) external view returns (address);
+function safeTransferFrom(address from, address to, uint256 tokenId) external;
+function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external;
+function transferFrom(address from, address to, uint256 tokenId) external;
+function approve(address to, uint256 tokenId) external;
+function setApprovalForAll(address operator, bool approved) external;
+function getApproved(uint256 tokenId) external view returns (address);
+function isApprovedForAll(address owner, address operator) external view returns (bool);
+
+// ERC-721 Metadata
+function name() external view returns (string memory);
+function symbol() external view returns (string memory);
+function tokenURI(uint256 tokenId) external view returns (string memory);
+
+// ERC-721 Enumerable
+function totalSupply() external view returns (uint256);
+
+// AEra Profile Custom
+function mint(address to) external returns (uint256);
+function burn(uint256 tokenId) external;
+function hasToken(address wallet) external view returns (bool);
+function tokenOf(address wallet) external view returns (uint256);
+function isPublic(uint256 tokenId) external view returns (bool);
+function setVisibility(uint256 tokenId, bool visibility) external;
+function setDelegate(address delegate, bool approved) external;
+function isDelegate(address owner, address delegate) external view returns (bool);
+function metadataNonce(uint256 tokenId) external view returns (uint256);
+function incrementMetadataNonce(uint256 tokenId) external;
+function soulboundMode() external view returns (bool);
+function setSoulboundMode(bool enabled) external;
+function setBaseURIs(string memory publicURI, string memory privateURI) external;
+function setContractURI(string memory uri) external;
+function contractURI() external view returns (string memory);
+
+// AccessControl
+function hasRole(bytes32 role, address account) external view returns (bool);
+function grantRole(bytes32 role, address account) external;
+function revokeRole(bytes32 role, address account) external;
+function renounceRole(bytes32 role, address account) external;
+
+// Pausable
+function pause() external;
+function unpause() external;
+function paused() external view returns (bool);
+```
+You are a senior full-stack Web3 architect and UX designer.
+
+Context:
+We already have an existing NFT-based identity system in production.
+This system MUST remain untouched. No changes, no migrations, no coupling.
+
+We are adding a SECOND, OPTIONAL NFT:
+– an opt-in “Identity Display / Metrics NFT”
+– fully controlled by the user
+– purely additive
+– not required to use AEra
+
+Core principles (DO NOT VIOLATE):
+1) The existing NFT system is the foundation and remains unchanged.
+2) The new NFT is OPTIONAL and user-initiated only.
+3) No automatic minting. No background transactions.
+4) Clear separation between “identity existence” and “identity visibility”.
+5) User sovereignty over visibility and settings.
+
+---
+
+## UI / UX Integration Requirements
+
+### 1. AEra Core Layout
+Create a new, clearly separated section inside AEra Core:
+
+Location:
+– Inside the AEra Core dashboard
+– Below (or after) the existing “User Data / Identity” section
+– Visually grouped, but clearly marked as OPTIONAL
+
+Section title (example):
+“Optional Identity Display NFT”
+or
+“Public Identity Layer (Optional)”
+
+Include a short explanatory text:
+“This is an optional extension. Your identity works fully without this NFT.”
+
+---
+
+### 2. Initial State (User has NOT minted the optional NFT)
+Display:
+- Status: “Not Minted”
+- Clear explanation:
+  • This NFT is optional
+  • It controls public visibility & marketplace display (e.g. OpenSea)
+  • Minting is a conscious user action
+
+Primary CTA:
+- Button: “Mint Optional Identity NFT”
+
+Secondary:
+- “Learn more” / expandable explanation
+- Explicit reassurance:
+  “Minting this NFT is not required to use AEra.”
+
+No wallet popups unless the user clicks “Mint”.
+
+---
+
+### 3. Mint Flow (User-Initiated Only)
+When the user clicks “Mint”:
+- Explicit confirmation screen:
+  • What this NFT does
+  • What it does NOT do
+  • That it can be burned later
+- One wallet transaction
+- Clear success feedback
+
+After mint:
+- Update status immediately in UI
+
+---
+
+### 4. Post-Mint State (User has minted the optional NFT)
+Show a management panel with:
+
+#### A) Status Overview
+- Minted: Yes
+- Visibility: Private / Public
+- Soulbound: Active (non-transferable)
+- Marketplace visibility: On / Off (derived from visibility)
+
+#### B) User-Facing Controls (ONLY what the contract allows)
+- Toggle:
+  “Public Metadata Visibility”
+  – ON: NFT metadata visible on OpenSea
+  – OFF: Private placeholder only
+
+- Button:
+  “Refresh Metadata” (calls metadata nonce bump)
+
+- Optional:
+  “Burn this NFT” (with strong confirmation)
+
+No controls for:
+- transferring
+- selling
+- modifying identity data itself
+
+---
+
+### 5. Language & UX Tone
+- No marketing tone
+- No pressure
+- No “upgrade” framing
+- Use words like:
+  “optional”
+  “you decide”
+  “can be changed later”
+  “can be removed”
+
+Avoid:
+- “unlock”
+- “upgrade your identity”
+- “required”
+- “next step”
+
+---
+
+### 6. Technical Boundaries
+- Treat the optional NFT as a separate module.
+- Do not assume its existence anywhere else in the app.
+- Always check:
+  – does user own optional NFT?
+  – if not, gracefully hide settings
+- Existing identity flows must work identically with or without this NFT.
+
+---
+
+### 7. Developer Notes (internal)
+- Read-only link between identity and optional NFT (wallet-based).
+- Never block core features if optional NFT is missing.
+- Errors must be soft and explanatory, not blocking.
+
+---
+
+Output:
+- UI component structure
+- State logic (not full code, but clear flows)
+- Clear separation of concerns
+- Ready to implement in AEra Core

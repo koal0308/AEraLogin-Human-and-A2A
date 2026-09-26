@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png?v=20251225c">
+    <title>AEraLogIn - Security Concept</title>
+    <meta name="description" content="AEra Security Concept: Sybil resistance and bot prevention for the human identity layer, with links to agent identity and A2A gateway security.">
+    <link rel="canonical" href="https://aeralogin.com/security-concept.html">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="AEraLogIn">
+    <meta property="og:title" content="AEraLogIn - Security Concept">
+    <meta property="og:description" content="Sybil resistance and bot prevention for AEra's human identity layer.">
+    <meta property="og:url" content="https://aeralogin.com/security-concept.html">
+    <meta name="twitter:card" content="summary">
+    
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0052ff;
+            --secondary: #00d4ff;
+            --dark: #0a0e27;
+            --darker: #050814;
+            --light: #f0f4ff;
+            --accent: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--light);
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .bg-animation canvas {
+            display: block;
+        }
+
+        /* Sticky Header Navigation (konsistent mit anderen Seiten) */
+        header {
+            padding: 0.79rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.8);
+            width: 100%;
+            margin: 0;
+        }
+
+        .logo {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 2.7rem;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: currentColor !important;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.85;
+            }
+        }
+
+        nav, .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav a, .nav-menu a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        nav a:hover, .nav-menu a:hover {
+            color: var(--secondary);
+            opacity: 1;
+        }
+
+        /* Mobile Menu Styles */
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--light);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        .menu-toggle:hover {
+            color: var(--secondary);
+        }
+
+        /* Mobile Menu Overlay - EXACT COPY FROM LANDING PAGE */
+        .nav-menu.mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            backdrop-filter: blur(20px);
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 5rem 2rem 2rem;
+            gap: 1.5rem;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+            border-left: 1px solid rgba(99, 102, 241, 0.3);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-menu.mobile-menu.active {
+            right: 0;
+        }
+
+        .nav-menu.mobile-menu a {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu.mobile-menu a:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Menu Backdrop */
+        .menu-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Responsive - EXACT COPY FROM LANDING PAGE */
+        @media (max-width: 768px) {
+            header {
+                padding: 0.75rem 3%;
+            }
+
+            .logo {
+                font-size: 1.8rem;
+            }
+
+            .logo-icon {
+                font-size: 2rem;
+            }
+
+            /* Show mobile menu toggle */
+            .menu-toggle {
+                display: block;
+            }
+
+            /* Hide desktop nav, show mobile menu */
+            .nav-menu:not(.mobile-menu) {
+                display: none;
+            }
+        }
+
+        /* Desktop: Always show nav, hide mobile elements */
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none !important;
+            }
+
+            .nav-menu.mobile-menu {
+                display: none !important;
+            }
+
+            .menu-backdrop {
+                display: none !important;
+            }
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 82, 255, 0.4);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            background: rgba(15, 20, 45, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Page Header (innerhalb Container) */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: headerPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes headerPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .page-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin: 5px;
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: var(--secondary);
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 2em;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: var(--secondary);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        h4 {
+            color: var(--light);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: rgba(240, 244, 255, 0.8);
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            color: rgba(240, 244, 255, 0.8);
+        }
+
+        .highlight-box {
+            background: rgba(0, 82, 255, 0.1);
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 5px solid var(--success);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 5px solid var(--warning);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .danger-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 5px solid var(--error);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        code {
+            background: rgba(0, 82, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: var(--secondary);
+        }
+
+        pre {
+            background: rgba(10, 14, 39, 0.8);
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid rgba(0, 82, 255, 0.3);
+        }
+
+        pre code {
+            background: none;
+            color: #d4d4d4;
+            padding: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            background: rgba(15, 20, 45, 0.4);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(240, 244, 255, 0.9);
+        }
+
+        tr:hover {
+            background: rgba(0, 82, 255, 0.1);
+        }
+
+        .icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .phase-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .phase-current {
+            background: var(--success);
+            color: white;
+        }
+
+        .phase-future {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Footer (konsistent mit anderen Seiten) */
+        footer {
+            background: rgba(10, 14, 39, 0.8);
+            padding: 3rem 5%;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        footer p {
+            color: rgba(240, 244, 255, 0.6);
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        footer a {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: var(--primary);
+        }
+
+        .back-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-top: 20px;
+            transition: all 0.3s;
+            font-weight: 600;
+            border: 2px solid transparent;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 82, 255, 0.4);
+            border: 2px solid var(--secondary);
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/docs/assets/site-shell.css?v=20260926">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <canvas id="bgCanvas"></canvas>
+    </div>
+
+<!-- AERA:SHELL-HEADER -->
+    <a class="site-skip-link" href="#main-content">Skip to content</a>
+    <div class="site-menu-backdrop" id="siteMenuBackdrop"></div>
+    <header class="site-header">
+        <a href="/" class="site-logo" aria-label="AEraLogIn home">
+            <span class="site-logo-icon" aria-hidden="true">🌀</span>
+            <span>AEraLogIn</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Platform</button>
+                <div class="site-dropdown-menu">
+                    <a href="/#identity">Human Identity<small>Proof of Human, Identity NFT, ownership</small></a>
+                    <a href="/#agents">Agent Identity<small>Own keys, rotation, revocation</small></a>
+                    <a href="/#a2a">A2A Communication<small>Gateway, external peers</small></a>
+                    <a href="/#trust">Trust Assessment<small>Evidence-based monitoring</small></a>
+                </div>
+            </div>
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Developers</button>
+                <div class="site-dropdown-menu">
+                    <a href="/docs/agent-api.html">Agent API<small>Register, authenticate, message</small></a>
+                    <a href="/docs/a2a.html">A2A Gateway<small>JSON-RPC, peer credentials</small></a>
+                    <a href="/docs/agent-card.html">A2A Agent Card<small>Public discovery document</small></a>
+                    <a href="/sdk-docs">SDK Documentation<small>AEra Gate SDK &amp; OAuth 2.0</small></a>
+                </div>
+            </div>
+            <a href="/security-concept.html">Security</a>
+            <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="/dashboard.html">Dashboard</a>
+        </nav>
+        <button type="button" class="site-menu-toggle" id="siteMenuToggle" aria-label="Toggle menu" aria-controls="siteMobileMenu" aria-expanded="false">☰</button>
+    </header>
+    <nav class="site-mobile-menu" id="siteMobileMenu" aria-label="Mobile">
+        <span class="site-mobile-group">Platform</span>
+        <a href="/">Home</a>
+        <a href="/#identity">Human Identity</a>
+        <a href="/#agents">Agent Identity</a>
+        <a href="/#a2a">A2A Communication</a>
+        <a href="/#trust">Trust Assessment</a>
+        <span class="site-mobile-group">Developers</span>
+        <a href="/docs/agent-api.html">Agent API</a>
+        <a href="/docs/a2a.html">A2A Gateway</a>
+        <a href="/docs/agent-card.html">A2A Agent Card</a>
+        <a href="/sdk-docs">SDK Documentation</a>
+        <span class="site-mobile-group">Resources</span>
+        <a href="/security-concept.html">Security Concept</a>
+        <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/user-dashboard.html">AEra Core (Agents)</a>
+    </nav>
+    <!-- /AERA:SHELL-HEADER -->
+
+    <main id="main-content">
+    <div class="container">
+        <div class="page-header">
+            <h1>🛡️ AEra Security Concept</h1>
+            <p class="subtitle">Sybil-Resistance & Bot-Prevention Architecture</p>
+            <div>
+                <span class="badge">Phase 1: Beta <span class="phase-indicator phase-current">Active</span></span>
+                <span class="badge">Phase 2: Production <span class="phase-indicator phase-future">Coming Soon</span></span>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Executive Summary -->
+            <section>
+                <h2>📋 Executive Summary</h2>
+                <p>AEra implements a <strong>two-phase security model</strong> that combines cryptographic proof, social validation, and blockchain transparency to prevent fake accounts, spam, and bot attacks while maintaining a frictionless user experience.</p>
+                
+                <div class="highlight-box">
+                    <p><strong>Current Status:</strong> Phase 1 (Market Entry - Frictionless Onboarding)</p>
+                    <p><strong>Future:</strong> Phase 2 (Community Gate - Resonance Score Threshold)</p>
+                </div>
+            </section>
+
+            <!-- Scope: agent & A2A security -->
+            <section>
+                <h2>🤖 Scope: Human Identity Layer</h2>
+                <p>This document covers the security of the <strong>human identity layer</strong>: Proof of Human, the Identity NFT and Sybil resistance. Autonomous agents and external A2A peers are separate identities with their own security model:</p>
+                <ul>
+                    <li><a href="/docs/agent-api.html#security">Agent identity security</a>: owner-signed lifecycle, Ed25519 challenge&ndash;response, audience-bound Agent JWTs, cascading revocation.</li>
+                    <li><a href="/docs/a2a.html">A2A gateway security</a>: scoped, expiring and revocable peer credentials, replay protection, rate limiting.</li>
+                    <li><a href="/docs/a2a.html#trust">Trust assessment</a>: evidence-based monitoring of external peers. It is not an access-control mechanism.</li>
+                </ul>
+            </section>
+
+            <!-- Core Security Principles -->
+            <section>
+                <h2>🎯 Core Security Principles</h2>
+                
+                <h3>1. Blockchain as Single Source of Truth</h3>
+                <ul>
+                    <li>All critical data lives on-chain (Identity NFTs, Resonance Scores, Interactions)</li>
+                    <li>Database serves only as performance cache</li>
+                    <li>Transparent, immutable, publicly auditable</li>
+                </ul>
+
+                <h3>2. Cryptographic Proof of Ownership</h3>
+                <ul>
+                    <li>Every action requires <strong>MetaMask signature</strong> (<code>personal_sign</code>)</li>
+                    <li>No passwords, no KYC, no personal data</li>
+                    <li>Wallet = Identity = Proof of Human</li>
+                </ul>
+
+                <h3>3. Social Validation Network</h3>
+                <ul>
+                    <li>Resonance Score = Own Activity + Follower Validation</li>
+                    <li>Bots have high scores but zero social proof</li>
+                    <li>Community self-regulates through transparency</li>
+                </ul>
+            </section>
+
+            <!-- Two-Phase Model -->
+            <section>
+                <h2>📊 Two-Phase Security Model</h2>
+
+                <!-- Phase 1 -->
+                <h3><span class="icon">🚀</span> Phase 1: Market Entry (Current - Beta)</h3>
+                <p><strong>Goal:</strong> Frictionless onboarding for early adopters</p>
+
+                <div class="success-box">
+                    <h4>✅ Active Security Features:</h4>
+                    <ol>
+                        <li><strong>MetaMask Signature Requirement</strong>
+                            <ul>
+                                <li>Every login requires active signature</li>
+                                <li>Challenge-Response with unique nonce</li>
+                                <li>Cannot be bypassed or automated</li>
+                            </ul>
+                        </li>
+                        <li><strong>Identity NFT (Gasless Mint)</strong>
+                            <ul>
+                                <li>Backend pays gas fees</li>
+                                <li>User only signs transaction</li>
+                                <li>Soul-bound token (non-transferable)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Score Growth Rate-Limiting</strong>
+                            <ul>
+                                <li>Maximum +1 point per 60 seconds</li>
+                                <li>Cap at 100 points maximum</li>
+                            </ul>
+                        </li>
+                        <li><strong>Self-Follow Prevention</strong>
+                            <ul>
+                                <li>Users cannot follow themselves</li>
+                                <li>Prevents self-boosting attacks</li>
+                            </ul>
+                        </li>
+                        <li><strong>Blockchain Transaction Recording</strong>
+                            <ul>
+                                <li>All interactions logged on-chain</li>
+                                <li>Publicly verifiable via BaseScan</li>
+                                <li>Immutable audit trail</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="warning-box">
+                    <h4>⚪ Intentionally Open (For Beta Testing):</h4>
+                    <ul>
+                        <li><strong>No NFT Score-Gating</strong> - Anyone can mint Identity NFT</li>
+                        <li><strong>No Resonance Threshold</strong> - All users can access private communities</li>
+                        <li><strong>Purpose:</strong> Allow first users to experience the full flow</li>
+                    </ul>
+                </div>
+
+                <!-- Phase 2 -->
+                <h3><span class="icon">🔐</span> Phase 2: Community Gate (Future - Production)</h3>
+                <p><strong>Goal:</strong> Sybil-resistant community access via Resonance Score</p>
+
+                <div class="highlight-box">
+                    <h4>🔐 Enhanced Security Features:</h4>
+                    
+                    <h4>1. Resonance Score Threshold</h4>
+                    <pre><code>MIN_RESONANCE = 110  # Threshold for gate access
+
+# Gate Check Algorithm
+def check_gate_access(address):
+    # Step 1: Verify Identity NFT (on-chain)
+    has_nft = web3_service.has_identity_nft(address)
+    
+    if not has_nft:
+        return "Access Denied: No Identity NFT"
+    
+    # Step 2: Calculate Resonance Score
+    # own_score = User's individual engagement score (0-100)
+    # avg_follower_score = Average score of all followers
+    total_resonance = own_score + avg_follower_score
+    
+    if total_resonance < MIN_RESONANCE:
+        return f"Access Denied: Score {total_resonance}/110 required"
+    
+    return "Access Granted"</code></pre>
+
+                    <h4>2. Resonance Score Composition</h4>
+                    <pre><code>total_resonance = own_score + avg_follower_score
+
+# avg_follower_score = SUM(follower_scores) / follower_count
+
+# Example Scenarios:
+# Bot:              100 + 0   = 100  (DENIED: No social proof)
+# Real Creator:     56  + 54  = 110  (GRANTED: Active + validated)
+# Popular Creator:  70  + 65  = 135  (GRANTED: Highly resonant)
+# New User:         50  + 0   = 50   (DENIED: Not yet active enough)</code></pre>
+
+                    <h4>3. Social Proof Mechanism</h4>
+                    <p><strong>No artificial rate limits needed!</strong> The Resonance Score itself acts as the natural gate:</p>
+                    <ul>
+                        <li><strong>Quality over Quantity:</strong> High-scoring followers boost resonance more</li>
+                        <li><strong>Organic Growth:</strong> Real communities naturally accumulate engaged followers</li>
+                        <li><strong>Bot Prevention:</strong> Fake followers (score 50-60) provide minimal boost</li>
+                        <li><strong>Transparency:</strong> Blockchain reveals suspicious patterns</li>
+                    </ul>
+                    <p><em>📊 Example: 100 real followers (avg score 65) = 165 resonance vs. 1000 bots (avg score 50) = 150 resonance</em></p>
+                </div>
+            </section>
+
+            <!-- Attack Scenarios -->
+            <section>
+                <h2>🤖 Attack Scenarios & Defenses</h2>
+
+                <h3>Scenario 1: Bot Auto-Login Spam</h3>
+                <div class="danger-box">
+                    <h4>Attack:</h4>
+                    <pre><code>// Bot tries to spam logins
+for (let i = 0; i < 1000; i++) {
+    fetch('/api/verify', {
+        body: JSON.stringify({
+            address: botWallet[i],
+            signature: "fake_signature"
+        })
+    });
+}</code></pre>
+                </div>
+                
+                <div class="success-box">
+                    <h4>Defense:</h4>
+                    <p><strong>Signature Verification:</strong></p>
+                    <pre><code>recovered_address = Account.recover_message(message, signature=signature)
+if recovered_address != address:
+    return {"error": "Signature verification failed"}  # ❌ BLOCKED</code></pre>
+                    <p><strong>Result:</strong> ❌ Bot cannot generate valid ECDSA signatures without MetaMask</p>
+                </div>
+
+                <h3>Scenario 2: Score Farming Bot</h3>
+                <div class="danger-box">
+                    <h4>Attack:</h4>
+                    <pre><code>// Bot logs in every 60 seconds
+setInterval(() => {
+    await metamask.request({method: 'personal_sign', ...});
+}, 60000);</code></pre>
+                </div>
+                
+                <div class="success-box">
+                    <h4>Defense (Phase 1):</h4>
+                    <p>Score grows slowly: +1 per minute = 100 points in ~2 hours</p>
+                    
+                    <h4>Defense (Phase 2):</h4>
+                    <p>High score BUT no followers = <strong>DENIED</strong></p>
+                    <pre><code># Bot scenario:
+own_score = 100  # Spam-Logins in 2 hours
+avg_follower_score = 0  # No followers
+total_resonance = 100 + 0 = 100
+
+# Gate threshold: 110
+if total_resonance < 110 and follower_count == 0:
+    return "🚨 Access Denied: Need Resonance Score ≥110"</code></pre>
+                    <p><strong>Result:</strong> ⚠️ Bot reaches Score 100 but <strong>cannot access gate</strong> (needs 110 total resonance = own score + follower average)</p>
+                </div>
+
+                <h3>Scenario 3: Fake Follower Network</h3>
+                <div class="danger-box">
+                    <h4>Attack:</h4>
+                    <pre><code>// Bot creates 1000 wallets, follows Creator X
+for (let i = 0; i < 1000; i++) {
+    await follow(creatorX, botWallet[i]);
+}</code></pre>
+                </div>
+                
+                <div class="success-box">
+                    <h4>Defense (Phase 2):</h4>
+                    <ul>
+                        <li><strong>Resonance Score Requirement:</strong> Creator needs total_resonance ≥110</li>
+                        <li><strong>Follower Quality Matters:</strong> Fake followers with score=50 provide minimal boost</li>
+                        <li><strong>Social Proof Required:</strong> Real engagement from real humans needed</li>
+                    </ul>
+                    <p><strong>Result:</strong> 1000 fake followers with score 50 each → avg_follower_score = 50<br>
+                    Bot creator: own_score 100 + avg 50 = <strong>150 (GRANTED but suspicious)</strong><br>
+                    Real creator: own_score 70 + avg 65 = <strong>135 (GRANTED with authenticity)</strong></p>
+                    <p>📊 <em>Blockchain transparency reveals bot patterns post-facto. Community can see suspicious rapid follower acquisition.</em></p>
+                </div>
+
+                <h3>Scenario 4: Self-Follow Exploit</h3>
+                <div class="danger-box">
+                    <h4>Attack:</h4>
+                    <pre><code>// User follows themselves to boost score
+await follow(myWallet, myWallet);</code></pre>
+                </div>
+                
+                <div class="success-box">
+                    <h4>Defense:</h4>
+                    <pre><code>if owner_wallet == follower_address:
+    return {"error": "You cannot follow yourself!"}  # ❌ BLOCKED</code></pre>
+                    <p><strong>Result:</strong> ❌ Impossible to self-boost</p>
+                </div>
+            </section>
+
+            <!-- Transparency -->
+            <section>
+                <h2>📈 Transparency & Community Self-Regulation</h2>
+
+                <h3>On-Chain Verification</h3>
+                <p>All users can verify any account:</p>
+                <pre><code># Check user's blockchain history
+interactions = await web3_service.get_user_interactions(address)
+
+# Red Flags:
+# 1. Score 100, but interactions = [] (no real activity)
+# 2. 50 logins in 2 hours (bot pattern)
+# 3. High score, 0 followers (no social validation)</code></pre>
+
+                <h3>Resonance Score as Authenticity Metric</h3>
+                <p><strong>Phase 1 (Current):</strong> Resonance Score is visible but not enforced as gate</p>
+                <pre><code>// Phase 1: Display only - no restrictions
+total_resonance = own_score + avg_follower_score
+
+// Examples (Phase 1 - all allowed):
+// Bot:              100 + 0   = 100  (visible, but suspicious pattern)
+// New User:         50  + 0   = 50   (welcome, building reputation)
+// Active Creator:   70  + 65  = 135  (established, authentic)
+
+// Blockchain transparency shows:
+// - Rapid score growth (bot pattern)
+// - Organic engagement (authentic user)
+// - Community validates quality</code></pre>
+
+                <p><strong>Phase 2 (Future):</strong> Resonance Score ≥110 required for premium access</p>
+                <pre><code>// Phase 2: Visual indicators + Gate enforcement
+function getAuthenticityLevel(total_resonance) {
+    if (total_resonance >= 110) {
+        return "✅ Access Granted (Resonance ≥110)";
+    } else {
+        return "⏳ Building Resonance (" + total_resonance + "/110)";
+    }
+}
+
+// Community Tier Indicators (Phase 2 only):
+// 🟢 Highly Resonant (130+) - Strong community validation
+// 🟡 Active Member (110-129) - Meets threshold, growing
+// 🔴 New/Building (0-109) - Not yet qualified for premium access</code></pre>
+            </section>
+
+            <!-- Migration Path -->
+            <section>
+                <h2>🔄 Migration Path: Phase 1 → Phase 2</h2>
+
+                <h3>Activation Strategy</h3>
+                <p><strong>When to activate Phase 2:</strong></p>
+                <ul>
+                    <li>✅ 500+ active users</li>
+                    <li>✅ Community feedback collected</li>
+                    <li>✅ Bot patterns analyzed</li>
+                    <li>✅ Threshold fine-tuned based on real data</li>
+                </ul>
+
+                <h3>Activation Process</h3>
+                <pre><code># Feature Flag in .env
+RESONANCE_GATE_ENABLED=false  # Phase 1 (current)
+RESONANCE_GATE_THRESHOLD=110  # For Phase 2
+
+# Code implementation:
+if os.getenv("RESONANCE_GATE_ENABLED") == "true":
+    # Phase 2: Enforce Resonance Score check
+    # total_resonance = own_score + avg_follower_score
+    if total_resonance < 110:
+        return {"allowed": False, "reason": f"Need {110 - total_resonance} more resonance"}
+else:
+    # Phase 1: Only NFT check (current)
+    if has_identity_nft:
+        return {"allowed": True}</code></pre>
+
+                <h3>Grandfathering Policy</h3>
+                <div class="success-box">
+                    <p><strong>Option 1:</strong> Grandfather all early users</p>
+                    <pre><code>if user['created_at'] < PHASE2_ACTIVATION_DATE:
+    return {"allowed": True, "grandfathered": True}</code></pre>
+                    
+                    <p><strong>Option 2:</strong> Grace period (30 days to reach threshold)</p>
+                    <pre><code>if user['created_at'] < PHASE2_ACTIVATION_DATE:
+    grace_period_end = PHASE2_ACTIVATION_DATE + timedelta(days=30)
+    if now < grace_period_end:
+        return {"allowed": True, "grace_period": True}</code></pre>
+                </div>
+            </section>
+
+            <!-- Summary Table -->
+            <section>
+                <h2>📊 Security Feature Comparison</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Security Layer</th>
+                            <th>Phase 1 (Current)</th>
+                            <th>Phase 2 (Future)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>MetaMask Signature</td>
+                            <td>✅ Active</td>
+                            <td>✅ Active</td>
+                        </tr>
+                        <tr>
+                            <td>Identity NFT</td>
+                            <td>✅ Required</td>
+                            <td>✅ Required</td>
+                        </tr>
+                        <tr>
+                            <td>Score Rate-Limiting</td>
+                            <td>✅ +1/min</td>
+                            <td>✅ +1/min</td>
+                        </tr>
+                        <tr>
+                            <td>Self-Follow Block</td>
+                            <td>✅ Active</td>
+                            <td>✅ Active</td>
+                        </tr>
+                        <tr>
+                            <td>Blockchain Transparency</td>
+                            <td>✅ Active</td>
+                            <td>✅ Active</td>
+                        </tr>
+                        <tr>
+                            <td>Resonance Threshold</td>
+                            <td>⚪ Open (no gate)</td>
+                            <td>🔐 110+ Required</td>
+                        </tr>
+                        <tr>
+                            <td>Social Proof Mechanism</td>
+                            <td>⚪ Not enforced</td>
+                            <td>🔐 Resonance Score acts as natural gate</td>
+                        </tr>
+                        <tr>
+                            <td>Blockchain Transparency</td>
+                            <td>✅ Active</td>
+                            <td>✅ Full audit trail</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Technical Implementation -->
+            <section>
+                <h2>📝 Technical Implementation Reference</h2>
+
+                <h3>Key Files</h3>
+                <ul>
+                    <li><code>aeralogin/server.py</code> (Lines 1300-1500): Signature verification & score logic</li>
+                    <li><code>web3_service.py</code>: Blockchain integration (NFT, Score, Interactions)</li>
+                    <li><code>resonance_calculator.py</code>: Resonance Score algorithm</li>
+                    <li><code>blockchain_sync.py</code>: On-chain sync queue management</li>
+                </ul>
+
+                <h3>Smart Contracts (BASE Mainnet)</h3>
+                <ul>
+                    <li><strong>Identity NFT:</strong> <code>0xF9ff5DC523927B9632049bd19e17B610E9197d53</code></li>
+                    <li><strong>Resonance Score:</strong> <code>0x9A814DBF7E2352CE9eA6293b4b731B2a24800102</code></li>
+                    <li><strong>Interaction Registry:</strong> <code>0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF</code></li>
+                </ul>
+
+                <h3>Wallet Architecture</h3>
+                <ul>
+                    <li><strong>Safe Wallet (Gnosis Safe):</strong> <code>0xC8B1bEb43361bb78400071129139A37Eb5c5Dd93</code><br>
+                        <em>→ Multisig admin wallet holding DEFAULT_ADMIN_ROLE on all contracts. Used for governance decisions and emergency actions.</em></li>
+                    <li><strong>Backend Wallet (Operator):</strong> <code>0x22A2cAcB19e77D25da063A787870a3EE6BAC8Dfe</code><br>
+                        <em>→ Hot wallet with delegated MINTER_ROLE and UPDATER_ROLE. Executes daily operations (NFT minting, score updates, interaction logging).</em></li>
+                    <li><strong>Donation Wallet:</strong> <code>0x27F8233Ae2FC3945064c0bad72267e68bC28AaAa</code><br>
+                        <em>→ Community donations for gas fee sponsoring.</em></li>
+                </ul>
+
+                <h3>Monitoring Endpoints</h3>
+                <ul>
+                    <li>Health: <code>/api/health</code></li>
+                    <li>Blockchain Stats: <code>/api/blockchain/stats</code></li>
+                    <li>Sync Queue: <code>/api/blockchain/sync-queue</code></li>
+                    <li>User Score: <code>/api/blockchain/score/{address}</code></li>
+                </ul>
+            </section>
+
+            <!-- Conclusion -->
+            <section>
+                <h2>🎯 Conclusion</h2>
+                <div class="success-box">
+                    <h4>Why This System Works:</h4>
+                    <ul>
+                        <li><strong>Phase 1:</strong> Frictionless onboarding for early adopters, full flow testing</li>
+                        <li><strong>Phase 2:</strong> Sybil-resistant gates with social proof validation</li>
+                        <li><strong>Both Phases:</strong> Cryptographic security + blockchain transparency = Fake-proof system</li>
+                    </ul>
+                    
+                    <p style="margin-top: 20px;"><strong>Result:</strong> A self-regulating community where authenticity is transparent, verifiable, and economically enforced.</p>
+                </div>
+
+                <a href="/" class="back-button">← Back to Landing Page</a>
+            </section>
+        </div>
+
+    </div>
+
+</main>
+
+<!-- AERA:SHELL-FOOTER -->
+    <footer class="site-footer">
+        <div class="site-footer-grid">
+            <div>
+                <a href="/" class="site-footer-brand"><span class="site-logo-icon" aria-hidden="true">🌀</span><span>AEraLogIn</span></a>
+                <p>Identity for Humans. Identity for Agents. Trust for Agent Networks.</p>
+                <p>Live on BASE Mainnet.</p>
+            </div>
+            <div>
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="/#identity">Human Identity</a></li>
+                    <li><a href="/#agents">Agent Identity</a></li>
+                    <li><a href="/#a2a">A2A Communication</a></li>
+                    <li><a href="/#trust">Trust Assessment</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="/docs/agent-api.html">Agent API</a></li>
+                    <li><a href="/docs/a2a.html">A2A Gateway</a></li>
+                    <li><a href="/docs/agent-card.html">A2A Agent Card</a></li>
+                    <li><a href="/sdk-docs">SDK Documentation</a></li>
+                    <li><a href="/examples/snippets/basic-integration.html">Code Examples</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/security-concept.html">Security Concept</a></li>
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/user-dashboard.html">AEra Core (Agents)</a></li>
+                    <li><a href="/logo.html">Logo</a></li>
+                    <li><a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="https://x.com/AEraResonant" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>On-chain</h4>
+                <ul>
+                    <li><a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank" rel="noopener noreferrer">Identity NFT Contract</a></li>
+                    <li><a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank" rel="noopener noreferrer">Score Contract</a></li>
+                    <li><a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank" rel="noopener noreferrer">Registry Contract</a></li>
+                    <li><a href="https://base.org" target="_blank" rel="noopener noreferrer">BASE L2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="site-footer-bottom">
+            <span>&copy; 2025&ndash;2026 AEraLogIn &middot; VEra-Resonance Project &middot; Apache 2.0</span>
+            <span><a href="/privacy-policy">Privacy Policy</a> &middot; <a href="/security-concept.html">Security</a></span>
+        </div>
+    </footer>
+    <script src="/docs/assets/site-shell.js?v=20260926"></script>
+    <!-- /AERA:SHELL-FOOTER -->
+
+    <!-- Animated Background Script -->
+    <script>
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 80;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(0, 212, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            // Draw connections
+            particles.forEach((p1, i) => {
+                particles.slice(i + 1).forEach(p2 => {
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.strokeStyle = `rgba(0, 212, 255, ${0.2 * (1 - distance / 150)})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- ===== AERA CHAT WIDGET ===== -->
+    <link rel="stylesheet" href="/aera-chat.css?v=20251209002">
+    <script src="/aera-chat.js?v=20251209001"></script>
+    <script>
+        // Initialize AEra Chat Widget
+        if (typeof initAeraChat === 'function') {
+            initAeraChat();
+            console.log('🌀 AEra Chat Widget initialized');
+        }
+    </script>
+    
+    <!-- Anonymous Page View Tracking -->
+    <script>
+        fetch('/api/track/pageview', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({page: 'security'})
+        }).catch(() => {});
+    </script>
+</body>
+</html>

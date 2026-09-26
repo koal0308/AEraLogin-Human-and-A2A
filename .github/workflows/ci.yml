@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Repository hygiene
+        run: |
+          python tools/repo_audit.py
+          python tools/secret_scan.py
+          python tools/sync_site_shell.py --check
+      - name: Compile
+        run: python -m compileall -q agent agent_runtime server.py
+      - name: Tests
+        run: pytest tests/ -q -p no:warnings

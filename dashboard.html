@@ -1,0 +1,2946 @@
+<!--
+VEra-Resonance — Admin Follower Dashboard
+© 2025 Karlheinz Beismann — VEra-Resonance Project
+Licensed under the Apache License, Version 2.0
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png?v=20251225c">
+    <title>AEraLogIn — Resonance Dashboard</title>
+    
+    <!-- NFT Minting is now handled by backend wallet (no paymaster needed) -->
+    
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+    
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        :root {
+            --primary: #0052ff;
+            --secondary: #00d4ff;
+            --dark: #0a0e27;
+            --darker: #050814;
+            --light: #f0f4ff;
+            --accent: #6366f1;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            min-height: 100vh;
+            padding: 0;
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .bg-animation canvas {
+            display: block;
+        }
+        
+        /* Animated Floating Particles */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 212, 255, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: float 20s infinite;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+        
+        .particle:nth-child(1) { left: 10%; animation-duration: 25s; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 30%; animation-duration: 30s; animation-delay: 5s; }
+        .particle:nth-child(3) { left: 50%; animation-duration: 20s; animation-delay: 2s; }
+        .particle:nth-child(4) { left: 70%; animation-duration: 28s; animation-delay: 8s; }
+        .particle:nth-child(5) { left: 85%; animation-duration: 22s; animation-delay: 3s; }
+        .particle:nth-child(6) { left: 15%; animation-duration: 26s; animation-delay: 6s; }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(90vh) scale(1);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(10vh) scale(1);
+            }
+            100% {
+                transform: translateY(0) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            padding: 0 20px 20px 20px;
+        }
+        
+        /* Header */
+        .header {
+            padding: 0.79rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.8);
+            width: 100%;
+            margin: 0;
+        }
+
+        .logo {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 2.7rem;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            -webkit-text-fill-color: currentColor !important;
+            background-clip: unset !important;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            color: var(--secondary);
+            opacity: 1;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--light);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        .menu-toggle:hover {
+            color: var(--secondary);
+        }
+
+        /* Mobile Menu Overlay */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 5rem 2rem 2rem;
+            gap: 1.5rem;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+            border-left: 1px solid rgba(99, 102, 241, 0.3);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .mobile-menu.active {
+            right: 0;
+        }
+
+        .mobile-menu a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .mobile-menu a:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--secondary);
+        }
+
+        /* Menu Backdrop */
+        .menu-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .nav-cta-button {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 82, 255, 0.4);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .owner-section {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            padding: 28px;
+            margin-top: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.6s ease-out;
+            animation-delay: 0.1s;
+            animation-fill-mode: both;
+            transition: all 0.3s ease;
+        }
+        
+        .owner-section:hover {
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 15px 50px rgba(0, 82, 255, 0.2), 0 0 20px rgba(0, 212, 255, 0.15);
+        }
+        
+        .owner-section h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .input-group input {
+            flex: 1;
+            min-width: 250px;
+            padding: 14px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            font-size: 14px;
+            color: var(--light);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.1);
+        }
+        
+        .input-group input::placeholder {
+            color: rgba(240, 244, 255, 0.4);
+        }
+        
+        .input-group button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 82, 255, 0.3);
+            letter-spacing: 0.3px;
+        }
+        
+        .input-group button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 82, 255, 0.4);
+        }
+        
+        .input-group button:active {
+            transform: translateY(-1px);
+        }
+        
+        .input-group button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 16px rgba(0, 82, 255, 0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: white;
+            padding: 18px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-card:hover {
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 10px 36px rgba(0, 212, 255, 0.2), 0 0 20px rgba(0, 212, 255, 0.15);
+        }
+        
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--light);
+        }
+        
+        /* Ensure emoji spans keep their inline colors */
+        .stat-card .value span[style*="color"] {
+            display: inline;
+        }
+        
+        .stat-card .label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(240, 244, 255, 0.7);
+            letter-spacing: 0.3px;
+        }
+        
+        .link-section {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .link-section:hover {
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 15px 50px rgba(0, 82, 255, 0.2);
+        }
+        
+        .link-section p {
+            font-size: 14px;
+            color: rgba(240, 244, 255, 0.7);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .link-display {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .link-display input {
+            flex: 1;
+            padding: 14px 18px;
+            background: rgba(0, 82, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            color: var(--secondary);
+            transition: all 0.3s ease;
+        }
+        
+        .link-display input:focus {
+            outline: none;
+            background: rgba(0, 82, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.1);
+        }
+        
+        .link-display button {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 82, 255, 0.3);
+        }
+        
+        .link-display button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0, 82, 255, 0.4);
+        }
+        
+        .followers-table {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .followers-table:hover {
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 15px 50px rgba(0, 82, 255, 0.2), 0 0 20px rgba(0, 212, 255, 0.15);
+        }
+        
+        .table-header {
+            background: linear-gradient(135deg, rgba(0, 82, 255, 0.1), rgba(0, 212, 255, 0.05));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--light);
+        }
+        
+        .table-header p {
+            font-size: 14px;
+            color: rgba(240, 244, 255, 0.6);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+        
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            font-weight: 600;
+            color: var(--secondary);
+            letter-spacing: 0.3px;
+        }
+        
+        td {
+            color: rgba(240, 244, 255, 0.9);
+        }
+        
+        tbody tr {
+            transition: all 0.3s ease;
+            border-left: 2px solid transparent;
+        }
+        
+        tbody tr:hover {
+            background: rgba(0, 82, 255, 0.08);
+            border-left-color: var(--secondary);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .score-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2);
+        }
+        
+        .platform-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--light);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        
+        .address-short {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+        
+        .status {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            animation: slideDown 0.3s ease-out;
+            backdrop-filter: blur(10px);
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .status.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .status.info {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .status.loading {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: rgba(240, 244, 255, 0.5);
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .loading {
+            display: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--primary);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.05);
+                opacity: 0.85;
+            }
+        }
+        
+        .export-button {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+        }
+        
+        .export-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
+        }
+        
+        /* Blockchain Integration Styles */
+        .blockchain-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+        
+        .blockchain-status.connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .blockchain-status.disconnected {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        
+        .blockchain-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .blockchain-card h3 {
+            margin-bottom: 20px;
+            color: var(--light);
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .nft-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 4px 16px rgba(0, 82, 255, 0.3);
+        }
+        
+        .basescan-link {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .basescan-link:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        
+        .blockchain-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .blockchain-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .blockchain-info-label {
+            font-weight: 600;
+            color: rgba(240, 244, 255, 0.6);
+        }
+        
+        .blockchain-info-value {
+            color: var(--light);
+            font-weight: 500;
+        }
+        
+        /* Platform Filter Styles */
+        .filter-container {
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            color: rgba(240, 244, 255, 0.7);
+            margin-right: 8px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: rgba(240, 244, 255, 0.7);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 82, 255, 0.3);
+        }
+        
+        /* Collapsible Section Styles */
+        .collapse-btn {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .collapse-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .collapsible-content {
+            max-height: 5000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+        
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        .table-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Feed Items */
+        .feed-item {
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+
+        .feed-item:hover {
+            border-color: var(--secondary);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .feed-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .feed-item-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--light);
+        }
+
+        .feed-item-timestamp {
+            font-size: 0.75rem;
+            color: var(--light);
+            opacity: 0.5;
+        }
+
+        .feed-item-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.5rem;
+        }
+
+        .badge-update {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .badge-feature {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25));
+            color: #a855f7;
+            border: 1px solid #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+        }
+
+        .badge-security {
+            background: rgba(0, 82, 255, 0.2);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .badge-integration {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+            border: 1px solid #a855f7;
+        }
+
+        .feed-item-content {
+            color: var(--light);
+            opacity: 0.8;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feed-item-link {
+            color: var(--secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .feed-item-link:hover {
+            gap: 0.75rem;
+            color: var(--primary);
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 200px;
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 0.75rem 3%;
+            }
+
+            .logo {
+                font-size: 1.8rem;
+            }
+
+            .logo-icon {
+                font-size: 2rem;
+            }
+
+            /* Hide desktop nav, show hamburger */
+            .header nav {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .input-group input {
+                min-width: 100%;
+            }
+            
+            .input-group button {
+                width: 100%;
+            }
+            
+            .filter-container {
+                padding: 15px;
+            }
+            
+            .filter-btn {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            
+            th, td {
+                padding: 12px 16px;
+                font-size: 12px;
+            }
+            
+            /* Feed Items Mobile */
+            .feed-item {
+                padding: 1rem;
+                margin-bottom: 0.75rem;
+            }
+            
+            .feed-item-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .feed-item-title {
+                font-size: 0.9rem;
+            }
+            
+            .feed-item-timestamp {
+                font-size: 0.7rem;
+                order: 2;
+            }
+            
+            .feed-item-badge {
+                font-size: 0.6rem;
+                padding: 0.2rem 0.6rem;
+                margin-top: 0.25rem;
+            }
+            
+            .feed-item-content {
+                font-size: 0.85rem;
+                line-height: 1.5;
+            }
+            
+            .feed-item-link {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Desktop: Always show nav, hide mobile elements */
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none !important;
+            }
+
+            .mobile-menu {
+                display: none !important;
+            }
+
+            .menu-backdrop {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Particles -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    
+    <!-- Background Animation -->
+    <div class="bg-animation" id="bgCanvas"></div>
+    
+    <!-- Menu Backdrop -->
+    <div class="menu-backdrop" id="menuBackdrop"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon" style="color: #3b82f6; animation: pulse 2s ease-in-out infinite;">🌀</span>
+            <span>AEraLogIn</span>
+        </div>
+        <nav>
+            <a onclick="navigateToCore()">AEra Core</a>
+            <a href="/">Home</a>
+            <a href="/admin-panel" id="adminPanelLink" style="display: none; color: #ef4444;">🔐 Admin</a>
+        </nav>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+            ☰
+        </button>
+    </header>
+
+    <!-- Mobile Navigation (outside header for proper z-index stacking) -->
+    <nav class="mobile-menu" id="mobileMenu">
+        <a onclick="navigateToCore(); closeMenu();">AEra Core</a>
+        <a href="/">Home</a>
+        <a href="/admin-panel" id="adminPanelLinkMobile" style="display: none; color: #ef4444;">🔐 Admin</a>
+    </nav>
+    
+    <div class="container">
+        <!-- Mobile/In-App Browser Info Banner -->
+        <div id="mobileInfoBanner" style="display: none; margin-bottom: 15px; padding: 12px 15px; background: linear-gradient(135deg, #1e40af, #3b82f6); border-radius: 10px; font-size: 13px; border: 1px solid #60a5fa;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;" id="mobileIcon">📱</span>
+                <div>
+                    <div style="font-weight: 600;" id="mobileTitle">Mobile Wallet Detected</div>
+                    <div style="opacity: 0.9; font-size: 12px;" id="mobileSubtitle">In-App Browser ready for signing</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="owner-section">
+            <h2>🌀 Your Account - Connect Wallet</h2>
+            <div class="input-group">
+                <input type="text" id="ownerInput" placeholder="Enter your wallet address (0x...)" value="">
+                <button id="metamaskBtn" onclick="connectMetaMask()" style="background: linear-gradient(135deg, var(--primary), var(--accent));">
+                    🔗 Connect Web3 Wallet
+                </button>
+                <button id="disconnectBtn" onclick="disconnectWallet()" style="display: none; background: linear-gradient(135deg, var(--primary), var(--accent));">
+                    🔌 Disconnect
+                </button>
+            </div>
+            <div id="statusMessage"></div>
+            <div id="walletInfo" style="display: none;">
+                <span id="walletAddress"></span>
+            </div>
+        </div>
+        
+        <!-- Platzhalter vor Wallet-Verbindung -->
+        <div class="owner-section" id="preConnectPlaceholder">
+            <div style="text-align: center; padding: 30px 20px;">
+                <div style="font-size: 3.3rem; margin-bottom: 16px; opacity: 0.85; filter: brightness(1.3) drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));">🔐</div>
+                <h3 style="font-size: 1.43rem; margin-bottom: 12px; color: var(--light);">Connect Your Wallet to Get Started</h3>
+                <p style="color: rgba(240, 244, 255, 0.7); font-size: 0.99rem; line-height: 1.6; max-width: 100%; margin: 0 auto;">
+                    Welcome to <strong style="color: var(--accent);">AEra</strong> — your gateway to decentralized identity and community engagement. Connect your Web3 wallet to unlock your personal dashboard, view the latest project updates, and access powerful tools in <strong style="color: var(--secondary);">AEra Core</strong>.
+                </p>
+                <p style="color: rgba(240, 244, 255, 0.5); font-size: 0.9rem; line-height: 1.5; max-width: 100%; margin: 16px auto 0; padding: 12px 16px; background: rgba(99, 102, 241, 0.08); border-radius: 10px; border: 1px solid rgba(99, 102, 241, 0.2);">
+                    💎 <strong>First-Time Users:</strong> When you connect for the first time, your unique <strong style="color: var(--accent);">Identity NFT</strong> will be minted automatically on the BASE blockchain. This process is <strong style="color: var(--success);">completely free</strong> (community-funded) and takes only a few seconds. Your Identity NFT serves as your on-chain reputation — it stores your Resonance Score and verifies your authenticity across the AEra ecosystem.
+                </p>
+                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; font-size: 0.88rem; color: var(--success);">
+                        📰 Latest Updates & News
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 20px; font-size: 0.88rem; color: var(--accent);">
+                        🌀 AEra Core Tools
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 20px; font-size: 0.88rem; color: var(--secondary);">
+                        ⛓️ On-Chain Statistics
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ===== FOLLOWER LINK, NFT-GATED GROUP & SDK SECTIONS - HIDDEN (moved to user-dashboard) ===== -->
+        <div class="owner-section" style="display: none !important;">
+            <!-- Follower Link Generation (ALWAYS VISIBLE) -->
+            <h2>📤 Share Your Follower Link</h2>
+            <div class="link-section">
+                <p>Generate a custom link to share with your followers on social media</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div>
+                        <label style="display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600;">Select Platform:</label>
+                        <select id="platformSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+                            <option value="direct">⚡ Direct Link</option>
+                            <option value="twitter">𝕏 X / Twitter</option>
+                            <option value="reddit">🤖 Reddit</option>
+                            <option value="telegram">✈️ Telegram</option>
+                            <option value="discord">💬 Discord</option>
+                            <option value="signal">🔒 Signal</option>
+                            <option value="slack">💬 Slack</option>
+                            <option value="farcaster">🎭 Farcaster</option>
+                            <option value="whatsapp">💚 WhatsApp</option>
+                            <option value="vk">🐻 VK</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button onclick="generateLink()" style="width: 100%; padding: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 30px rgba(0, 82, 255, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">Generate Link</button>
+                    </div>
+                </div>
+                <div class="link-display" id="linkDisplay" style="display: none;">
+                    <input type="text" id="generatedLink" readonly>
+                    <button onclick="copyToClipboard()">Copy</button>
+                </div>
+            </div>
+            
+            <!-- 🎯 NFT-Gated Private Group Link -->
+            <h2 style="margin-top: 32px;">🔐 Your NFT-Gated Group Link</h2>
+            <div class="link-section">
+                <p>Create platform-specific NFT-gated links for your private communities</p>
+                
+                <!-- Configure Private Group -->
+                <div style="margin-bottom: 20px; padding: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 14px; color: var(--secondary);">🔧 Configure Your Private Group</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; color: rgba(240, 244, 255, 0.7);">Select Platform:</label>
+                            <select id="gateplatformSelect" onchange="showPlatformWarning()" style="width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 13px; background: rgba(255, 255, 255, 0.05); color: var(--light);">
+                                <optgroup label="⭐ Recommended for NFT-Gating">
+                                    <option value="telegram">✈️ Telegram (Best for communities)</option>
+                                    <option value="discord">💬 Discord (Ideal for Web3)</option>
+                                    <option value="signal">🔒 Signal (Privacy-focused)</option>
+                                </optgroup>
+                                <optgroup label="✅ Also Supported">
+                                    <option value="slack">💬 Slack (Professional)</option>
+                                    <option value="farcaster">🎭 Farcaster (Web3-native)</option>
+                                    <option value="vk">🐻 VK</option>
+                                </optgroup>
+                                <optgroup label="⚠️ Limited Support">
+                                    <option value="whatsapp">💚 WhatsApp (Max 1024 members)</option>
+                                </optgroup>
+                            </select>
+                            <div id="platformWarning" style="display: none; margin-top: 8px; padding: 8px; background: rgba(255, 165, 0, 0.1); border-left: 3px solid #FFA500; border-radius: 4px; font-size: 11px; color: #FFA500;"></div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; color: rgba(240, 244, 255, 0.7);">Group Name (optional):</label>
+                            <input type="text" id="privateGroupName" placeholder="My Private Group" style="width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 13px; background: rgba(255, 255, 255, 0.05); color: var(--light);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; color: rgba(240, 244, 255, 0.7);">Group Invite Link:</label>
+                            <input type="text" id="privateGroupInviteLink" placeholder="https://..." style="width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 13px; background: rgba(255, 255, 255, 0.05); color: var(--light);">
+                        </div>
+                    </div>
+                    <button onclick="savePrivateGroup()" style="width: 100%; padding: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 30px rgba(99, 102, 241, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        💾 Save Group Configuration
+                    </button>
+                    <div id="privateGroupConfigStatus" style="margin-top: 8px; font-size: 12px; display: none;"></div>
+                </div>
+                
+                <!-- Generate & Share Link -->
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end;">
+                    <div style="flex: 1;">
+                        <button onclick="generateGateLink()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 30px rgba(99, 102, 241, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                            🔐 Generate NFT-Gated Link
+                        </button>
+                    </div>
+                </div>
+                <div class="link-display" id="gateLinkDisplay" style="display: none;">
+                    <input type="text" id="generatedGateLink" readonly>
+                    <button onclick="copyGateLink()">Copy</button>
+                </div>
+                <div id="gateStats" style="margin-top: 16px; padding: 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; display: none;">
+                    <p style="font-size: 13px; color: rgba(240, 244, 255, 0.7); margin: 0;">
+                        <strong style="color: var(--secondary);">Access Statistics:</strong> 
+                        <span id="gateInviteCount">0</span> users joined via your link
+                        <span id="gateGroupInfo" style="display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.15);"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ===== SDK APP REGISTRATION SECTION ===== -->
+        <div class="owner-section" id="sdkAppsSection" style="display: none !important;">
+            <h2>🔧 SDK Integration - Register Your Website</h2>
+            <div class="link-section">
+                <p>Register your website to use AEra Gate authentication. Get your Client ID and Secret to integrate NFT-gated access on any website.</p>
+                
+                <!-- Register New App Form -->
+                <div id="registerAppForm" style="margin-bottom: 20px; padding: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 14px; color: var(--secondary);">➕ Register New Website</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; color: rgba(240, 244, 255, 0.7);">App Name *</label>
+                            <input type="text" id="sdkAppName" placeholder="My Awesome Website" style="width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 13px; background: rgba(255, 255, 255, 0.05); color: var(--light);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; color: rgba(240, 244, 255, 0.7);">Website URL *</label>
+                            <input type="text" id="sdkWebsiteUrl" placeholder="https://yourwebsite.com" style="width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 13px; background: rgba(255, 255, 255, 0.05); color: var(--light);">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; color: rgba(240, 244, 255, 0.7);">Redirect URI *</label>
+                            <input type="text" id="sdkRedirectUri" placeholder="https://yourwebsite.com/callback" style="width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 13px; background: rgba(255, 255, 255, 0.05); color: var(--light);">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; margin-bottom: 5px; font-weight: 600; color: rgba(240, 244, 255, 0.7);">Description (optional)</label>
+                            <input type="text" id="sdkAppDescription" placeholder="Brief description of your app" style="width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 13px; background: rgba(255, 255, 255, 0.05); color: var(--light);">
+                        </div>
+                    </div>
+                    <button onclick="registerSdkApp()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 30px rgba(0, 82, 255, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        🚀 Register App & Get Credentials
+                    </button>
+                    <div id="registerAppStatus" style="margin-top: 10px; display: none;"></div>
+                </div>
+                
+                <!-- New Credentials Display (shown after registration) -->
+                <div id="newCredentialsDisplay" style="display: none; margin-bottom: 20px; padding: 16px; background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); border-radius: 8px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 14px; color: var(--success);">✅ App Registered Successfully!</h3>
+                    <div style="background: rgba(5, 8, 20, 0.8); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: rgba(240, 244, 255, 0.6); display: block;">CLIENT ID:</label>
+                            <code id="newClientId" style="font-size: 13px; color: var(--secondary); word-break: break-all;"></code>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; color: rgba(240, 244, 255, 0.6); display: block;">CLIENT SECRET:</label>
+                            <code id="newClientSecret" style="font-size: 13px; color: #f59e0b; word-break: break-all;"></code>
+                        </div>
+                    </div>
+                    <p style="font-size: 12px; color: #f59e0b; margin: 0;">⚠️ <strong>IMPORTANT:</strong> Copy your Client Secret NOW! It will NOT be shown again.</p>
+                    <button onclick="copyCredentials()" style="margin-top: 10px; padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">📋 Copy Both to Clipboard</button>
+                </div>
+                
+                <!-- My Apps List -->
+                <div id="myAppsSection" style="margin-top: 20px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 14px; color: var(--secondary); display: flex; justify-content: space-between; align-items: center;">
+                        📱 My Registered Apps
+                        <button onclick="loadMyApps()" style="padding: 5px 10px; font-size: 11px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: var(--light); cursor: pointer;">🔄 Refresh</button>
+                    </h3>
+                    <div id="myAppsList" style="display: grid; gap: 12px;">
+                        <div style="text-align: center; padding: 30px; color: rgba(240, 244, 255, 0.5);">
+                            <p>Connect your wallet to view your registered apps</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ===== END HIDDEN SECTIONS ===== -->
+        
+        <div id="dashboardContent" style="display: none;">
+            <!-- Owner Stats -->
+            <div id="stats" class="stats-grid">
+                <div class="stat-card">
+                    <div class="value" id="followerCount">0</div>
+                    <div class="label">Verified Followers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="avgScore">0</div>
+                    <div class="label">Average Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="yourScore">0</div>
+                    <div class="label">Your Score</div>
+                </div>
+            </div>
+            
+            <!-- Blockchain Stats Grid -->
+            <div id="blockchain" class="stats-grid" id="blockchainStats" style="margin-top: 16px;">
+                <div class="stat-card">
+                    <div class="value" id="identityStatus">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="label">Identity NFT Status</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="blockchainScore">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="label">Blockchain Score</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="syncStatus">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="label">Sync Status</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="blockchainHealth">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="label">Blockchain Health</div>
+                </div>
+            </div>
+            
+            <!-- Followers Table -->
+            <div id="followers" class="followers-table">
+                <div class="table-header">
+                    <div class="table-header-controls">
+                        <h2>🌀 Your Followers</h2>
+                        <button class="collapse-btn" onclick="toggleCollapse('followersTable')">▼</button>
+                    </div>
+                    <p id="followerCount2">0 verified followers</p>
+                </div>
+                <div class="filter-container">
+                    <span class="filter-label">Filter by Platform:</span>
+                    <button class="filter-btn active" data-platform="all" onclick="filterByPlatform('all')">All</button>
+                    <button class="filter-btn" data-platform="twitter" onclick="filterByPlatform('twitter')">🐦 Twitter</button>
+                    <button class="filter-btn" data-platform="telegram" onclick="filterByPlatform('telegram')">✈️ Telegram</button>
+                    <button class="filter-btn" data-platform="discord" onclick="filterByPlatform('discord')">🎮 Discord</button>
+                    <button class="filter-btn" data-platform="facebook" onclick="filterByPlatform('facebook')">👍 Facebook</button>
+                    <button class="filter-btn" data-platform="reddit" onclick="filterByPlatform('reddit')">🤖 Reddit</button>
+                    <button class="filter-btn" data-platform="direct" onclick="filterByPlatform('direct')">🔗 Direct</button>
+                </div>
+                <div id="followersTable" class="collapsible-content">
+                    <div id="followersContainer">
+                        <div style="text-align: center; padding: 40px; color: #999;">
+                            <div class="loading"></div> Loading followers...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Blockchain Interaction History -->
+            <div class="followers-table" id="interactionHistory" style="margin-top: 20px;">
+                <div class="table-header">
+                    <div class="table-header-controls">
+                        <h2>⛓️ Blockchain Interaction History</h2>
+                        <button class="collapse-btn" onclick="toggleCollapse('interactionsTable')">▼</button>
+                    </div>
+                    <p id="interactionCount">Loading...</p>
+                </div>
+                <div id="interactionsTable" class="collapsible-content">
+                    <div id="interactionsContainer">
+                        <div style="text-align: center; padding: 40px; color: #999;">
+                            <div class="loading"></div> Loading blockchain data...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Latest Updates Feed - Shown after wallet connection -->
+        <div class="owner-section" id="latestUpdatesSection" style="display: none;">
+            <h2>📰 Latest Updates</h2>
+            <p style="font-size: 13px; opacity: 0.7; margin-bottom: 15px;">Project news & updates</p>
+            <div id="feedContent" class="collapsible-content">
+                <div id="feedContainer">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <div class="loading"></div> Loading updates...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- End of .container -->
+    
+    <!-- Blockchain Dashboard Integration - MUST load before inline scripts -->
+    <script src="blockchain-dashboard.js?v=20251204-2"></script>
+    
+    <script>
+        // ✅ Define API_BASE globally
+        const API_BASE = window.location.origin || 'http://localhost:8840';
+        
+        // Project Update Feed Data
+        const feedData = [
+            {
+                id: 0,
+                title: "🎉 AEraLogIn is Officially Live!",
+                badge: "milestone",
+                timestamp: "📌 Pinned",
+                content: "We're officially live! AEra is now ready to revolutionize blockchain identity and community engagement. Join us on our journey to build the future of decentralized social connections.",
+                link: "https://x.com/AEraResonant/status/2006733563044167694",
+                pinned: true
+            },
+            {
+                id: 1,
+                title: "🔐 Safe Wallet Admin Role Added",
+                badge: "security",
+                timestamp: "Jan 19, 2026",
+                content: "Enhanced contract security: Safe Wallet added as additional admin for Profile NFT contract. Backend wallet retains all operational roles for uninterrupted service.",
+                link: null
+            },
+            {
+                id: 2,
+                title: "👥 Follower Details Modal & Follow-Back",
+                badge: "feature",
+                timestamp: "Jan 18, 2026",
+                content: "New follower details modal with comprehensive user information. Added follow-back functionality to easily connect with your community members.",
+                link: null
+            },
+            {
+                id: 3,
+                title: "📊 Anonymous Page View Tracking",
+                badge: "update",
+                timestamp: "Jan 17, 2026",
+                content: "Privacy-respecting analytics: Anonymous page view tracking implemented for better insights while maintaining user privacy.",
+                link: null
+            },
+            {
+                id: 4,
+                title: "⚡ Alchemy API Integration & Live Scores",
+                badge: "integration",
+                timestamp: "Jan 15, 2026",
+                content: "Integrated Alchemy API for reliable blockchain data. Resonance scores now update in real-time with improved accuracy.",
+                link: null
+            },
+            {
+                id: 5,
+                title: "🛠️ Admin Panel & NFT/Token Stats",
+                badge: "feature",
+                timestamp: "Jan 10, 2026",
+                content: "New admin panel with comprehensive NFT and token statistics. Base Mainnet RPC connection optimized for faster responses.",
+                link: null
+            },
+            {
+                id: 6,
+                title: "✨ Profile Editor: Spiral Emoji Collection",
+                badge: "feature",
+                timestamp: "Jan 08, 2026",
+                content: "Customizable profile avatars: Choose from the exclusive Spiral Emoji Collection to personalize your AEra identity. Over 300 emojis including 🌀💫✨🔮♾️☯️🪬🧿⚛️ and color variants.",
+                link: null
+            },
+            {
+                id: 7,
+                title: "🚀 Dynamic Gate Service Live",
+                badge: "integration",
+                timestamp: "Jan 05, 2026",
+                content: "Owner-specific bot configuration for NFT-gated communities. Each gate owner can now use their own Telegram/Discord bot for maximum security with AES-256 encrypted token storage.",
+                link: null
+            },
+            {
+                id: 8,
+                title: "🔧 Gate Follower Registration Fix",
+                badge: "update",
+                timestamp: "Jan 03, 2026",
+                content: "Fixed critical bug where users were blocked with 'Already registered as follower' error when retrying gate access after score increase. Follower registration now properly deferred until after successful gate passage.",
+                link: null
+            },
+            {
+                id: 9,
+                title: "📊 On-Chain Score Verification",
+                badge: "security",
+                timestamp: "Jan 03, 2026",
+                content: "Gate access now reads Resonance Score directly from the blockchain contract for tamper-proof verification. Gates check on-chain score against minimum requirements (50-200).",
+                link: null
+            },
+            {
+                id: 10,
+                title: "👛 View NFTs & Tokens in Your Wallet",
+                badge: "update",
+                timestamp: "Jan 02, 2026",
+                content: "Guide for making AEra assets visible: Identity NFT (0xF9ff...d53), Profile NFT (0x0a63...b27e), and RSNC Token (0x9A81...102) can be imported to MetaMask, Coinbase Wallet, or Trust Wallet on BASE Mainnet.",
+                link: null
+            },
+            {
+                id: 11,
+                title: "🖼️ AEra NFTs Now on OpenSea",
+                badge: "integration",
+                timestamp: "Jan 02, 2026",
+                content: "AEra Identity NFTs and Profile NFTs are now fully discoverable on OpenSea. Browse, verify, and showcase your on-chain identity in the world's largest NFT marketplace.",
+                link: "https://opensea.io/collection/aera-identity"
+            },
+            {
+                id: 12,
+                title: "🎨 Profile NFT with OpenSea Integration",
+                badge: "feature",
+                timestamp: "Dec 28, 2025",
+                content: "Optional Profile NFTs now visible on OpenSea. Delegate pattern enables gas-free visibility toggles. Tiered scoring system implemented.",
+                link: null
+            },
+            {
+                id: 13,
+                title: "📱 Mobile Optimization Complete",
+                badge: "update",
+                timestamp: "Dec 25, 2025",
+                content: "Comprehensive responsive design overhaul. All pages now optimized for mobile devices with improved touch interactions.",
+                link: null
+            },
+            {
+                id: 14,
+                title: "🔧 AEra Gate SDK Infrastructure Live",
+                badge: "integration",
+                timestamp: "Dec 20, 2025",
+                content: "Complete SDK infrastructure deployed: New server endpoints for authentication and NFT verification added, comprehensive SDK documentation portal launched at /sdk-docs.",
+                link: "/sdk-docs"
+            },
+            {
+                id: 15,
+                title: "📲 Android Intent-Bridge Live",
+                badge: "integration",
+                timestamp: "Dec 19, 2025",
+                content: "AEra now supports direct Telegram access from Android wallet browsers including MetaMask Mobile, Base Wallet, and Trust Wallet.",
+                link: null
+            },
+            {
+                id: 16,
+                title: "🔐 EIP-1271 Smart Contract Wallet Support",
+                badge: "security",
+                timestamp: "Dec 18, 2025",
+                content: "Added full support for Smart Contract Wallets including Base Wallet and Coinbase Smart Wallet signature verification via isValidSignature().",
+                link: null
+            },
+            {
+                id: 17,
+                title: "🍎 iOS Universal Links Enabled",
+                badge: "update",
+                timestamp: "Dec 17, 2025",
+                content: "Improved iOS Telegram integration with Universal Links support for seamless deep linking from wallet browsers.",
+                link: null
+            },
+            {
+                id: 18,
+                title: "👛 Multi-Wallet Signature Support",
+                badge: "update",
+                timestamp: "Dec 15, 2025",
+                content: "AEra supports signature verification across MetaMask, Rainbow, Trust Wallet, Base Wallet, and Coinbase Wallet with automatic fallback strategies.",
+                link: null
+            },
+            {
+                id: 19,
+                title: "⛓️ BASE Mainnet Deployment",
+                badge: "integration",
+                timestamp: "Dec 10, 2025",
+                content: "AEra Identity NFT and Resonance Registry contracts are now live on BASE Mainnet (Chain ID: 8453).",
+                link: null
+            }
+        ];
+        
+        // Load Feed Function
+        function loadFeed() {
+            console.log('📰 Loading feed...');
+            
+            const feedContainer = document.getElementById('feedContainer');
+            if (!feedContainer) return;
+            
+            if (feedData.length === 0) {
+                feedContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: rgba(240, 244, 255, 0.5);">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">📭</div>
+                        <div>No updates yet. Check back soon!</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render feed items
+            feedContainer.innerHTML = feedData.map(item => `
+                <div class="feed-item">
+                    <div class="feed-item-header">
+                        <div>
+                            <div class="feed-item-title">${item.title}</div>
+                            <span class="feed-item-badge badge-${item.badge}">${item.badge.toUpperCase()}</span>
+                        </div>
+                        <div class="feed-item-timestamp">${item.timestamp}</div>
+                    </div>
+                    <div class="feed-item-content">${item.content}</div>
+                    ${item.link ? `<a href="${item.link}" class="feed-item-link">Learn more →</a>` : ''}
+                </div>
+            `).join('');
+            
+            console.log('✅ Feed loaded');
+        }
+        
+        async function loadDashboard() {
+            const owner = document.getElementById('ownerInput').value.toLowerCase().trim();
+            const statusDiv = document.getElementById('statusMessage');
+            
+            if (!owner || !owner.startsWith('0x') || owner.length !== 42) {
+                statusDiv.innerHTML = '<div class="status error">❌ Please enter a valid wallet address</div>';
+                return;
+            }
+            
+            // ✅ Check if user already connected with Web3 wallet
+            if (!dashboardToken || connectedWallet !== owner) {
+                statusDiv.innerHTML = '<div class="status error">❌ Please connect your Web3 wallet first (🔗 Connect Web3 Wallet button)</div>';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<div class="status loading">⏳ Loading dashboard...</div>';
+            
+            try {
+                // ✅ No Web3 wallet needed here - user already verified via connectMetaMask()
+                // Just load the dashboard
+                console.log('📊 Loading dashboard with stored token...');
+                
+                const response = await fetch(`${API_BASE}/admin/followers?owner=${owner}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load dashboard');
+                }
+                
+                displayDashboard(data);
+                statusDiv.innerHTML = '<div class="status success">✓ Dashboard loaded successfully</div>';
+                console.log('✓ Dashboard loaded!');
+                
+                // ===== BLOCKCHAIN: Load blockchain data =====
+                // ⚠️ IMPORTANT: Load blockchain data for CONNECTED WALLET, not owner from input field
+                // The input field is for viewing OTHER people's followers
+                // But YOUR blockchain stats (NFT, Score) should be shown for YOUR wallet
+                try {
+                    console.log('[Dashboard] Checking for BlockchainDashboard module...');
+                    console.log('[Dashboard] window.BlockchainDashboard =', typeof window.BlockchainDashboard);
+                    
+                    if (window.BlockchainDashboard) {
+                        console.log('🔗 [Dashboard] Loading blockchain data for CONNECTED wallet:', connectedWallet);
+                        await window.BlockchainDashboard.loadBlockchainData(connectedWallet);
+                        console.log('✓ [Dashboard] Blockchain data loaded!');
+                    } else {
+                        console.error('❌ [Dashboard] BlockchainDashboard module not found!');
+                        console.log('[Dashboard] Available window properties:', Object.keys(window).filter(k => k.includes('Blockchain')));
+                    }
+                } catch (blockchainError) {
+                    console.error('❌ [Dashboard] Blockchain data load failed:', blockchainError);
+                    console.error('[Dashboard] Stack trace:', blockchainError.stack);
+                    // Non-critical - dashboard still works without blockchain data
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                statusDiv.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+                document.getElementById('dashboardContent').style.display = 'none';
+            }
+        }
+        
+        function displayDashboard(data) {
+            // DEBUG: Log received data
+            console.log('📊 displayDashboard received:', JSON.stringify(data, null, 2));
+            console.log('📊 total_followers:', data.total_followers);
+            console.log('📊 followers array:', data.followers);
+            
+            // ✅ Hide placeholder, show news feed
+            const placeholder = document.getElementById('preConnectPlaceholder');
+            if (placeholder) placeholder.style.display = 'none';
+            
+            // Update stats
+            document.getElementById('followerCount').textContent = data.total_followers;
+            document.getElementById('followerCount2').textContent = `${data.total_followers} verified followers`;
+            document.getElementById('avgScore').textContent = data.statistics.average_score;
+            document.getElementById('yourScore').textContent = data.owner_score || '—';
+            
+            // Build followers table
+            const container = document.getElementById('followersContainer');
+            
+            if (data.followers.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No verified followers yet</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Share your custom link to get followers!</p>
+                    </div>
+                `;
+                // ✅ Show dashboard even with 0 followers - user is registered and has NFT
+                document.getElementById('dashboardContent').style.display = 'block';
+                // Load the feed
+                loadFeed();
+                return;
+            }
+            
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Follower Address</th>
+                            <th>Score</th>
+                            <th>Platform</th>
+                            <th>Verified At</th>
+                            <th>Logins</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.followers.map(f => `
+                            <tr>
+                                <td>${f.display_name || f.follower_address.substring(0, 10) + '...' + f.follower_address.substring(38)}</td>
+                                <td><span class="score-badge">${f.resonance_score}/100</span></td>
+                                <td><span class="platform-badge">${f.source_platform || 'unknown'}</span></td>
+                                <td style="font-size: 12px;">${new Date(f.verified_at).toLocaleDateString()}</td>
+                                <td>${f.login_count}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = tableHTML;
+            
+            // Platform distribution
+            const platformHtml = Object.entries(data.statistics.by_platform)
+                .map(([p, c]) => `<span class="platform-badge">${p}: ${c}</span>`)
+                .join(' ');
+            
+            // Show dashboard
+            document.getElementById('dashboardContent').style.display = 'block';
+            
+            // Load the feed
+            loadFeed();
+        }
+        
+        async function generateLink() {
+            const owner = document.getElementById('ownerInput').value.toLowerCase().trim();
+            const platform = document.getElementById('platformSelect').value;
+            const linkDisplay = document.getElementById('linkDisplay');
+            const linkInput = document.getElementById('generatedLink');
+            
+            if (!owner || !owner.startsWith('0x')) {
+                alert('Please enter a valid wallet address first');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/follower-link?owner=${owner}&source=${platform}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error);
+                }
+                
+                linkInput.value = data.follower_link;
+                linkDisplay.style.display = 'flex';
+                
+            } catch (error) {
+                alert('Error generating link: ' + error.message);
+            }
+        }
+        
+        function copyToClipboard() {
+            const linkInput = document.getElementById('generatedLink');
+            linkInput.select();
+            document.execCommand('copy');
+            
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }
+        
+        // ===== NEW: Telegram Gate Link Functions =====
+        async function generateGateLink() {
+            const owner = document.getElementById('ownerInput').value.toLowerCase().trim();
+            const linkDisplay = document.getElementById('gateLinkDisplay');
+            const linkInput = document.getElementById('generatedGateLink');
+            const statsDiv = document.getElementById('gateStats');
+            
+            if (!owner || !owner.startsWith('0x')) {
+                alert('Please enter a valid wallet address first');
+                return;
+            }
+            
+            try {
+                // Generate Gate Link (client-side - no backend needed)
+                const baseUrl = window.location.origin;
+                const gateLink = `${baseUrl}/join-telegram?owner=${owner}`;
+                
+                linkInput.value = gateLink;
+                linkDisplay.style.display = 'flex';
+                
+                // Fetch Gate Statistics from Backend
+                const statsResponse = await fetch(`${API_BASE}/api/telegram-gate/stats/${owner}`);
+                const statsData = await statsResponse.json();
+                
+                if (statsData.success) {
+                    document.getElementById('gateInviteCount').textContent = statsData.invite_count;
+                    
+                    // Show group info if configured
+                    const groupInfoDiv = document.getElementById('gateGroupInfo');
+                    if (statsData.has_configured_group) {
+                        groupInfoDiv.innerHTML = `
+                            <strong>🔗 Your Telegram Group:</strong> 
+                            ${statsData.group_name || 'Unnamed Group'}<br>
+                            <span style="font-size: 11px; opacity: 0.7;">${statsData.telegram_link}</span>
+                        `;
+                        
+                        // Pre-fill form with current config
+                        document.getElementById('privateGroupName').value = statsData.group_name || '';
+                        document.getElementById('privateGroupInviteLink').value = statsData.telegram_link || '';
+                    } else {
+                        groupInfoDiv.innerHTML = `
+                            <strong style="color: #f59e0b;">⚠️ No Telegram group configured yet</strong><br>
+                            <span style="font-size: 11px;">Configure your group above to start using this gate link</span>
+                        `;
+                    }
+                    
+                    statsDiv.style.display = 'block';
+                } else {
+                    // Stats not available yet - hide
+                    statsDiv.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error generating gate link:', error);
+                // Non-critical error - link still works
+                linkDisplay.style.display = 'flex';
+            }
+        }
+        
+        // Show platform-specific warnings
+        function showPlatformWarning() {
+            const platform = document.getElementById('gateplatformSelect').value;
+            const warningDiv = document.getElementById('platformWarning');
+            
+            const warnings = {
+                'whatsapp': '⚠️ WhatsApp groups are limited to 1024 members maximum. Consider Telegram or Discord for larger communities.',
+                'farcaster': 'ℹ️ Farcaster is a decentralized social network. Make sure your community is familiar with Web3 platforms.',
+                'slack': 'ℹ️ Slack is great for professional communities but requires a workspace setup.'
+            };
+            
+            if (warnings[platform]) {
+                warningDiv.textContent = warnings[platform];
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+        }
+        
+        async function savePrivateGroup() {
+            const owner = document.getElementById('ownerInput').value.toLowerCase().trim();
+            const platform = document.getElementById('gateplatformSelect').value;
+            const groupName = document.getElementById('privateGroupName').value.trim();
+            const inviteLink = document.getElementById('privateGroupInviteLink').value.trim();
+            const statusDiv = document.getElementById('privateGroupConfigStatus');
+            
+            if (!owner || !owner.startsWith('0x')) {
+                alert('Please enter a valid wallet address first');
+                return;
+            }
+            
+            if (!inviteLink || !inviteLink.startsWith('https://')) {
+                statusDiv.textContent = '❌ Invalid invite link. Must start with https://';
+                statusDiv.style.color = '#ef4444';
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/telegram-gate/set-group`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        owner: owner,
+                        telegram_link: inviteLink,  // Backend erwartet diesen Key
+                        group_name: groupName || `${platform} Group`,
+                        platform: platform  // Zusätzliche Platform-Info
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.textContent = '✅ Group configured successfully!';
+                    statusDiv.style.color = '#10b981';
+                    statusDiv.style.display = 'block';
+                    
+                    // Refresh stats
+                    setTimeout(() => generateGateLink(), 500);
+                } else {
+                    statusDiv.textContent = '❌ ' + (data.error || 'Failed to save configuration');
+                    statusDiv.style.color = '#ef4444';
+                    statusDiv.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Error saving private group:', error);
+                statusDiv.textContent = '❌ Failed to save: ' + error.message;
+                statusDiv.style.color = '#ef4444';
+                statusDiv.style.display = 'block';
+            }
+        }
+        
+        function copyGateLink() {
+            const linkInput = document.getElementById('generatedGateLink');
+            linkInput.select();
+            document.execCommand('copy');
+            
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }
+        
+        // ===== MOBILE DEVICE & IN-APP BROWSER DETECTION =====
+        function detectMobileEnvironment() {
+            const ua = navigator.userAgent.toLowerCase();
+            const isAndroid = /android/i.test(ua);
+            const isIOS = /iphone|ipad|ipod/i.test(ua);
+            const isMobile = isAndroid || isIOS;
+            
+            // Detect In-App Browsers (Wallet WebViews)
+            const inAppBrowserKeywords = [
+                'metamask', 'trust', 'coinbase', 'coinbasewallet', 'base',
+                'rainbow', 'phantom', 'uniswap', '1inch', 'zerion', 'wallet'
+            ];
+            const isInAppBrowser = inAppBrowserKeywords.some(keyword => ua.includes(keyword));
+            const isBaseWallet = ua.includes('base') || ua.includes('coinbasewallet') || 
+                                 (window.ethereum && window.ethereum.isCoinbaseWallet);
+            
+            return {
+                isAndroid,
+                isIOS,
+                isMobile,
+                isInAppBrowser,
+                isBaseWallet,
+                userAgent: ua
+            };
+        }
+        
+        function log(message) {
+            console.log(`[Dashboard] ${message}`);
+        }
+        
+        /**
+         * Robust wallet signing with multiple fallback strategies
+         * Handles different wallet implementations (MetaMask, Coinbase, Base, Rainbow, etc.)
+         * 
+         * Strategy Order:
+         * 1. Standard personal_sign [message, address] (MetaMask, Rainbow, Trust, Base)
+         * 2. Reversed personal_sign [address, message] (some Coinbase versions)
+         * 3. Hex-encoded personal_sign (fallback)
+         * 
+         * NOTE: Base Wallet SIWE Capabilities removed - causes signature verification issues
+         */
+        async function robustWalletSign(message, address) {
+            const env = detectMobileEnvironment();
+            
+            log(`🔐 Attempting signature (Base/Coinbase detected: ${env.isBaseWallet})`);
+            
+            // ========================================
+            // STRATEGY 1: Standard personal_sign [message, address]
+            // Works for: MetaMask, Rainbow, Trust Wallet, Base Wallet
+            // ========================================
+            try {
+                log('📝 Trying standard personal_sign [message, address]...');
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, address]
+                });
+                if (signature) {
+                    log('✅ Standard personal_sign successful!');
+                    return signature;
+                }
+            } catch (error1) {
+                log(`⚠️ Standard method failed: ${error1.message}`);
+                
+                // ========================================
+                // STRATEGY 2: Reversed params [address, message]
+                // Some older Coinbase/Base versions use this order
+                // ========================================
+                try {
+                    log('🔄 Trying reversed personal_sign [address, message]...');
+                    const signature = await window.ethereum.request({
+                        method: 'personal_sign',
+                        params: [address, message]
+                    });
+                    if (signature) {
+                        log('✅ Reversed personal_sign successful!');
+                        return signature;
+                    }
+                } catch (error2) {
+                    log(`⚠️ Reversed method failed: ${error2.message}`);
+                    
+                    // ========================================
+                    // STRATEGY 3: Hex-encoded message
+                    // Last resort fallback
+                    // ========================================
+                    try {
+                        log('🔢 Trying hex-encoded personal_sign...');
+                        const hexMessage = '0x' + Array.from(new TextEncoder().encode(message))
+                            .map(b => b.toString(16).padStart(2, '0')).join('');
+                        const signature = await window.ethereum.request({
+                            method: 'personal_sign',
+                            params: [hexMessage, address]
+                        });
+                        if (signature) {
+                            log('✅ Hex-encoded personal_sign successful!');
+                            return signature;
+                        }
+                    } catch (error3) {
+                        log(`❌ All signature methods failed`);
+                        throw new Error(`Signature rejected: ${error1.message}`);
+                    }
+                }
+            }
+            
+            throw new Error('No signature received');
+        }
+
+        // ===== NEW: Web3 Wallet Integration =====
+        // Store verified token in memory (not localStorage for security)
+        let dashboardToken = null;
+        let connectedWallet = null;
+        
+        async function connectMetaMask() {
+            const statusDiv = document.getElementById('statusMessage');
+            const env = detectMobileEnvironment();
+            
+            console.log('🔗 [Dashboard] Starting wallet connection...');
+            console.log('🔗 [Dashboard] Environment:', JSON.stringify(env));
+            console.log('🔗 [Dashboard] window.ethereum:', typeof window.ethereum);
+            
+            if (typeof window.ethereum === 'undefined') {
+                statusDiv.innerHTML = '<div class="status error">❌ No Web3 wallet detected! Please install MetaMask, Coinbase Wallet or Rabby.</div>';
+                return;
+            }
+            
+            // Log wallet provider info
+            console.log('🔗 [Dashboard] Wallet provider info:', {
+                isMetaMask: window.ethereum.isMetaMask,
+                isCoinbaseWallet: window.ethereum.isCoinbaseWallet,
+                isRainbow: window.ethereum.isRainbow,
+                isTrust: window.ethereum.isTrust
+            });
+            
+            statusDiv.innerHTML = '<div class="status loading">⏳ Connecting wallet...</div>';
+            
+            try {
+                console.log('🔗 Step 1: Requesting Web3 wallet access...');
+                
+                // Request account access - handle Base Wallet differently
+                let accounts;
+                try {
+                    accounts = await window.ethereum.request({
+                        method: 'eth_requestAccounts'
+                    });
+                } catch (requestError) {
+                    console.log('⚠️ eth_requestAccounts failed, trying eth_accounts...');
+                    // Fallback for some wallets
+                    accounts = await window.ethereum.request({
+                        method: 'eth_accounts'
+                    });
+                }
+                
+                console.log('📋 [Dashboard] Accounts response:', accounts);
+                console.log('📋 [Dashboard] Accounts type:', typeof accounts);
+                console.log('📋 [Dashboard] Accounts length:', accounts ? accounts.length : 'null');
+                
+                // Validate accounts response
+                if (!accounts || accounts.length === 0) {
+                    throw new Error('No accounts returned from wallet. Please unlock your wallet and try again.');
+                }
+                
+                const rawAddress = accounts[0];
+                console.log('📋 [Dashboard] Raw address:', rawAddress);
+                console.log('📋 [Dashboard] Raw address type:', typeof rawAddress);
+                
+                // Validate address format
+                if (!rawAddress || typeof rawAddress !== 'string') {
+                    throw new Error('Invalid address format received from wallet');
+                }
+                
+                const walletAddress = rawAddress.toLowerCase();
+                console.log('✅ Account received:', walletAddress);
+                
+                // Validate Ethereum address format
+                if (!walletAddress.startsWith('0x') || walletAddress.length !== 42) {
+                    throw new Error(`Invalid Ethereum address: ${walletAddress}`);
+                }
+                
+                statusDiv.innerHTML = '<div class="status loading">⏳ Setting up wallet connection...</div>';
+                
+                // Update input field immediately so user sees it
+                document.getElementById('ownerInput').value = walletAddress;
+                
+                // � Step 1.5: Switch to BASE Mainnet (Chain ID 8453)
+                const BASE_CHAIN_ID = '0x2105'; // 8453 in hex
+                try {
+                    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+                    console.log('Current chain:', currentChainId);
+                    
+                    if (currentChainId !== BASE_CHAIN_ID) {
+                        statusDiv.innerHTML = '<div class="status loading">⏳ Switching to BASE Mainnet...</div>';
+                        console.log('🔄 Switching to BASE Mainnet...');
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_switchEthereumChain',
+                                params: [{ chainId: BASE_CHAIN_ID }]
+                            });
+                            console.log('✅ Switched to BASE Mainnet');
+                        } catch (switchError) {
+                            // Chain not added yet - add it
+                            if (switchError.code === 4902) {
+                                statusDiv.innerHTML = '<div class="status loading">⏳ Adding BASE Mainnet to wallet...</div>';
+                                console.log('📝 Adding BASE Mainnet to wallet...');
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: BASE_CHAIN_ID,
+                                        chainName: 'Base Mainnet',
+                                        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                                        rpcUrls: ['https://mainnet.base.org'],
+                                        blockExplorerUrls: ['https://basescan.org']
+                                    }]
+                                });
+                                console.log('✅ BASE Mainnet added and switched');
+                            } else {
+                                throw switchError;
+                            }
+                        }
+                    }
+                } catch (chainError) {
+                    console.warn('⚠️ Could not switch chain:', chainError);
+                    // Continue anyway - signature will still work
+                }
+                
+                // �🔐 SECURITY: Step 2 - Get Challenge from Backend
+                statusDiv.innerHTML = '<div class="status loading">⏳ Requesting login challenge from backend...</div>';
+                console.log('� Step 2: Requesting challenge from backend...');
+                const challengeResponse = await fetch(`${API_BASE}/admin/challenge`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ owner: walletAddress })
+                });
+                
+                const challengeData = await challengeResponse.json();
+                if (!challengeData.success) {
+                    throw new Error('Failed to get challenge: ' + challengeData.error);
+                }
+                
+                const nonce = challengeData.nonce;
+                console.log('✓ Challenge received:', nonce);
+                
+                // 🔐 SECURITY: Step 3 - Sign Challenge with Web3 Wallet (SIWE/EIP-4361 Format)
+                statusDiv.innerHTML = '<div class="status loading">⏳ Please sign the login request in your wallet...</div>';
+                console.log('🔐 Step 3: Requesting wallet signature (SIWE format)...');
+                const domain = window.location.host;
+                const uri = window.location.origin;
+                const issuedAt = new Date().toISOString();
+                const messageToSign = `${domain} wants you to sign in with your Ethereum account:
+${walletAddress}
+
+Sign in to AEraLogIn Dashboard
+
+URI: ${uri}
+Version: 1
+Chain ID: 8453
+Nonce: ${nonce}
+Issued At: ${issuedAt}`;
+                
+                // Use robust signing method with multiple fallback strategies
+                // Supports: MetaMask, Base Wallet, Coinbase, Rainbow, Trust Wallet, etc.
+                const signature = await robustWalletSign(messageToSign, walletAddress);
+                
+                // ✅ SOFORT nach MetaMask-Bestätigung: Zeige Status-Meldung
+                console.log('🚨 SIGNATURE RECEIVED - updating status NOW');
+                statusDiv.style.display = 'block';
+                statusDiv.innerHTML = '<div class="status loading" style="background:#1e3a5f;padding:15px;border-radius:8px;"><span style="font-size:18px;">⏳</span> Signature received! Syncing blockchain data...</div>';
+                
+                // Force repaint
+                statusDiv.offsetHeight;
+                
+                console.log('✓ Signature received:', signature.substring(0, 20) + '...');
+                
+                // 🔐 SECURITY: Step 4 - Verify Signature on Backend (send message for SIWE verification)
+                console.log('🔐 Step 4: Verifying signature on backend...');
+                const verifyResponse = await fetch(`${API_BASE}/admin/verify-signature`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ owner: walletAddress, signature, nonce, message: messageToSign })
+                });
+                
+                const verifyData = await verifyResponse.json();
+                if (!verifyData.success || !verifyData.verified) {
+                    throw new Error('Signature verification failed: ' + verifyData.error);
+                }
+                
+                console.log('✓ Signature verified & blockchain data synced!');
+                
+                // ===== SHOW SYNC STATUS DETAILS =====
+                if (verifyData.sync_status && verifyData.sync_status.steps_completed) {
+                    const steps = verifyData.sync_status.steps_completed;
+                    const errors = verifyData.sync_status.errors || [];
+                    
+                    console.log('📊 Sync steps completed:', steps);
+                    if (errors.length > 0) {
+                        console.warn('⚠️ Sync warnings:', errors);
+                    }
+                    
+                    // Build detailed status message
+                    let statusHtml = '<div class="status success">';
+                    statusHtml += '<div style="font-weight: bold; margin-bottom: 8px;">✓ Wallet connected & synced!</div>';
+                    statusHtml += '<div style="font-size: 12px; opacity: 0.9; text-align: left; padding-left: 10px;">';
+                    steps.forEach(step => {
+                        statusHtml += `<div style="margin: 2px 0;">${step}</div>`;
+                    });
+                    if (errors.length > 0) {
+                        statusHtml += '<div style="color: #f59e0b; margin-top: 5px;">⚠️ Warnings:</div>';
+                        errors.forEach(err => {
+                            statusHtml += `<div style="color: #f59e0b; font-size: 11px;">${err}</div>`;
+                        });
+                    }
+                    statusHtml += '</div></div>';
+                    statusDiv.innerHTML = statusHtml;
+                } else {
+                    statusDiv.innerHTML = '<div class="status success">✓ Wallet connected. Now load dashboard!</div>';
+                }
+                
+                // ✅ Store token for later use (no more wallet signature needed for loadDashboard)
+                dashboardToken = signature;  // Use signature as token
+                connectedWallet = walletAddress;
+                
+                // ✅ Store in sessionStorage for User Dashboard access
+                sessionStorage.setItem('aeraDashboardWallet', walletAddress);
+                sessionStorage.setItem('aeraDashboardToken', signature);
+                
+                // ✅ Store JWT token in localStorage for SDK App Management
+                if (verifyData.jwt_token) {
+                    localStorage.setItem('aera_jwt_token', verifyData.jwt_token);
+                    console.log('✅ JWT token stored for SDK app management');
+                    // Load SDK apps after login
+                    loadMyApps();
+                }
+                
+                // Auto-fill input
+                document.getElementById('ownerInput').value = walletAddress;
+                
+                // Show wallet info
+                const walletInfo = document.getElementById('walletInfo');
+                walletInfo.style.display = 'block';
+                document.getElementById('walletAddress').innerHTML = 
+                    `✓ Connected: <strong>${walletAddress.substring(0, 10)}...${walletAddress.substring(38)}</strong>`;
+                
+                // 🎯 Toggle buttons: Hide Connect, Show Disconnect
+                document.getElementById('metamaskBtn').style.display = 'none';
+                document.getElementById('disconnectBtn').style.display = 'inline-block';
+                
+                // ✅ Hide placeholder when wallet is connected
+                const placeholder = document.getElementById('preConnectPlaceholder');
+                if (placeholder) placeholder.style.display = 'none';
+                
+                // 📰 Show and load the Latest Updates feed immediately
+                document.getElementById('latestUpdatesSection').style.display = 'block';
+                loadFeed();
+                
+                // 🔐 Check if connected wallet is admin - show Admin Panel link
+                checkAdminAccess(walletAddress);
+                
+            } catch (error) {
+                console.error('❌ Error in connectMetaMask:', error);
+                console.error('❌ Error details:', {
+                    code: error.code,
+                    message: error.message,
+                    stack: error.stack
+                });
+                
+                if (error.code === 4001 || error.message.includes('rejected')) {
+                    statusDiv.innerHTML = '<div class="status error">❌ You rejected the wallet signature.</div>';
+                } else if (error.message.includes('No accounts')) {
+                    statusDiv.innerHTML = '<div class="status error">❌ No wallet accounts found. Please unlock your wallet and try again.</div>';
+                } else if (error.message.includes('Invalid Ethereum address')) {
+                    statusDiv.innerHTML = `<div class="status error">❌ ${error.message}. Please try with a different wallet.</div>`;
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+                }
+                dashboardToken = null;
+                connectedWallet = null;
+            }
+        }
+        
+        function disconnectWallet() {
+            document.getElementById('ownerInput').value = '';
+            document.getElementById('walletInfo').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('statusMessage').innerHTML = '';
+            dashboardToken = null;
+            connectedWallet = null;
+            
+            // 🎯 Toggle buttons: Show Connect, Hide Disconnect
+            document.getElementById('metamaskBtn').style.display = 'inline-block';
+            document.getElementById('disconnectBtn').style.display = 'none';
+            
+            // 📰 Hide the Latest Updates feed
+            document.getElementById('latestUpdatesSection').style.display = 'none';
+            
+            // ✅ Show placeholder again
+            const placeholder = document.getElementById('preConnectPlaceholder');
+            if (placeholder) placeholder.style.display = 'block';
+            
+            // 🔐 Hide Admin Panel link
+            const adminLink = document.getElementById('adminPanelLink');
+            const adminLinkMobile = document.getElementById('adminPanelLinkMobile');
+            if (adminLink) adminLink.style.display = 'none';
+            if (adminLinkMobile) adminLinkMobile.style.display = 'none';
+            
+            // Clear sessionStorage for AEra Core access
+            sessionStorage.removeItem('aeraDashboardWallet');
+            sessionStorage.removeItem('aeraDashboardToken');
+            console.log('🔓 Session cleared - AEra Core access revoked');
+        }
+        
+        // 🔐 Check if wallet has admin access
+        async function checkAdminAccess(walletAddress) {
+            const ADMIN_WALLETS = [
+                '0x9de3772a1b2e958561d8371ee34364dcd90967ba',
+                '0xc9e1e237b24b892141551b45cdabc224932630c4'
+            ];
+            
+            const isAdmin = ADMIN_WALLETS.includes(walletAddress.toLowerCase());
+            
+            if (isAdmin) {
+                console.log('🔐 Admin wallet detected - showing Admin Panel link');
+                const adminLink = document.getElementById('adminPanelLink');
+                const adminLinkMobile = document.getElementById('adminPanelLinkMobile');
+                if (adminLink) adminLink.style.display = 'inline';
+                if (adminLinkMobile) adminLinkMobile.style.display = 'block';
+            }
+        }
+        
+        //  SECURITY: Do NOT listen to accountsChanged for auto-connection
+        // Only disconnect when accounts are removed
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    disconnectWallet();
+                }
+                // Do NOT call loadDashboard - user must click button
+            });
+        }
+        
+        // ===== Mobile/In-App Browser Detection & Banner =====
+        function showMobileInfoBanner() {
+            const env = detectMobileEnvironment();
+            const banner = document.getElementById('mobileInfoBanner');
+            const icon = document.getElementById('mobileIcon');
+            const title = document.getElementById('mobileTitle');
+            const subtitle = document.getElementById('mobileSubtitle');
+            
+            if (!banner) return;
+            
+            if (env.isInAppBrowser) {
+                banner.style.display = 'block';
+                
+                if (env.isBaseWallet) {
+                    icon.textContent = '🔵';
+                    title.textContent = 'Base Wallet Browser';
+                    subtitle.textContent = 'SIWE signing enabled - tap Connect to sign in';
+                    banner.style.background = 'linear-gradient(135deg, #0052ff, #3b82f6)';
+                } else if (env.userAgent.includes('metamask')) {
+                    icon.textContent = '🦊';
+                    title.textContent = 'MetaMask In-App Browser';
+                    subtitle.textContent = 'Ready for wallet signature';
+                    banner.style.background = 'linear-gradient(135deg, #f6851b, #e2761b)';
+                } else if (env.userAgent.includes('trust')) {
+                    icon.textContent = '🛡️';
+                    title.textContent = 'Trust Wallet Browser';
+                    subtitle.textContent = 'Tap Connect to sign in with your wallet';
+                    banner.style.background = 'linear-gradient(135deg, #3375bb, #1a5aab)';
+                } else if (env.userAgent.includes('rainbow')) {
+                    icon.textContent = '🌈';
+                    title.textContent = 'Rainbow Wallet Browser';
+                    subtitle.textContent = 'Ready for wallet signature';
+                    banner.style.background = 'linear-gradient(135deg, #ff6b6b, #feca57)';
+                } else {
+                    icon.textContent = '📱';
+                    title.textContent = 'Wallet In-App Browser';
+                    subtitle.textContent = 'Tap Connect to sign in with your wallet';
+                }
+                
+                log(`📱 Detected: ${title.textContent}`);
+            } else if (env.isMobile) {
+                // Mobile but not in-app browser
+                banner.style.display = 'block';
+                icon.textContent = env.isIOS ? '📱' : '🤖';
+                title.textContent = env.isIOS ? 'iOS Device' : 'Android Device';
+                subtitle.textContent = 'Open in your wallet app for best experience';
+                banner.style.background = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+                log(`📱 Mobile browser detected: ${env.isIOS ? 'iOS' : 'Android'}`);
+            } else {
+                // Desktop - hide banner
+                banner.style.display = 'none';
+                log('🖥️ Desktop browser detected');
+            }
+        }
+        
+        // Load from URL if owner is in params
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const owner = params.get('owner');
+            if (owner) {
+                document.getElementById('ownerInput').value = owner;
+                // Do NOT auto-load - user must click button
+            }
+            
+            // Show mobile info banner
+            showMobileInfoBanner();
+        });
+        
+        // ===== Smooth Scroll Function =====
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        
+        // ===== Mobile Menu Functions =====
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuBackdrop = document.getElementById('menuBackdrop');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('active');
+            menuBackdrop.classList.toggle('active');
+            
+            // Change icon
+            if (mobileMenu.classList.contains('active')) {
+                menuToggle.textContent = '✕';
+            } else {
+                menuToggle.textContent = '☰';
+            }
+        }
+
+        function closeMenu() {
+            mobileMenu.classList.remove('active');
+            menuBackdrop.classList.remove('active');
+            menuToggle.textContent = '☰';
+        }
+
+        // Navigate to AEra Core (User Dashboard)
+        function navigateToCore() {
+            // Check if wallet is connected AND verified (in-memory variable from signature verification)
+            // connectedWallet is only set after successful wallet connection + signature verification
+            if (connectedWallet && dashboardToken) {
+                // User is logged in with verified signature - navigate to core
+                window.location.href = 'user-dashboard.html';
+            } else {
+                // User not logged in - show popup
+                alert('🔐 Access Restricted\n\nPlease connect your wallet first to access AEra Core.\n\nUse the "Connect Wallet" button below to authenticate.');
+            }
+        }
+
+        // Toggle menu on button click
+        menuToggle.addEventListener('click', toggleMenu);
+
+        // Close menu on backdrop click
+        menuBackdrop.addEventListener('click', closeMenu);
+
+        // Close menu on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+                closeMenu();
+            }
+        });
+        
+        // ===== Platform Filter Function =====
+        function filterByPlatform(platform) {
+            console.log('🔍 Filtering by platform:', platform);
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.querySelector(`[data-platform="${platform}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            
+            // Filter table rows
+            const table = document.querySelector('#followersContainer table');
+            if (!table) {
+                console.warn('⚠️ Table not found');
+                return;
+            }
+            
+            const rows = table.querySelectorAll('tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                // Platform is in the 3rd column (index 2: Address, Score, Platform)
+                const platformCell = row.querySelector('td:nth-child(3)');
+                if (!platformCell) {
+                    console.warn('⚠️ Platform cell not found in row');
+                    return;
+                }
+                
+                const rowPlatform = platformCell.textContent.trim().toLowerCase();
+                console.log('Row platform:', rowPlatform, 'Filter:', platform);
+                
+                if (platform === 'all' || rowPlatform === platform) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            console.log(`✓ Showing ${visibleCount} of ${rows.length} followers`);
+        }
+        
+        // ===== Collapse/Expand Function =====
+        function toggleCollapse(contentId) {
+            const content = document.getElementById(contentId);
+            const btn = event.target;
+            
+            if (!content) return;
+            
+            if (content.classList.contains('collapsed')) {
+                // Expand
+                content.classList.remove('collapsed');
+                btn.classList.remove('collapsed');
+                btn.textContent = '▼';
+            } else {
+                // Collapse
+                content.classList.add('collapsed');
+                btn.classList.add('collapsed');
+                btn.textContent = '▶';
+            }
+        }
+        
+        // ===== SDK APP MANAGEMENT FUNCTIONS =====
+        
+        // Get JWT token from localStorage or current session
+        function getAuthToken() {
+            return localStorage.getItem('aera_jwt_token');
+        }
+        
+        // Register a new SDK App
+        async function registerSdkApp() {
+            const statusDiv = document.getElementById('registerAppStatus');
+            const appName = document.getElementById('sdkAppName').value.trim();
+            const websiteUrl = document.getElementById('sdkWebsiteUrl').value.trim();
+            const redirectUri = document.getElementById('sdkRedirectUri').value.trim();
+            const description = document.getElementById('sdkAppDescription').value.trim();
+            
+            // Validation
+            if (!appName || appName.length < 3) {
+                statusDiv.innerHTML = '<div style="color: #ef4444;">❌ App name must be at least 3 characters</div>';
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            if (!websiteUrl || !websiteUrl.startsWith('http')) {
+                statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Valid website URL required (https://...)</div>';
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            if (!redirectUri || !redirectUri.startsWith('http')) {
+                statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Valid redirect URI required (https://...)</div>';
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            const token = getAuthToken();
+            if (!token) {
+                statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Please connect your wallet first and ensure you have an AEra NFT</div>';
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<div style="color: var(--secondary);">⏳ Registering your app...</div>';
+            statusDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/oauth/my-apps/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        app_name: appName,
+                        website_url: websiteUrl,
+                        redirect_uri: redirectUri,
+                        description: description
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show credentials
+                    document.getElementById('newClientId').textContent = data.client_id;
+                    document.getElementById('newClientSecret').textContent = data.client_secret;
+                    document.getElementById('newCredentialsDisplay').style.display = 'block';
+                    
+                    // Clear form
+                    document.getElementById('sdkAppName').value = '';
+                    document.getElementById('sdkWebsiteUrl').value = '';
+                    document.getElementById('sdkRedirectUri').value = '';
+                    document.getElementById('sdkAppDescription').value = '';
+                    
+                    statusDiv.innerHTML = '<div style="color: var(--success);">✅ App registered successfully! Copy your credentials above.</div>';
+                    
+                    // Refresh apps list
+                    loadMyApps();
+                } else {
+                    statusDiv.innerHTML = `<div style="color: #ef4444;">❌ ${data.error}</div>`;
+                }
+            } catch (error) {
+                console.error('Register app error:', error);
+                statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Network error. Please try again.</div>';
+            }
+        }
+        
+        // Copy credentials to clipboard
+        function copyCredentials() {
+            const clientId = document.getElementById('newClientId').textContent;
+            const clientSecret = document.getElementById('newClientSecret').textContent;
+            const text = `AERA_CLIENT_ID=${clientId}\nAERA_CLIENT_SECRET=${clientSecret}`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Credentials copied to clipboard!\n\nAdd these to your .env file.');
+            }).catch(err => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ Credentials copied to clipboard!');
+            });
+        }
+        
+        // Load user's apps
+        async function loadMyApps() {
+            const token = getAuthToken();
+            const container = document.getElementById('myAppsList');
+            
+            if (!token) {
+                container.innerHTML = '<div style="text-align: center; padding: 30px; color: rgba(240, 244, 255, 0.5);"><p>Connect your wallet to view your registered apps</p></div>';
+                return;
+            }
+            
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(240, 244, 255, 0.5);">⏳ Loading your apps...</div>';
+            
+            try {
+                const response = await fetch('/api/oauth/my-apps', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.apps.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; padding: 30px; color: rgba(240, 244, 255, 0.5);"><p>No apps registered yet. Create your first app above!</p></div>';
+                    } else {
+                        container.innerHTML = data.apps.map(app => `
+                            <div style="padding: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; transition: all 0.3s;" onmouseover="this.style.borderColor='rgba(0, 212, 255, 0.5)'" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                    <div>
+                                        <h4 style="margin: 0; color: var(--light); font-size: 14px;">${app.app_name}</h4>
+                                        <a href="${app.website_url}" target="_blank" style="font-size: 12px; color: var(--secondary); text-decoration: none;">${app.website_url}</a>
+                                    </div>
+                                    <span style="font-size: 10px; padding: 3px 8px; background: ${app.is_active ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; color: ${app.is_active ? 'var(--success)' : '#ef4444'}; border-radius: 4px;">${app.is_active ? '✓ Active' : '✗ Inactive'}</span>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <label style="font-size: 10px; color: rgba(240, 244, 255, 0.5); display: block;">CLIENT ID:</label>
+                                    <code style="font-size: 11px; color: var(--secondary); word-break: break-all;">${app.client_id}</code>
+                                </div>
+                                ${app.description ? `<p style="font-size: 11px; color: rgba(240, 244, 255, 0.6); margin: 0 0 10px 0;">${app.description}</p>` : ''}
+                                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                    <button onclick="regenerateSecret('${app.client_id}')" style="flex: 1; padding: 6px; font-size: 11px; background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; border-radius: 4px; color: #f59e0b; cursor: pointer;">🔄 New Secret</button>
+                                    <button onclick="deleteApp('${app.client_id}', '${app.app_name}')" style="flex: 1; padding: 6px; font-size: 11px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; border-radius: 4px; color: #ef4444; cursor: pointer;">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    
+                    // Show count
+                    const countInfo = document.createElement('div');
+                    countInfo.style.cssText = 'text-align: right; font-size: 11px; color: rgba(240, 244, 255, 0.5); margin-top: 8px;';
+                    countInfo.textContent = `${data.count}/${data.max_apps} apps used`;
+                    container.appendChild(countInfo);
+                } else {
+                    container.innerHTML = `<div style="color: #ef4444; padding: 20px;">❌ ${data.error}</div>`;
+                }
+            } catch (error) {
+                console.error('Load apps error:', error);
+                container.innerHTML = '<div style="color: #ef4444; padding: 20px;">❌ Failed to load apps</div>';
+            }
+        }
+        
+        // Regenerate client secret
+        async function regenerateSecret(clientId) {
+            if (!confirm('⚠️ Are you sure you want to generate a new secret?\n\nThe old secret will stop working immediately!')) {
+                return;
+            }
+            
+            const token = getAuthToken();
+            if (!token) {
+                alert('❌ Please connect your wallet first');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/oauth/my-apps/${clientId}/regenerate-secret`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show new secret
+                    document.getElementById('newClientId').textContent = data.client_id;
+                    document.getElementById('newClientSecret').textContent = data.client_secret;
+                    document.getElementById('newCredentialsDisplay').style.display = 'block';
+                    
+                    // Scroll to credentials
+                    document.getElementById('newCredentialsDisplay').scrollIntoView({ behavior: 'smooth' });
+                    
+                    alert('✅ New secret generated! Copy it from above - it won\'t be shown again.');
+                } else {
+                    alert(`❌ ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Regenerate secret error:', error);
+                alert('❌ Network error. Please try again.');
+            }
+        }
+        
+        // Delete an app
+        async function deleteApp(clientId, appName) {
+            if (!confirm(`🗑️ Delete "${appName}"?\n\nThis action cannot be undone and all integrations using this app will stop working.`)) {
+                return;
+            }
+            
+            const token = getAuthToken();
+            if (!token) {
+                alert('❌ Please connect your wallet first');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/oauth/my-apps/${clientId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadMyApps();
+                } else {
+                    alert(`❌ ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Delete app error:', error);
+                alert('❌ Network error. Please try again.');
+            }
+        }
+        
+        // Load apps when wallet is connected (triggered by MetaMask connection)
+        function onWalletConnected(address, jwtToken) {
+            // Store token for SDK functions
+            localStorage.setItem('aera_jwt_token', jwtToken);
+            // Load apps
+            loadMyApps();
+        }
+        
+        // ===== Canvas Background Animation =====
+        // Simple particle animation for background
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        document.getElementById('bgCanvas').appendChild(canvas);
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const canvasParticles = [];
+        const particleCount = 50;
+
+        class CanvasParticle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(0, 212, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            canvasParticles.push(new CanvasParticle());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            canvasParticles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            // Draw connections
+            canvasParticles.forEach((p1, i) => {
+                canvasParticles.slice(i + 1).forEach(p2 => {
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.strokeStyle = `rgba(0, 212, 255, ${0.2 * (1 - distance / 150)})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+
+            requestAnimationFrame(animateCanvas);
+        }
+
+        animateCanvas();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer style="padding: 3rem 5%; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center; color: rgba(240, 244, 255, 0.6); margin-top: 4rem;">
+        <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
+            <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" style="color: rgba(240, 244, 255, 0.6); text-decoration: none; transition: color 0.3s; font-size: 0.85rem;">⭐ GitHub</a>
+            <a href="https://x.com/AEraResonant" target="_blank" style="color: rgba(240, 244, 255, 0.6); text-decoration: none; transition: color 0.3s; font-size: 0.85rem;">𝕏 X/Twitter</a>
+            <a href="/privacy-policy" style="color: #10b981; text-decoration: none; transition: color 0.3s; font-size: 0.85rem;">🔒 Privacy Policy</a>
+            <a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank" style="color: rgba(240, 244, 255, 0.6); text-decoration: none; transition: color 0.3s; font-size: 0.85rem;">Identity NFT Contract</a>
+            <a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank" style="color: rgba(240, 244, 255, 0.6); text-decoration: none; transition: color 0.3s; font-size: 0.85rem;">Score Contract</a>
+            <a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank" style="color: rgba(240, 244, 255, 0.6); text-decoration: none; transition: color 0.3s; font-size: 0.85rem;">Registry Contract</a>
+            <a href="https://base.org" target="_blank" style="color: rgba(240, 244, 255, 0.6); text-decoration: none; transition: color 0.3s; font-size: 0.85rem;">BASE L2</a>
+        </div>
+        <p>
+            &copy; 2025 AEraLogIn. Built on Coinbase BASE L2.
+        </p>
+        <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.7;">
+            🚀 Live on BASE Mainnet
+        </p>
+    </footer>
+
+    <!-- ===== AERA CHAT WIDGET ===== -->
+    <link rel="stylesheet" href="/aera-chat.css?v=20251209002">
+    <script src="/aera-chat.js?v=20251209001"></script>
+    <script>
+        // Initialize AEra Chat Widget
+        if (typeof initAeraChat === 'function') {
+            initAeraChat();
+            console.log('🌀 AEra Chat Widget initialized');
+        }
+    </script>
+    
+    <!-- Anonymous Page View Tracking -->
+    <script>
+        fetch('/api/track/pageview', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({page: 'dashboard'})
+        }).catch(() => {});
+    </script>
+</body>
+</html>

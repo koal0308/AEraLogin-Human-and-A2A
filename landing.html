@@ -1,0 +1,2060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png?v=20251225c">
+    <title>AEraLogIn - Identity for Humans and Agents, Trust for Agent Networks</title>
+    <meta name="description" content="Cryptographic identity for humans and autonomous agents: Soul-Bound human identity on BASE, Ed25519 agent identities, an A2A gateway for external agents, and behaviour-based trust assessment.">
+    <link rel="canonical" href="https://aeralogin.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="AEraLogIn">
+    <meta property="og:title" content="AEraLogIn - Identity for Humans. Identity for Agents. Trust for Agent Networks.">
+    <meta property="og:description" content="Human identity on BASE, independent Ed25519 agent identities, an A2A gateway for external agents, and behaviour-based trust assessment.">
+    <meta property="og:url" content="https://aeralogin.com/">
+    <meta name="twitter:card" content="summary">
+    
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0052ff;
+            --secondary: #00d4ff;
+            --dark: #0a0e27;
+            --darker: #050814;
+            --light: #f0f4ff;
+            --accent: #6366f1;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .bg-animation canvas {
+            display: block;
+        }
+
+        /* Header */
+        header {
+            padding: 0.79rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.8);
+            width: 100%;
+            margin: 0;
+        }
+
+        .logo {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 2.7rem;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: currentColor !important;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            opacity: 0.8;
+            cursor: pointer;
+        }
+
+        nav a:hover {
+            color: var(--secondary);
+            opacity: 1;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--light);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        .menu-toggle:hover {
+            color: var(--secondary);
+        }
+
+        /* Mobile Menu Overlay */
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-menu.mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            backdrop-filter: blur(20px);
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 5rem 2rem 2rem;
+            gap: 1.5rem;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+            border-left: 1px solid rgba(99, 102, 241, 0.3);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-menu.mobile-menu.active {
+            right: 0;
+        }
+
+        .nav-menu.mobile-menu a {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu.mobile-menu a:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Menu Backdrop */
+        .menu-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 82, 255, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4rem 5%;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff, var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .hero .subtitle {
+            font-size: 1.5rem;
+            color: rgba(240, 244, 255, 0.8);
+            margin-bottom: 3rem;
+            font-weight: 300;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            border-radius: 12px;
+        }
+
+        .cta-secondary {
+            background: transparent;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            border-radius: 12px;
+        }
+
+        .cta-secondary:hover {
+            background: var(--secondary);
+            color: var(--dark);
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 4rem 5%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Universal Glow Frame Class - for inline-styled elements */
+        .glow-frame {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .glow-frame:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 15px 50px rgba(0, 82, 255, 0.3), 0 0 20px rgba(0, 212, 255, 0.15);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            text-align: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 15px 50px rgba(0, 82, 255, 0.3), 0 0 20px rgba(0, 212, 255, 0.15);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: rgba(240, 244, 255, 0.7);
+            margin-top: 0.5rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        /* Smaller section title for Tech & Contracts */
+        .section-title-sm {
+            text-align: center;
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: rgba(240, 244, 255, 0.7);
+            margin-bottom: 4rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Smaller section subtitle for Tech & Contracts */
+        .section-subtitle-sm {
+            text-align: center;
+            font-size: 1rem;
+            color: rgba(240, 244, 255, 0.7);
+            margin-bottom: 3.2rem;
+            max-width: 560px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Smaller feature grid for Smart Contracts */
+        .feature-grid-sm {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.6rem;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 20px 60px rgba(0, 82, 255, 0.3), 0 0 25px rgba(0, 212, 255, 0.15);
+        }
+
+        /* Smaller feature cards for Smart Contracts */
+        .feature-card-sm {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .feature-card-sm:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 212, 255, 0.6);
+            box-shadow: 0 16px 48px rgba(0, 82, 255, 0.3), 0 0 20px rgba(0, 212, 255, 0.15);
+        }
+
+        .feature-card-sm .feature-icon {
+            font-size: 2.4rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .feature-card-sm h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            color: var(--secondary);
+        }
+
+        .feature-card-sm p {
+            color: rgba(240, 244, 255, 0.8);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        /* OAuth Demo Button mit Hover-Glow-Effekt */
+        .oauth-demo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--secondary), #0088cc);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .oauth-demo-btn:hover {
+            box-shadow: 0 8px 20px rgba(0, 212, 255, 0.2), 0 0 10px rgba(0, 212, 255, 0.15);
+            background: linear-gradient(135deg, #0099dd, var(--secondary));
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        .feature-card p {
+            color: rgba(240, 244, 255, 0.8);
+            line-height: 1.8;
+        }
+
+        /* Tech Stack Section - 20% smaller */
+        .tech-stack {
+            padding: 4.8rem 5%;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1.6rem;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .tech-item {
+            text-align: center;
+            padding: 1.6rem 0.8rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            transform: scale(1.05);
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.3), 0 0 16px rgba(99, 102, 241, 0.15);
+        }
+
+        .tech-logo {
+            font-size: 2.4rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .tech-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--light);
+        }
+
+        /* How It Works Section */
+        .how-it-works {
+            padding: 6rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        .timeline-item {
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -3.5rem;
+            top: 0;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: var(--secondary);
+            border: 3px solid var(--dark);
+            box-shadow: 0 0 20px var(--secondary);
+        }
+
+        .timeline-item h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        .timeline-item p {
+            color: rgba(240, 244, 255, 0.8);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 6rem 5%;
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .cta-section p {
+            font-size: 1.3rem;
+            color: rgba(240, 244, 255, 0.8);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 5%;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(240, 244, 255, 0.6);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(240, 244, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.85rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary);
+        }
+
+        /* Wallet Link Hover */
+        .feature-card a:hover {
+            color: var(--primary) !important;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.05);
+                opacity: 0.85;
+            }
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            transform-origin: center center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 0.75rem 3%;
+            }
+
+            .logo {
+                font-size: 1.8rem;
+            }
+
+            .logo-icon {
+                font-size: 2rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+            }
+
+            .cta-primary, .cta-secondary {
+                width: 100%;
+            }
+
+            /* Show mobile menu toggle */
+            .menu-toggle {
+                display: block;
+            }
+
+            /* Hide desktop nav, show mobile menu */
+            .nav-menu:not(.mobile-menu) {
+                display: none;
+            }
+
+            /* AEra Core Mobile Optimizations */
+            section[style*="max-width: 700px"] > div > div[style*="border-radius: 16px"] {
+                padding: 1.5rem !important;
+            }
+
+            section[style*="max-width: 700px"] > div > div[style*="border-radius: 16px"] h3 {
+                font-size: 1.5rem !important;
+            }
+
+            section[style*="max-width: 700px"] > div > div[style*="border-radius: 16px"] p {
+                font-size: 0.95rem !important;
+            }
+
+            /* Icon size on mobile */
+            section[style*="max-width: 700px"] div[style*="font-size: 3rem"] {
+                font-size: 2.5rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            /* Feature badges - stack vertically on mobile */
+            section[style*="max-width: 700px"] div[style*="flex-wrap: wrap"] {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+            }
+
+            section[style*="max-width: 700px"] div[style*="flex-wrap: wrap"] > div {
+                width: 100% !important;
+                text-align: center !important;
+            }
+
+            /* OAuth Demo Box - better mobile spacing */
+            section[style*="max-width: 700px"] div[style*="border-left: 4px solid"] {
+                padding: 1rem !important;
+                margin-bottom: 1.25rem !important;
+            }
+
+            section[style*="max-width: 700px"] div[style*="border-left: 4px solid"] h4 {
+                font-size: 1rem !important;
+            }
+
+            section[style*="max-width: 700px"] div[style*="border-left: 4px solid"] p {
+                font-size: 0.85rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            section[style*="max-width: 700px"] div[style*="border-left: 4px solid"] div[style*="display: flex"] {
+                gap: 0.5rem !important;
+            }
+
+            section[style*="max-width: 700px"] div[style*="border-left: 4px solid"] span[style*="font-size: 1.5rem"] {
+                font-size: 1.25rem !important;
+            }
+
+            /* OAuth Demo Button - full width on mobile */
+            section[style*="max-width: 700px"] div[style*="border-left: 4px solid"] a {
+                width: 100% !important;
+                justify-content: center !important;
+                font-size: 0.9rem !important;
+                padding: 0.65rem 1.25rem !important;
+            }
+
+            /* Enter AEra Core Button */
+            section[style*="max-width: 700px"] a.cta-button.cta-primary {
+                font-size: 1rem !important;
+                padding: 0.85rem 1.75rem !important;
+                width: 100% !important;
+                justify-content: center !important;
+            }
+
+            /* Footer text smaller on mobile */
+            section[style*="max-width: 700px"] p[style*="font-size: 0.85rem"] {
+                font-size: 0.75rem !important;
+            }
+
+            /* Community section - mobile adjustments */
+            section div[style*="display: flex"][style*="gap: 1rem"][style*="flex-wrap: wrap"] {
+                flex-direction: column !important;
+                width: 100% !important;
+            }
+
+            section div[style*="display: flex"][style*="gap: 1rem"][style*="flex-wrap: wrap"] a {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+
+            /* Community box heading */
+            section div[style*="rgba(0, 212, 255, 0.1)"] h3 {
+                font-size: 1.3rem !important;
+            }
+
+            section div[style*="rgba(0, 212, 255, 0.1)"] p {
+                font-size: 0.9rem !important;
+            }
+
+            section div[style*="rgba(0, 212, 255, 0.1)"] div[style*="font-size: 2.5rem"] {
+                font-size: 2rem !important;
+            }
+        }
+
+        /* Desktop: Always show nav, hide mobile elements */
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none !important;
+            }
+
+            .nav-menu.mobile-menu {
+                display: none !important;
+            }
+
+            .menu-backdrop {
+                display: none !important;
+            }
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid var(--success);
+            margin-bottom: 2rem;
+        }
+
+        .beta-badge {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* ===== Agent platform sections (reuse existing tokens) ===== */
+        .layer-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            margin-top: 1rem;
+            color: rgba(240, 244, 255, 0.8);
+        }
+
+        .feature-card li {
+            padding: 0.25rem 0;
+        }
+
+        .feature-card li::before {
+            content: "›";
+            color: var(--secondary);
+            margin-right: 0.5rem;
+        }
+
+        .note-box {
+            max-width: 900px;
+            margin: 2.5rem auto 0;
+            padding: 1.5rem 2rem;
+            border-left: 4px solid var(--accent);
+            background: rgba(99, 102, 241, 0.08);
+            border-radius: 8px;
+            color: rgba(240, 244, 255, 0.85);
+            line-height: 1.7;
+        }
+
+        /* Architecture diagram: pure HTML/CSS, stacks naturally on mobile */
+        .arch {
+            max-width: 760px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arch-node {
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            padding: 1rem 1.25rem;
+        }
+
+        .arch-node strong {
+            display: block;
+            color: var(--secondary);
+            font-size: 1.05rem;
+        }
+
+        .arch-node span {
+            font-size: 0.85rem;
+            color: rgba(240, 244, 255, 0.7);
+        }
+
+        .arch-arrow {
+            color: var(--secondary);
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .arch-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .arch-branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arch-observer {
+            border-style: dashed !important;
+        }
+
+        .arch-legend {
+            max-width: 760px;
+            margin: 2rem auto 0;
+            text-align: center;
+            color: rgba(240, 244, 255, 0.75);
+            font-size: 0.95rem;
+        }
+
+        /* Capability status list */
+        .capability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            list-style: none;
+        }
+
+        .capability-grid li {
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .cap-ok {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .status-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .status-off {
+            background: rgba(240, 244, 255, 0.06);
+            color: rgba(240, 244, 255, 0.85);
+            border-color: rgba(240, 244, 255, 0.4);
+        }
+
+        a:focus-visible,
+        button:focus-visible {
+            outline: 2px solid var(--secondary);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 600px) {
+            .arch-split {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Nine nav items: tighten spacing on narrower desktops so nothing overflows */
+        @media (min-width: 769px) and (max-width: 1280px) {
+            .nav-menu:not(.mobile-menu) {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        .doc-link {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .doc-link:hover {
+            text-decoration: underline;
+        }
+
+        .section-more {
+            text-align: center;
+            margin-top: 2rem;
+        }
+    </style>
+    <link rel="stylesheet" href="/docs/assets/site-shell.css?v=20260926">
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation" id="bgCanvas"></div>
+
+<!-- AERA:SHELL-HEADER -->
+    <a class="site-skip-link" href="#main-content">Skip to content</a>
+    <div class="site-menu-backdrop" id="siteMenuBackdrop"></div>
+    <header class="site-header">
+        <a href="/" class="site-logo" aria-label="AEraLogIn home">
+            <span class="site-logo-icon" aria-hidden="true">🌀</span>
+            <span>AEraLogIn</span>
+        </a>
+        <nav class="site-nav" aria-label="Main">
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Platform</button>
+                <div class="site-dropdown-menu">
+                    <a href="/#identity">Human Identity<small>Proof of Human, Identity NFT, ownership</small></a>
+                    <a href="/#agents">Agent Identity<small>Own keys, rotation, revocation</small></a>
+                    <a href="/#a2a">A2A Communication<small>Gateway, external peers</small></a>
+                    <a href="/#trust">Trust Assessment<small>Evidence-based monitoring</small></a>
+                </div>
+            </div>
+            <div class="site-dropdown">
+                <button type="button" class="site-dropdown-toggle" aria-expanded="false" aria-haspopup="true">Developers</button>
+                <div class="site-dropdown-menu">
+                    <a href="/docs/agent-api.html">Agent API<small>Register, authenticate, message</small></a>
+                    <a href="/docs/a2a.html">A2A Gateway<small>JSON-RPC, peer credentials</small></a>
+                    <a href="/docs/agent-card.html">A2A Agent Card<small>Public discovery document</small></a>
+                    <a href="/sdk-docs">SDK Documentation<small>AEra Gate SDK &amp; OAuth 2.0</small></a>
+                </div>
+            </div>
+            <a href="/security-concept.html">Security</a>
+            <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="/dashboard.html">Dashboard</a>
+        </nav>
+        <button type="button" class="site-menu-toggle" id="siteMenuToggle" aria-label="Toggle menu" aria-controls="siteMobileMenu" aria-expanded="false">☰</button>
+    </header>
+    <nav class="site-mobile-menu" id="siteMobileMenu" aria-label="Mobile">
+        <span class="site-mobile-group">Platform</span>
+        <a href="/">Home</a>
+        <a href="/#identity">Human Identity</a>
+        <a href="/#agents">Agent Identity</a>
+        <a href="/#a2a">A2A Communication</a>
+        <a href="/#trust">Trust Assessment</a>
+        <span class="site-mobile-group">Developers</span>
+        <a href="/docs/agent-api.html">Agent API</a>
+        <a href="/docs/a2a.html">A2A Gateway</a>
+        <a href="/docs/agent-card.html">A2A Agent Card</a>
+        <a href="/sdk-docs">SDK Documentation</a>
+        <span class="site-mobile-group">Resources</span>
+        <a href="/security-concept.html">Security Concept</a>
+        <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/user-dashboard.html">AEra Core (Agents)</a>
+    </nav>
+    <!-- /AERA:SHELL-HEADER -->
+
+    <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="status-badge beta-badge">🚀 Live on BASE Mainnet</div>
+            <h1>Identity for Humans. Identity for Agents. Trust for Agent Networks.</h1>
+            <p class="subtitle">
+                AEra provides a cryptographic identity layer for humans and autonomous agents, with A2A communication through the AEra Gateway, verifiable peer credentials, and behaviour-based trust assessment.
+            </p>
+            <div class="glow-frame" style="margin: 2rem auto; padding: 1.5rem; max-width: 750px;">
+                <p style="font-size: 1.2rem; font-weight: 700; color: var(--secondary); margin-bottom: 1rem;">
+                    🌍 Multi-Platform Ready + Website Integration
+                </p>
+                <p style="font-size: 1rem; color: rgba(240, 244, 255, 0.9); margin-bottom: 1rem; line-height: 1.7;">
+                    <strong>Social Media:</strong> Share your AEraLogIn link anywhere - X/Twitter, Telegram, Discord, Farcaster, WhatsApp, Instagram.
+                    Works in profiles, groups, channels, and DMs. One link, all platforms! 🔗
+                </p>
+                <p style="font-size: 1rem; color: rgba(240, 244, 255, 0.9); line-height: 1.7;">
+                    <strong>🔐 Website Protection:</strong> Secure entire user areas on your website with NFT-gated access.
+                    Perfect for exclusive content, member dashboards, and protected communities. No passwords needed - just Web3 authentication!
+                </p>
+            </div>
+            <div class="hero-cta">
+                <a href="/docs/agent-api.html" class="cta-button cta-primary">Explore the Agent API</a>
+                <a href="#architecture" class="cta-button cta-secondary">See the Architecture</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== HUMAN IDENTITY ===== -->
+    <section class="features" id="identity">
+        <h2 class="section-title">🧬 Human Identity</h2>
+        <p class="section-subtitle">
+            A cryptographically anchored human identity that serves as the ownership root for agents and applications.
+        </p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="layer-label">Human layer</span>
+                <h3>Soul-Bound Identity NFT</h3>
+                <p>One non-transferable Identity NFT per wallet on BASE Mainnet, minted gasless. It is the human root of everything else on AEra.</p>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">Human layer</span>
+                <h3>Wallet-signed ownership</h3>
+                <p>Agents are registered, re-keyed and revoked by their owner with a wallet signature. The human stays in control of every agent they own.</p>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">Human layer</span>
+                <h3>Login &amp; gated access</h3>
+                <p>AEra Login, OAuth for websites and NFT-gated communities continue to work exactly as before &mdash; for humans.</p>
+            </div>
+        </div>
+        <div class="note-box">
+            <strong>Human &rarr; AEra Identity &rarr; Agent ownership.</strong>
+            A person proves they are human once and receives a Soul-Bound AEra Identity. That wallet can then own agents, and every change to an agent (registration, new key, rotation, revocation) needs a fresh signature from it.
+            Websites integrate the human layer through the <a class="doc-link" href="/sdk-docs">AEra Gate SDK and OAuth 2.0</a>.
+        </div>
+    </section>
+
+    <!-- ===== AGENT IDENTITY ===== -->
+    <section class="features" id="agents">
+        <h2 class="section-title">🤖 Agent Identity</h2>
+        <p class="section-subtitle">
+            Autonomous agents receive their own cryptographic identity instead of borrowing a human session.
+        </p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="layer-label">Agent layer</span>
+                <h3>Own identity, own keys</h3>
+                <ul>
+                    <li>Stable agent identity</li>
+                    <li>Ed25519 signing keys with key identifiers</li>
+                    <li>Challenge&ndash;response verification</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">Agent layer</span>
+                <h3>Lifecycle under owner control</h3>
+                <ul>
+                    <li>Key rotation without changing the agent identity</li>
+                    <li>Key revocation</li>
+                    <li>Agent revocation</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">Agent layer</span>
+                <h3>Agent Runtime</h3>
+                <p>Agents run in their own runtime process. The private key is generated and kept there &mdash; AEra only ever receives the public key.</p>
+            </div>
+        </div>
+        <div class="note-box">
+            <strong>A human identity and an agent identity are not the same thing.</strong>
+            An agent is owned by a human, but it authenticates with its own key &mdash; separate from the human login, OAuth and session layer.
+        </div>
+        <p class="section-more"><a class="doc-link" href="/docs/agent-api.html">Agent identity lifecycle in the Agent API &rarr;</a></p>
+    </section>
+
+    <!-- ===== A2A ===== -->
+    <section class="features" id="a2a">
+        <h2 class="section-title">🔁 Agent-to-Agent Communication</h2>
+        <p class="section-subtitle">
+            AEra agents are reachable through the AEra A2A Gateway, using the standard A2A protocol over JSON-RPC with a public Agent Card for discovery.
+        </p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="layer-label">Gateway</span>
+                <h3>Standard A2A interface</h3>
+                <p>External A2A clients discover AEra agents through the Agent Card and send messages to the gateway. Every target agent is resolved from AEra's own records, not from what the caller claims.</p>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">Gateway</span>
+                <h3>Replay protection</h3>
+                <p>Every message identifier is accepted once. Duplicated or replayed requests are refused.</p>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">Gateway</span>
+                <h3>Rate limiting</h3>
+                <p>The gateway limits request volume before doing expensive work, so a single noisy caller cannot saturate it.</p>
+            </div>
+        </div>
+        <div class="note-box">
+            Agents can talk to other agents <strong>without every external peer being treated as an AEra-native agent</strong>.
+            Reaching the gateway does not make traffic trusted, and it grants no permissions by itself.
+        </div>
+        <p class="section-more"><a class="doc-link" href="/docs/a2a.html">How the A2A gateway works &rarr;</a> &nbsp;&middot;&nbsp; <a class="doc-link" href="/docs/agent-card.html">A2A Agent Card &rarr;</a></p>
+    </section>
+
+    <!-- ===== EXTERNAL PEERS ===== -->
+    <section class="features" id="peers">
+        <h2 class="section-title">🌐 Connect External Agents</h2>
+        <p class="section-subtitle">
+            External agents interact with AEra through the A2A gateway &mdash; and remain a separate trust domain from AEra-native agents.
+        </p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="layer-label">External peer</span>
+                <h3>AEra-issued peer credentials</h3>
+                <p>Where configured, an agent owner can issue a credential to an external peer, and the gateway authenticates the peer with it.</p>
+                <ul>
+                    <li>Scoped to specific agents and skills</li>
+                    <li>Expiring</li>
+                    <li>Revocable, effective immediately</li>
+                    <li>Bound to a stable peer identity across rotation</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">External peer</span>
+                <h3>A peer is not an AEra agent</h3>
+                <p>An authenticated external peer never becomes an AEra agent and cannot use peer credentials in place of an agent identity. Identity proves <em>who</em> is calling; authorization and scope decide <em>what</em> they may reach.</p>
+            </div>
+        </div>
+        <p class="section-more"><a class="doc-link" href="/docs/a2a.html#peers">External peers and credentials &rarr;</a></p>
+    </section>
+
+    <!-- ===== TRUST ===== -->
+    <section class="features" id="trust">
+        <h2 class="section-title">📈 Behaviour-Based Trust Assessment</h2>
+        <p class="section-subtitle">
+            Trust is earned through evidence. AEra observes the behaviour of authenticated external peers and derives a trust assessment from accumulated evidence.
+        </p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="layer-label">Assessment</span>
+                <h3>Derived, not declared</h3>
+                <p>The assessment comes from what AEra itself observes and from relevant identity evidence &mdash; not from what a caller claims about itself. Trust fields sent by a caller are ignored.</p>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">Assessment</span>
+                <h3>Level and confidence</h3>
+                <p>A new peer starts as <em>unknown</em>. AEra separately tracks how much evidence it has, so &ldquo;no information yet&rdquo; is never confused with &ldquo;well-behaved&rdquo;.</p>
+            </div>
+            <div class="feature-card">
+                <span class="layer-label">Assessment</span>
+                <h3>Survives credential rotation</h3>
+                <p>The assessment belongs to the peer, not to a single credential, so rotating a credential does not reset or launder its history.</p>
+            </div>
+        </div>
+        <div class="note-box">
+            <strong>Trust assessment currently operates as an independent monitoring layer.</strong>
+            It is not authentication and not authorization. It does not replace credential validation, scope checks, revocation, replay protection or rate limiting &mdash; and today it does not change any access decision.
+        </div>
+        <p class="section-more"><a class="doc-link" href="/docs/a2a.html#trust">Trust assessment in detail &rarr;</a></p>
+    </section>
+
+    <!-- ===== ARCHITECTURE ===== -->
+    <section class="features" id="architecture" aria-labelledby="arch-title">
+        <h2 class="section-title" id="arch-title">🗺️ Architecture</h2>
+        <p class="section-subtitle">Three separate identities. One gateway. Trust observes &mdash; it does not decide.</p>
+        <div class="arch" role="img" aria-label="Architecture: a human identity owns an agent identity that runs in an agent runtime behind the A2A gateway. The gateway connects to AEra agents and to external peers. External peers authenticate with a peer credential; a trust assessment observes their evidence without deciding access.">
+            <div class="arch-node glow-frame"><strong>Human Identity</strong><span>Soul-Bound NFT · wallet owner</span></div>
+            <div class="arch-arrow" aria-hidden="true">▼ owns</div>
+            <div class="arch-node glow-frame"><strong>Agent Identity</strong><span>Ed25519 keys · rotation · revocation</span></div>
+            <div class="arch-arrow" aria-hidden="true">▼</div>
+            <div class="arch-node glow-frame"><strong>Agent Runtime</strong><span>holds the private key</span></div>
+            <div class="arch-arrow" aria-hidden="true">▼</div>
+            <div class="arch-node glow-frame"><strong>A2A Gateway</strong><span>replay protection · rate limiting · authorization</span></div>
+            <div class="arch-arrow" aria-hidden="true">▼</div>
+            <div class="arch-split">
+                <div class="arch-branch">
+                    <div class="arch-node glow-frame"><strong>AEra Agent</strong><span>native agent identity</span></div>
+                </div>
+                <div class="arch-branch">
+                    <div class="arch-node glow-frame"><strong>External Peer</strong><span>separate trust domain</span></div>
+                    <div class="arch-arrow" aria-hidden="true">▼</div>
+                    <div class="arch-node glow-frame"><strong>Peer Credential</strong><span>scoped · expiring · revocable</span></div>
+                    <div class="arch-arrow" aria-hidden="true">▼ observed by</div>
+                    <div class="arch-node glow-frame arch-observer"><strong>Trust Assessment</strong><span>monitoring only</span></div>
+                </div>
+            </div>
+        </div>
+        <p class="arch-legend">
+            Human Identity ≠ Agent Identity ≠ External Peer Identity.<br>
+            The trust assessment observes evidence. It does not replace authentication or authorization.
+        </p>
+    </section>
+
+    <!-- ===== CAPABILITIES ===== -->
+    <section class="features" id="capabilities">
+        <h2 class="section-title">✅ What AEra Provides Today</h2>
+        <p class="section-subtitle">Implemented and running.</p>
+        <ul class="capability-grid">
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> Human Identity</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> Agent Identity</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> Agent Key Rotation</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> Agent Revocation</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> Agent Runtime</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> A2A Gateway</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> External Peer Credentials</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> Replay Protection</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> Gateway Rate Limiting</li>
+            <li class="glow-frame"><span class="cap-ok" aria-hidden="true">✓</span> Behaviour-based Trust Assessment</li>
+        </ul>
+        <div class="status-row">
+            <span class="status-badge">Trust assessment: implemented / monitoring</span>
+            <span class="status-badge status-off">Trust enforcement: not enabled</span>
+        </div>
+    </section>
+
+    <!-- ===== PRINCIPLES ===== -->
+    <section class="features" id="principles" style="padding-top: 2rem;">
+        <h2 class="section-title-sm">🛡️ Principles</h2>
+        <div class="feature-grid-sm">
+            <div class="feature-card-sm"><h3>Separate identities</h3><p>Humans, agents and external peers are distinct identities with no automatic escalation between them.</p></div>
+            <div class="feature-card-sm"><h3>Separate credentials</h3><p>Each layer has its own credentials. One layer's credential is never accepted by another.</p></div>
+            <div class="feature-card-sm"><h3>Explicit authorization</h3><p>Knowing who is calling is not permission. Access is scoped explicitly.</p></div>
+            <div class="feature-card-sm"><h3>Cryptographic verification</h3><p>Agents prove their identity with signatures, not shared passwords.</p></div>
+            <div class="feature-card-sm"><h3>Observable trust</h3><p>Trust is derived from evidence, never simply claimed.</p></div>
+            <div class="feature-card-sm"><h3>Fail closed</h3><p>When a check cannot be completed, the request is not promoted.</p></div>
+        </div>
+    </section>
+
+    <!-- ===== DEVELOPERS ===== -->
+    <section class="cta-section" id="developers">
+        <div class="glow-frame" style="max-width: 800px; margin: 0 auto; padding: 3rem 2rem;">
+            <h2 style="font-size: 2.2rem; margin-bottom: 1rem;">🛠️ Build with AEra</h2>
+            <p>
+                Give your applications and autonomous agents a verifiable identity layer, and connect them through an interoperable A2A gateway.
+            </p>
+            <div class="hero-cta">
+                <a href="/docs/agent-api.html" class="cta-button cta-primary">Read the Agent API</a>
+                <a href="/docs/a2a.html" class="cta-button cta-secondary">Explore A2A</a>
+                <a href="/docs/agent-card.html" class="cta-button cta-secondary">View the A2A Agent Card</a>
+                <a href="/sdk-docs" class="cta-button cta-secondary">View SDK Documentation</a>
+            </div>
+            <p style="font-size: 0.95rem; margin: 1.5rem auto 0;">
+                Register and manage agents in the <a href="/user-dashboard.html" style="color: var(--secondary);">Dashboard</a>.
+            </p>
+        </div>
+    </section>
+
+    <!-- AEra Core - Protected User Area -->
+    <section style="padding: 3rem 5%;">
+        <div style="max-width: 700px; margin: 0 auto;">
+            <div class="glow-frame" style="padding: 2.5rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">
+                    <span style="color: #3b82f6; animation: pulse 2s ease-in-out infinite; display: inline-block;">🌀</span>
+                </div>
+                
+                <h3 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.75rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    AEra Core
+                </h3>
+                
+                <p style="font-size: 1.1rem; color: rgba(240, 244, 255, 0.9); margin-bottom: 1.5rem; line-height: 1.7;">
+                    Your <strong>protected user area</strong> with exclusive access for verified members.<br>
+                    Get real-time updates, project news, and community insights.
+                </p>
+                
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.9rem; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+                        <span style="color: var(--success);">✓</span> Live Project Updates
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.9rem; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+                        <span style="color: var(--success);">✓</span> Your Profile & Stats
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.9rem; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+                        <span style="color: var(--success);">✓</span> NFT-Gated Access
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(0, 212, 255, 0.4); border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.9rem; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+                        <span style="color: var(--secondary);">🔐</span> OAuth 2.0 Integration
+                    </div>
+                </div>
+                
+                <!-- OAuth MiniApp Demo Info -->
+                <div class="glow-frame" style="padding: 1.25rem; margin-bottom: 1.5rem; text-align: center;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <span style="font-size: 1.5rem;">🚀</span>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--secondary); margin: 0;">Try Our OAuth MiniApp Demo</h4>
+                    </div>
+                    <p style="font-size: 0.95rem; color: rgba(240, 244, 255, 0.85); margin-bottom: 1rem; line-height: 1.6;">
+                        Experience seamless third-party authentication with AEraLogIn OAuth 2.0.<br>
+                        <strong>Test it now:</strong> Login with your AEra Identity NFT in our demo application!
+                    </p>
+                    <a href="https://aera-miniapp-demo.vercel.app/app" target="_blank" rel="noopener noreferrer" class="oauth-demo-btn">
+                        <span>🔐</span>
+                        <span>Open OAuth Demo App</span>
+                        <span style="font-size: 1.1rem;">↗</span>
+                    </a>
+                    <p style="font-size: 0.8rem; color: rgba(240, 244, 255, 0.5); margin-top: 0.75rem; margin-bottom: 0;">
+                        ℹ️ Requires AEra Identity NFT • Works with Coinbase Smart Wallet & BASE App
+                    </p>
+                </div>
+                
+                <a href="/user-dashboard.html" class="cta-button cta-primary" style="font-size: 1.1rem; padding: 1rem 2.5rem; background: linear-gradient(135deg, var(--primary), var(--accent)); display: inline-flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 1.3rem;">🌀</span>
+                    <span>Enter AEra Core</span>
+                    <span>→</span>
+                </a>
+                
+                <p style="font-size: 0.85rem; color: rgba(240, 244, 255, 0.5); margin-top: 1.25rem;">
+                    🔐 Protected by AEraLogIn — Connect your wallet on the <a href="/dashboard" style="color: var(--secondary); text-decoration: underline;">Dashboard</a> first
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- NFT-Gated Community CTA Banner -->
+    <section style="padding: 3rem 5%;">
+        <div style="max-width: 700px; margin: 0 auto;">
+            <!-- Community Box -->
+            <div class="glow-frame" style="padding: 2rem; text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔐</div>
+                
+                <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--light);">
+                    Join Our Private Communities
+                </h3>
+                
+                <p style="font-size: 1rem; color: rgba(240, 244, 255, 0.8); margin-bottom: 1.5rem; line-height: 1.6;">
+                    🔐 <strong>NFT-Gated Access</strong> – Only Identity NFT holders can join!<br>
+                    Connect with verified humans and get exclusive updates.
+                </p>
+                
+                <!-- Two Buttons: Telegram & Discord -->
+                <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                    <a href="https://aeralogin.com/join-telegram?owner=0x9de3772a1b2e958561d8371ee34364dcd90967ba&platform=telegram&group=-1003503827340" class="cta-button cta-primary" style="font-size: 1.1rem; padding: 0.9rem 2rem; background: linear-gradient(135deg, #0088cc, #00aced); display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span>✈️ Join Telegram</span>
+                        <span>→</span>
+                    </a>
+                    <a href="https://aeralogin.com/join-discord?owner=0x9de3772a1b2e958561d8371ee34364dcd90967ba&platform=discord&group=1443674310454542509" class="cta-button cta-primary" style="font-size: 1.1rem; padding: 0.9rem 2rem; background: linear-gradient(135deg, #5865F2, #7289da); display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span>🎮 Join Discord</span>
+                        <span>→</span>
+                    </a>
+                </div>
+                
+                <p style="font-size: 0.875rem; color: rgba(240, 244, 255, 0.6); margin-top: 1rem;">
+                    Don't have an Identity NFT? <a href="/dashboard" style="color: var(--secondary); text-decoration: underline;">Mint yours here</a> (gasless & free!)
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stat-card">
+            <div class="stat-number">🎨</div>
+            <div class="stat-label">Soul-Bound NFTs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #3b82f6; animation: pulse 2s ease-in-out infinite;">🌀</div>
+            <div class="stat-label">Gasless Minting</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">⛓️</div>
+            <div class="stat-label">On-Chain Scoring</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">🔐</div>
+            <div class="stat-label">Web3 Auth</div>
+        </div>
+    </section>
+
+    <!-- Platform Support Section -->
+    <section style="padding: 4rem 5%;">
+        <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+            <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: var(--light);">
+                🌍 Share Your Link Anywhere
+            </h2>
+            <p style="font-size: 1.1rem; color: rgba(240, 244, 255, 0.7); margin-bottom: 3rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+                One custom link that works perfectly on every social media platform.<br>
+                Share in profiles, groups, channels, DMs, stories - anywhere you want!
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1.5rem; max-width: 1100px; margin: 0 auto;">
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">𝕏</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">X / Twitter</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✈️</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">Telegram</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💬</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">Discord</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎭</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">Farcaster</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💚</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">WhatsApp</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">Instagram</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎵</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">TikTok</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💼</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">LinkedIn</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📘</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">Facebook</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔴</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">YouTube</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💬</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">Slack</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎮</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">Twitch</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🐻</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">VK</div>
+                </div>
+                <div class="glow-frame" style="padding: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💬</div>
+                    <div style="font-size: 0.9rem; color: rgba(240, 244, 255, 0.8);">WeChat</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem; padding: 2rem; background: rgba(0, 212, 255, 0.1); border-radius: 12px; border: 1px solid var(--secondary); max-width: 700px; margin-left: auto; margin-right: auto;">
+                <h3 style="font-size: 1.3rem; margin-bottom: 1rem; color: var(--secondary);">
+                    ✨ How It Works
+                </h3>
+                <p style="color: rgba(240, 244, 255, 0.8); line-height: 1.8;">
+                    Get your custom link like <code style="background: rgba(0, 0, 0, 0.3); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--secondary);">aeralogin.com/follow?ref=yourResonanceWallet</code>
+                    <br><br>
+                    Share it in your <strong>bio</strong>, <strong>pinned messages</strong>, <strong>group descriptions</strong>, <strong>channel info</strong>, or send directly in <strong>DMs</strong>.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title">🚀 Features</h2>
+        <p class="section-subtitle">
+            A complete Web3 Social Identity System with innovative blockchain features
+        </p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="feature-icon">🎨</span>
+                <h3>Soul-Bound Identity NFTs</h3>
+                <p>
+                    Non-transferable NFTs as digital identity. Every user automatically receives
+                    an Identity NFT on first login - completely free, gas costs covered by community donations! 💙
+                </p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">📊</span>
+                <h3>Resonance Score System</h3>
+                <p>
+                    Hybrid scoring combines personal activity with follower reputation.
+                    Formula: Resonance = Own Score + Avg Follower Score. 
+                    Automatic blockchain sync every 2 points.
+                </p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon" style="color: #3b82f6; animation: pulse 2s ease-in-out infinite;">🌀</span>
+                <h3>Community-Funded Gasless Minting</h3>
+                <p>
+                    <strong>We are a community project!</strong> Users pay no gas fees for NFT minting.
+                    Gas costs are covered by community donations. 
+                    <br><br>
+                    🎁 <strong>Support us:</strong> <a href="https://basescan.org/address/0x27F8233Ae2FC3945064c0bad72267e68bC28AaAa" target="_blank" style="color: var(--secondary); text-decoration: underline;">Donation Wallet</a>
+                    <br>
+                    Every contribution helps onboard more users into Web3! 💙
+                </p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🔗</span>
+                <h3>On-Chain Registry</h3>
+                <p>
+                    All social interactions (Follow, Share, Engage) are stored in the 
+                    Resonance Registry Smart Contract and transparently verifiable.
+                </p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🔐</span>
+                <h3>Web3 Signature Auth</h3>
+                <p>
+                    Authentication via wallet signature (EIP-191). No password needed,
+                    full control over your identity through your private key.
+                </p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">📱</span>
+                <h3>Multi-Platform Support</h3>
+                <p>
+                    Share your custom AEraLogIn link <strong>anywhere</strong>: X/Twitter, Telegram, 
+                    Discord, Farcaster, WhatsApp, Instagram, LinkedIn, TikTok.
+                    <br><br>
+                    Works in: <strong>Profiles</strong> • <strong>Groups</strong> • <strong>Channels</strong> • <strong>DMs</strong> • <strong>Stories</strong>
+                </p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🌐</span>
+                <h3>Website Integration & NFT-Gated Access</h3>
+                <p>
+                    <strong>Protect entire user areas on your website!</strong>
+                    Integrate AEraLogIn to secure exclusive content, member dashboards, and protected communities.
+                    <br><br>
+                    <strong>Perfect for:</strong> Premium Content • Member Portals • Community Areas • Exclusive Features
+                    <br><br>
+                    No passwords, no emails - just Web3 wallet authentication with NFT verification! 🔐
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Get Wallet Section -->
+    <section class="features" id="get-wallet">
+        <h2 class="section-title">💼 Get Your Free Web3 Wallet in 2 Minutes</h2>
+        <p class="section-subtitle">
+            No costs, no fees - just download, create, and you're ready to go!<br>
+            Choose from the most trusted wallet providers in Web3
+        </p>
+        <div class="feature-grid">
+            <div class="feature-card" style="cursor: pointer;" onclick="window.open('https://metamask.io', '_blank')">
+                <span class="feature-icon">🦊</span>
+                <h3>MetaMask</h3>
+                <p>
+                    <strong>Most Popular</strong><br><br>
+                    Browser extension & mobile app. Works with all Web3 sites.
+                    Over 30 million users worldwide. Perfect for beginners.
+                </p>
+                <a href="https://metamask.io" target="_blank" style="color: var(--secondary); font-weight: 600; text-decoration: none;">
+                    Download MetaMask →
+                </a>
+            </div>
+            <div class="feature-card" style="cursor: pointer;" onclick="window.open('https://www.coinbase.com/wallet', '_blank')">
+                <span class="feature-icon">🔷</span>
+                <h3>Coinbase Wallet</h3>
+                <p>
+                    <strong>BASE Native</strong><br><br>
+                    Official Coinbase wallet with seamless BASE integration.
+                    Easy onramp from fiat to crypto. Best for BASE ecosystem.
+                </p>
+                <a href="https://www.coinbase.com/wallet" target="_blank" style="color: var(--secondary); font-weight: 600; text-decoration: none;">
+                    Download Coinbase Wallet →
+                </a>
+            </div>
+            <div class="feature-card" style="cursor: pointer;" onclick="window.open('https://rainbow.me', '_blank')">
+                <span class="feature-icon">🌈</span>
+                <h3>Rainbow</h3>
+                <p>
+                    <strong>Beautiful & Simple</strong><br><br>
+                    Mobile-first design with stunning UI. Perfect for NFT collectors.
+                    Easy to use, no compromises on security.
+                </p>
+                <a href="https://rainbow.me" target="_blank" style="color: var(--secondary); font-weight: 600; text-decoration: none;">
+                    Download Rainbow →
+                </a>
+            </div>
+        </div>
+        
+        <div style="max-width: 800px; margin: 4rem auto 0; padding: 2rem; background: rgba(0, 212, 255, 0.1); border-radius: 12px; border: 1px solid var(--secondary);">
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--secondary);">
+                ✅ Quick Setup Guide (2 Minutes)
+            </h3>
+            <ol style="text-align: left; color: rgba(240, 244, 255, 0.8); line-height: 2; padding-left: 1.5rem;">
+                <li><strong>Download</strong> - Choose any wallet above and install the app or browser extension</li>
+                <li><strong>Create</strong> - Click "Create New Wallet" and set a password</li>
+                <li><strong>Backup</strong> - Write down your 12-word recovery phrase (NEVER share this!)</li>
+                <li><strong>Done!</strong> - You now have a Web3 wallet. Connect to AEraLogin and get your free NFT!</li>
+            </ol>
+            <p style="margin-top: 1.5rem; font-size: 0.9rem; color: rgba(240, 244, 255, 0.6);">
+                💡 <strong>Pro Tip:</strong> With AEraLogin's gasless minting, you don't need any crypto to get started!
+                Your wallet just needs to be connected - gas fees are covered by our community donations. 
+                Consider <a href="https://basescan.org/address/0x27F8233Ae2FC3945064c0bad72267e68bC28AaAa" target="_blank" style="color: var(--secondary); text-decoration: underline;">supporting us</a> to help onboard more users! 💙
+            </p>
+        </div>
+
+        <div style="max-width: 900px; margin: 3rem auto 0; text-align: center;">
+            <h3 style="font-size: 1.3rem; margin-bottom: 1.5rem; color: var(--light);">
+                More Wallet Options
+            </h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center;">
+                <a href="https://walletconnect.com" target="_blank" style="color: var(--secondary); text-decoration: none; font-weight: 500; padding: 0.75rem 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s;">
+                    🔗 WalletConnect
+                </a>
+                <a href="https://phantom.app" target="_blank" style="color: var(--secondary); text-decoration: none; font-weight: 500; padding: 0.75rem 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s;">
+                    👻 Phantom
+                </a>
+                <a href="https://trustwallet.com" target="_blank" style="color: var(--secondary); text-decoration: none; font-weight: 500; padding: 0.75rem 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s;">
+                    🛡️ Trust Wallet
+                </a>
+                <a href="https://www.ledger.com" target="_blank" style="color: var(--secondary); text-decoration: none; font-weight: 500; padding: 0.75rem 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s;">
+                    🔐 Ledger (Hardware)
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <h2 class="section-title">⚙️ How It Works</h2>
+        <p class="section-subtitle">
+            The complete user journey from signup to on-chain reputation
+        </p>
+        <div class="timeline">
+            <div class="timeline-item">
+                <h3>1. Wallet Connect & Signup</h3>
+                <p>
+                    Users connect their wallet (MetaMask, Coinbase Wallet, WalletConnect).
+                    The system generates a challenge message that the user signs.
+                    No passwords, no emails - your wallet is your identity.
+                </p>
+            </div>
+            <div class="timeline-item">
+                <h3>2. Identity NFT Minting (Gasless)</h3>
+                <p>
+                    On first login, users automatically receive a Soul-Bound Identity NFT.
+                    Minting is completely gasless - users pay nothing! Gas costs are covered by our community through donations.
+                    The NFT is non-transferable and serves as permanent on-chain identity.
+                    <br><br>
+                    💙 <strong>Support the community:</strong> Help us onboard more users by donating to our <a href="https://basescan.org/address/0x27F8233Ae2FC3945064c0bad72267e68bC28AaAa" target="_blank" style="color: var(--secondary); text-decoration: underline;">community wallet</a>
+                </p>
+            </div>
+            <div class="timeline-item">
+                <h3>3. Social Interactions & Scoring</h3>
+                <p>
+                    Users can follow others, share content, and engage.
+                    Each interaction increases the score in the database (instant) and is
+                    stored in the Registry Contract (on-chain verification).
+                </p>
+            </div>
+            <div class="timeline-item">
+                <h3>4. Resonance Calculation</h3>
+                <p>
+                    The Resonance Score combines Own Score with average Follower Scores.
+                    Creates a network effect: Creators with engaged followers have higher Resonance.
+                    Example: Own 54 + Avg Follower 66 = Total Resonance 120.
+                </p>
+            </div>
+            <div class="timeline-item">
+                <h3>5. Automatic Blockchain Sync</h3>
+                <p>
+                    A background process syncs scores to blockchain every 30 seconds.
+                    Milestone system: Sync occurs every 2 points (e.g. 50 → 52 → 54).
+                    Users see live status in dashboard: "✅ Synced" or "⏳ Pending (+X)".
+                </p>
+            </div>
+            <div class="timeline-item">
+                <h3>6. Dashboard & Analytics</h3>
+                <p>
+                    Users have access to a complete dashboard with:
+                    Follower list, NFT status, Blockchain Score comparison, Interaction history,
+                    and direct links to BaseScan for every transaction.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack Section -->
+    <section class="tech-stack" id="tech">
+        <h2 class="section-title-sm">🛠️ Technology Stack</h2>
+        <p class="section-subtitle-sm">
+            Built with cutting-edge Web3 technologies on Coinbase's BASE L2
+        </p>
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-logo">🔷</div>
+                <div class="tech-name">BASE Mainnet</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">📜</div>
+                <div class="tech-name">Solidity 0.8.20</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">🐍</div>
+                <div class="tech-name">Python 3.13</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo" style="color: #3b82f6; animation: pulse 2s ease-in-out infinite;">🌀</div>
+                <div class="tech-name">FastAPI</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">🌐</div>
+                <div class="tech-name">Web3.py</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">🔐</div>
+                <div class="tech-name">EIP-191 Auth</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">🎨</div>
+                <div class="tech-name">ERC-721 NFTs</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">�</div>
+                <div class="tech-name">Community Funded</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">🔍</div>
+                <div class="tech-name">Blockscout API</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">💾</div>
+                <div class="tech-name">SQLite</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">🔄</div>
+                <div class="tech-name">AsyncIO</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-logo">📡</div>
+                <div class="tech-name">REST API</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Smart Contracts Info - 20% smaller -->
+    <section class="features" style="padding: 4.8rem 5%;">
+        <h2 class="section-title-sm">📜 Smart Contracts</h2>
+        <p class="section-subtitle-sm">
+            Three specialized contracts on BASE Mainnet
+        </p>
+        <div class="feature-grid-sm">
+            <a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank" class="feature-card-sm">
+                <span class="feature-icon">🎨</span>
+                <h3>AEraIdentityNFT</h3>
+                <p>
+                    <strong>0xF9ff5D...d53</strong><br><br>
+                    ERC-721 Soul-Bound Token Contract. NFTs cannot be transferred.
+                    Only MINTER_ROLE can mint new NFTs. Each user receives exactly 1 NFT.
+                </p>
+            </a>
+            <a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank" class="feature-card-sm">
+                <span class="feature-icon">📊</span>
+                <h3>AEraResonanceScore</h3>
+                <p>
+                    <strong>0x9A814D...102</strong><br><br>
+                    Stores and manages Resonance Scores on-chain. Only UPDATER_ROLE
+                    can update scores. Public read for maximum transparency.
+                </p>
+            </a>
+            <a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank" class="feature-card-sm">
+                <span class="feature-icon">🔗</span>
+                <h3>AEraResonanceRegistry</h3>
+                <p>
+                    <strong>0xAAf30d...cdF</strong><br><br>
+                    Logs all social interactions (FOLLOW, SHARE, ENGAGE, etc.).
+                    Emitted events for complete traceability. SYSTEM_ROLE for backend.
+                </p>
+            </a>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <div style="background: rgba(0, 212, 255, 0.1); border: 1px solid var(--secondary); border-radius: 12px; padding: 3rem 2rem; text-align: center; backdrop-filter: blur(10px);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+                <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                    Start with your AEra Identity
+                </h2>
+                <p style="font-size: 1.2rem; color: rgba(240, 244, 255, 0.8); margin-bottom: 2rem; line-height: 1.8;">
+                    AEraLogIn is live on BASE Mainnet.<br>
+                    Create your human identity, then register the agents you own.
+                </p>
+                <a href="/dashboard.html" class="cta-button cta-primary" style="font-size: 1.2rem; padding: 1rem 2.5rem;">
+                    Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </section>
+    </main>
+
+<!-- AERA:SHELL-FOOTER -->
+    <footer class="site-footer">
+        <div class="site-footer-grid">
+            <div>
+                <a href="/" class="site-footer-brand"><span class="site-logo-icon" aria-hidden="true">🌀</span><span>AEraLogIn</span></a>
+                <p>Identity for Humans. Identity for Agents. Trust for Agent Networks.</p>
+                <p>Live on BASE Mainnet.</p>
+            </div>
+            <div>
+                <h4>Platform</h4>
+                <ul>
+                    <li><a href="/#identity">Human Identity</a></li>
+                    <li><a href="/#agents">Agent Identity</a></li>
+                    <li><a href="/#a2a">A2A Communication</a></li>
+                    <li><a href="/#trust">Trust Assessment</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="/docs/agent-api.html">Agent API</a></li>
+                    <li><a href="/docs/a2a.html">A2A Gateway</a></li>
+                    <li><a href="/docs/agent-card.html">A2A Agent Card</a></li>
+                    <li><a href="/sdk-docs">SDK Documentation</a></li>
+                    <li><a href="/examples/snippets/basic-integration.html">Code Examples</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/security-concept.html">Security Concept</a></li>
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/user-dashboard.html">AEra Core (Agents)</a></li>
+                    <li><a href="/logo.html">Logo</a></li>
+                    <li><a href="https://github.com/koal0308/AEraLogin-Human-and-A2A" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="https://x.com/AEraResonant" target="_blank" rel="noopener noreferrer">X / Twitter</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>On-chain</h4>
+                <ul>
+                    <li><a href="https://basescan.org/address/0xF9ff5DC523927B9632049bd19e17B610E9197d53" target="_blank" rel="noopener noreferrer">Identity NFT Contract</a></li>
+                    <li><a href="https://basescan.org/address/0x9A814DBF7E2352CE9eA6293b4b731B2a24800102" target="_blank" rel="noopener noreferrer">Score Contract</a></li>
+                    <li><a href="https://basescan.org/address/0xAAf30d96382D2409Cf1626095e97BEc1C59e5cdF" target="_blank" rel="noopener noreferrer">Registry Contract</a></li>
+                    <li><a href="https://base.org" target="_blank" rel="noopener noreferrer">BASE L2</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="site-footer-bottom">
+            <span>&copy; 2025&ndash;2026 AEraLogIn &middot; VEra-Resonance Project &middot; Apache 2.0</span>
+            <span><a href="/privacy-policy">Privacy Policy</a> &middot; <a href="/security-concept.html">Security</a></span>
+        </div>
+    </footer>
+    <script src="/docs/assets/site-shell.js?v=20260926"></script>
+    <!-- /AERA:SHELL-FOOTER -->
+
+    <!-- Simple Canvas Animation -->
+    <script>
+        // Simple particle animation for background
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        document.getElementById('bgCanvas').appendChild(canvas);
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 50;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(0, 212, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            // Draw connections
+            particles.forEach((p1, i) => {
+                particles.slice(i + 1).forEach(p2 => {
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.strokeStyle = `rgba(0, 212, 255, ${0.2 * (1 - distance / 150)})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+
+    <!-- ===== AERA CHAT WIDGET ===== -->
+    <link rel="stylesheet" href="/aera-chat.css?v=20251209002">
+    <script src="/aera-chat.js?v=20251209001"></script>
+    <script>
+        // Initialize AEra Chat Widget immediately
+        if (typeof initAeraChat === 'function') {
+            initAeraChat();
+            console.log('🌀 AEra Chat Widget initialized on landing.html');
+        } else {
+            console.error('❌ initAeraChat not found');
+        }
+    </script>
+    
+    <!-- Anonymous Page View Tracking -->
+    <script>
+        fetch('/api/track/pageview', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({page: 'landing'})
+        }).catch(() => {});
+    </script>
+</body>
+</html>

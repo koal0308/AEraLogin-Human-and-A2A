@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon.png?v=20251225c">
+    <title>MetaMask Test</title>
+    
+    <!-- 📊 Plausible Analytics (GDPR-compliant, no cookies) -->
+    <script async src="https://plausible.io/js/pa-M88QuraNbHkTcRCfrPSJ4.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0e27;
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        button {
+            background: #0052ff;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #0066ff;
+        }
+        #log {
+            margin-top: 30px;
+            text-align: left;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 800px;
+            margin: 30px auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🦊 MetaMask Connection Test</h1>
+    
+    <button id="testBtn1" onclick="test1()">Test 1: Direct Request</button>
+    <button id="testBtn2" onclick="test2()">Test 2: With Try-Catch</button>
+    <button id="testBtn3" onclick="test3()">Test 3: addEventListener</button>
+    
+    <div id="log"></div>
+
+    <script>
+        const logDiv = document.getElementById('log');
+        
+        function log(msg) {
+            console.log(msg);
+            logDiv.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        // Check if MetaMask is installed
+        if (typeof window.ethereum === 'undefined') {
+            log('❌ MetaMask NOT INSTALLED');
+        } else {
+            log('✅ MetaMask detected');
+            log('Provider: ' + (window.ethereum.isMetaMask ? 'MetaMask' : 'Other'));
+        }
+        
+        // Test 1: Direct request
+        async function test1() {
+            log('🧪 TEST 1: Direct eth_requestAccounts');
+            try {
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+                log('✅ Accounts: ' + accounts[0]);
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+            }
+        }
+        
+        // Test 2: With nested try-catch
+        async function test2() {
+            log('🧪 TEST 2: With nested try-catch');
+            try {
+                let accounts = [];
+                try {
+                    accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                } catch (popupError) {
+                    log('❌ Popup Error: ' + popupError.message);
+                    return;
+                }
+                log('✅ Accounts: ' + accounts[0]);
+            } catch (error) {
+                log('❌ Outer Error: ' + error.message);
+            }
+        }
+        
+        // Test 3: With addEventListener
+        function test3() {
+            log('🧪 TEST 3: Using addEventListener');
+            const btn = document.getElementById('testBtn3');
+            btn.removeEventListener('click', test3);
+            btn.addEventListener('click', async () => {
+                try {
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    log('✅ Accounts: ' + accounts[0]);
+                } catch (error) {
+                    log('❌ Error: ' + error.message);
+                }
+            });
+            log('⚠️ Click button again to test addEventListener');
+        }
+    </script>
+</body>
+</html>
