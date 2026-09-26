@@ -25,5 +25,16 @@ jobs:
           python tools/sync_site_shell.py --check
       - name: Compile
         run: python -m compileall -q agent agent_runtime server.py
+      - name: Generate throwaway test .env (random, CI-only)
+        run: |
+          python - <<'EOF'
+          import secrets
+          keys = ["TOKEN_SECRET", "OAUTH_JWT_SECRET", "AGENT_JWT_SECRET",
+                  "OAUTH_ADMIN_KEY", "TELEGRAM_BOT_HMAC_SECRET"]
+          with open(".env", "w") as f:
+              for k in keys:
+                  f.write(f"{k}=ci-{secrets.token_hex(24)}\n")
+              f.write("AERA_A2A_GATEWAY_ENABLED=true\n")
+          EOF
       - name: Tests
         run: pytest tests/ -q -p no:warnings
