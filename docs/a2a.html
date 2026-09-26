@@ -238,7 +238,7 @@
                     <div class="doc-card"><h3>Scoped</h3><p>Limited to specific agents (which must belong to the issuing owner) and specific skills.</p></div>
                     <div class="doc-card"><h3>Expiring</h3><p>Every credential has an expiry date.</p></div>
                     <div class="doc-card"><h3>Revocable</h3><p>The owner can revoke it at any time, effective on the next request.</p></div>
-                    <div class="doc-card"><h3>Stable peer identity</h3><p>The peer identity survives credential rotation, so history stays with the peer.</p></div>
+                    <div class="doc-card"><h3>Stable peer identity</h3><p>The peer identity survives credential rotation, so history stays with the peer. To rotate, issue with <code>rotate_cred_id</code> set to one of your own credentials, then revoke the old one. The peer identity is always assigned by AEra and cannot be chosen by the caller.</p></div>
                 </div>
                 <p>The credential is an opaque bearer secret, shown to the owner <strong>once</strong> at issuance. AEra stores only a one-way hash of it.</p>
             </section>

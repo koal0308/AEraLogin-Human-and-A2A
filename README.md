@@ -176,6 +176,13 @@ python server.py
 Not implemented: installer, WebAuthn. Known limitation: the enrollment code
 passed as a CLI argument is visible in the shell history and `ps`.
 
+Full workflow, runtime configuration, revocation and recovery:
+[docs/AGENT_IDENTITY.md](docs/AGENT_IDENTITY.md) · reproducible isolated E2E:
+`python tools/release_live_e2e.py`.
+Security layers, verification results and known limitations:
+[security-concept.html](security-concept.html) (`#layers`, `#verification`; live at
+`/security-concept.html`).
+
 ## 🧪 Tests & Checks
 
 ```bash

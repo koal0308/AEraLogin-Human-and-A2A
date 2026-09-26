@@ -90,8 +90,10 @@
             <div class="doc-sidebar-section">
                 <h4 class="doc-sidebar-title">Lifecycle</h4>
                 <ul>
+                    <li><a href="#enrollment">Enrollment (recommended)</a></li>
+                    <li><a href="#runtime">Run the agent runtime</a></li>
                     <li><a href="#owner-challenge">Owner challenge</a></li>
-                    <li><a href="#register">Register an agent</a></li>
+                    <li><a href="#register">Register an agent (advanced)</a></li>
                     <li><a href="#keys">Key management</a></li>
                     <li><a href="#revoke">Revoke an agent</a></li>
                     <li><a href="#capabilities">Capabilities</a></li>
@@ -182,6 +184,74 @@
                 </div>
             </section>
 
+            <section id="enrollment" class="doc-section">
+                <h2>🔗 Enrollment &mdash; the normal way to create an agent</h2>
+                <p>Enrollment pairs an agent runtime with your dashboard. The runtime generates its Ed25519 key <strong>locally</strong>; AEra receives only the public key and a proof-of-possession signature. <strong>The private key never leaves the runtime.</strong></p>
+                <ol class="doc-list">
+                    <li><strong>Create Agent</strong> in the agent section of <a href="/user-dashboard.html">AEra Core</a>. The dashboard calls <code>POST /api/dashboard/agents/enrollments</code> with your session and shows an <strong>enrollment code</strong> once. It is valid for <strong>15 minutes</strong> and can be claimed once.</li>
+                    <li>On the machine that will run the agent: <code>python -m agent_runtime enroll &lt;code&gt;</code> (see <a href="#runtime">Run the agent runtime</a>).</li>
+                    <li>The runtime generates the key, signs the proof of possession and calls <code>POST /api/agents/enrollments/claim</code>.</li>
+                    <li>Dashboard and runtime show the same <strong>key fingerprint</strong> (<code>XXXX-XXXX-XXXX-XXXX-XXXX</code>, the first 80 bits of SHA-256 over the public key). Compare them: a match proves AEra received the key <em>your</em> runtime generated.</li>
+                    <li>You approve with your wallet. The dashboard signs an owner challenge with <code>operation: "register"</code> and <code>agent_id: "enrollment:&lt;enrollment_id&gt;"</code> and calls <code>POST /api/agents/enrollments/{enrollment_id}/complete</code>.</li>
+                    <li>AEra creates the agent (<code>agent_id</code> + <code>key_id</code>). The runtime picks both up via <code>POST /api/agents/enrollments/status</code> and stores them in an identity file, so <code>python -m agent_runtime run</code> needs no manual IDs.</li>
+                </ol>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Claim request (sent by the runtime)</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>{
+  "enrollment_code": "aera-enroll-&lt;id&gt;.&lt;secret&gt;",
+  "public_key": "ed25519:&lt;base64url public key&gt;",
+  "signature": "&lt;base64url Ed25519 signature over the enrollment PoP payload&gt;"
+}</pre>
+                </div>
+                <p>The PoP payload is the canonical JSON of <code>protocol</code> (<code>aera-agent-enroll</code>), <code>version</code>, <code>enrollment_id</code>, <code>public_key</code> and <code>domain</code>. It binds the signature to this enrollment and this key.</p>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Property</th><th>Behaviour</th></tr></thead>
+                        <tbody>
+                            <tr><td>Secret storage</td><td>Only a SHA-256 hash is stored, and it is compared in constant time. The code is never shown again.</td></tr>
+                            <tr><td>Single use</td><td>One claim, one completion. A second claim, or reusing a code, returns <code>409</code>.</td></tr>
+                            <tr><td>Wrong code</td><td>An unknown ID and a wrong secret give the same <code>404 invalid_enrollment_code</code>.</td></tr>
+                            <tr><td>Bad proof of possession</td><td><code>401 invalid_proof_of_possession</code>. The enrollment stays claimable.</td></tr>
+                            <tr><td>Expired / cancelled</td><td><code>410 enrollment_expired</code> / <code>409</code>. An owner can cancel an open enrollment with <code>DELETE /api/dashboard/agents/enrollments/{id}</code>.</td></tr>
+                            <tr><td>Owner binding</td><td>Only the owner who created the enrollment can complete it. A plain <code>register</code> challenge cannot complete an enrollment.</td></tr>
+                            <tr><td>Limits</td><td>Up to 5 open enrollments per owner. Claim: 30/min per IP and 10/min per enrollment. Status: 120/min per IP and 60/min per enrollment. Complete: 10/min per owner.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="runtime" class="doc-section">
+                <h2>▶️ Run the agent runtime</h2>
+                <div class="info-box warning">
+                    <div class="info-box-title">No installer yet</div>
+                    <p>The runtime is the <code>agent_runtime</code> module in the <a href="https://github.com/koal0308/AEraLogin-Human-and-A2A">repository</a> and runs from the source tree with Python 3.11 on Linux or macOS.</p>
+                </div>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Shell</span><button class="copy-btn" type="button">Copy</button></div>
+<pre>git clone https://github.com/koal0308/AEraLogin-Human-and-A2A.git
+cd AEraLogin-Human-and-A2A
+python3 -m venv venv &amp;&amp; . venv/bin/activate
+pip install -r requirements-dev.txt
+
+export AERA_BASE_URL="http://127.0.0.1:8840"               # example: your AEra instance
+export AERA_RUNTIME_KEY_PASSPHRASE="&lt;choose a passphrase&gt;"   # encrypts the key at rest
+export AERA_RUNTIME_INTERNAL_SECRET="&lt;same value as the AEra server&gt;"
+
+python -m agent_runtime enroll aera-enroll-&lt;id&gt;.&lt;secret&gt;
+python -m agent_runtime run
+python -m agent_runtime health</pre>
+                </div>
+                <ul class="doc-list">
+                    <li>The key is stored at <code>AERA_RUNTIME_KEY_PATH</code> (default <code>~/.aera/agent_key.json</code>, mode 0600). It is sealed with scrypt and AES-GCM if a passphrase is set, and stored <strong>unencrypted</strong> otherwise.</li>
+                    <li>The identity file next to it (<code>agent_key.identity.json</code>, 0600) contains only <code>agent_id</code>, <code>key_id</code> and the base URL. If <code>AERA_RUNTIME_AGENT_ID</code> or <code>AERA_RUNTIME_KEY_ID</code> is set, the identity file is ignored.</li>
+                    <li><code>run</code> requires <code>AERA_RUNTIME_INTERNAL_SECRET</code>. Gateway and runtime must also use the same <code>AERA_RUNTIME_DIR</code>, where the socket lives. The default provider is <code>mock</code>, which needs no API key.</li>
+                    <li><strong>Same host.</strong> The A2A gateway reaches the runtime over a local Unix socket, so a runtime can only <em>receive</em> A2A traffic when it runs on the same host as the AEra server. Enrollment and Agent JWT authentication work over HTTP from anywhere.</li>
+                    <li>Exit codes: <code>2</code> configuration error, <code>1</code> key, identity or connection error, <code>3</code> agent or key revoked.</li>
+                    <li>The enrollment code passed on the command line is visible in shell history and <code>ps</code> until it is used or expires.</li>
+                </ul>
+                <p><strong>Recovery.</strong> If you lose the runtime, you have two options. Revoke the old agent and enroll again, which creates a <em>new</em> <code>agent_id</code>. Or, on the advanced path, add a new key to the same agent with <code>POST /api/agents/{agent_id}/keys</code>, revoke the lost key, and start the runtime with explicit IDs. Enrollment cannot rotate the key of an existing agent.</p>
+            </section>
+
             <section id="owner-challenge" class="doc-section">
                 <h2><span class="badge method-post">POST</span> /api/agents/owner-challenge</h2>
                 <p>Requests a single-use challenge for one owner operation. <code>operation</code> is one of <code>register</code>, <code>key_add</code>, <code>key_rotate</code>, <code>key_revoke</code>, <code>agent_revoke</code>, <code>capabilities</code>. <code>agent_id</code> is required for every operation except <code>register</code>.</p>
@@ -212,7 +282,7 @@
 
             <section id="register" class="doc-section">
                 <h2><span class="badge method-post">POST</span> /api/agents/register</h2>
-                <p>Creates a new agent owned by the signing wallet, with its first active Ed25519 key. Generate the key pair inside the agent runtime and submit only the public key.</p>
+                <p><strong>Advanced / developer path.</strong> Most users should use <a href="#enrollment">enrollment</a> instead. This endpoint creates a new agent owned by the signing wallet, with its first active Ed25519 key. Generate the key pair inside the agent runtime (for example with <code>python -m agent_runtime keygen</code>) and submit only the public key.</p>
                 <div class="code-block">
                     <div class="code-header"><span class="code-lang">Request</span><button class="copy-btn" type="button">Copy</button></div>
 <pre>{
@@ -412,7 +482,13 @@
                         <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Purpose</th></tr></thead>
                         <tbody>
                             <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/owner-challenge</code></td><td>&ndash;</td><td>Request an owner challenge</td></tr>
-                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/register</code></td><td>Owner</td><td>Register an agent</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/dashboard/agents/enrollments</code></td><td>Dashboard session</td><td>Create an enrollment</td></tr>
+                            <tr><td><span class="badge method-get">GET</span></td><td><code>/api/dashboard/agents/enrollments/{id}</code></td><td>Dashboard session</td><td>Enrollment status and fingerprint</td></tr>
+                            <tr><td><span class="badge method-delete">DELETE</span></td><td><code>/api/dashboard/agents/enrollments/{id}</code></td><td>Dashboard session</td><td>Cancel an open enrollment</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/enrollments/claim</code></td><td>Enrollment code + PoP</td><td>Runtime submits its public key</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/enrollments/status</code></td><td>Enrollment code</td><td>Runtime polls for approval</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/enrollments/{id}/complete</code></td><td>Owner</td><td>Approve and create the agent</td></tr>
+                            <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/register</code></td><td>Owner</td><td>Register an agent (advanced)</td></tr>
                             <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/{id}/keys</code></td><td>Owner</td><td>Add a key</td></tr>
                             <tr><td><span class="badge method-post">POST</span></td><td><code>/api/agents/{id}/keys/rotate</code></td><td>Owner</td><td>Rotate a key</td></tr>
                             <tr><td><span class="badge method-delete">DELETE</span></td><td><code>/api/agents/{id}/keys/{key_id}</code></td><td>Owner</td><td>Revoke a key</td></tr>
@@ -441,12 +517,13 @@
                     <table>
                         <thead><tr><th>Status</th><th>Typical codes</th></tr></thead>
                         <tbody>
-                            <tr><td>400</td><td><code>invalid_public_key</code>, <code>invalid_audience</code></td></tr>
-                            <tr><td>401</td><td><code>missing_bearer</code>, <code>invalid_challenge</code>, <code>invalid_signature</code>, <code>key_mismatch</code>, <code>owner_mismatch</code>, <code>revoked_key</code>, <code>revoked_agent</code>, <code>message_signature_invalid</code>, <code>expired_message</code>, <code>message_replay</code></td></tr>
+                            <tr><td>400</td><td><code>invalid_public_key</code>, <code>invalid_audience</code>, <code>invalid_enrollment_code</code> (malformed)</td></tr>
+                            <tr><td>401</td><td><code>missing_bearer</code>, <code>invalid_challenge</code>, <code>invalid_signature</code>, <code>key_mismatch</code>, <code>owner_mismatch</code>, <code>revoked_key</code>, <code>revoked_agent</code>, <code>message_signature_invalid</code>, <code>expired_message</code>, <code>message_replay</code>, <code>invalid_proof_of_possession</code></td></tr>
                             <tr><td>403</td><td><code>forbidden</code>, <code>capability_denied</code></td></tr>
-                            <tr><td>404</td><td><code>unknown_agent</code>, <code>unknown_key</code></td></tr>
-                            <tr><td>409</td><td><code>duplicate</code>, <code>duplicate_public_key</code>, <code>too_many_active_keys</code></td></tr>
-                            <tr><td>429</td><td><code>rate_limited</code></td></tr>
+                            <tr><td>404</td><td><code>unknown_agent</code>, <code>unknown_key</code>, <code>invalid_enrollment_code</code>, <code>unknown_enrollment</code></td></tr>
+                            <tr><td>409</td><td><code>duplicate</code>, <code>duplicate_public_key</code>, <code>too_many_active_keys</code>, <code>enrollment_already_claimed</code>, <code>enrollment_not_claimed</code>, <code>enrollment_not_open</code>, <code>key_already_registered</code></td></tr>
+                            <tr><td>410</td><td><code>enrollment_expired</code></td></tr>
+                            <tr><td>429</td><td><code>rate_limited</code>, <code>too_many_open_enrollments</code></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -473,6 +550,8 @@
                     <li>Direct peer-to-peer agent transport (messages go through AEra)</li>
                     <li>A public JWKS for agent tokens</li>
                     <li>Capability delegation between agents</li>
+                    <li>An installer or packaged runtime (source tree and <code>python -m agent_runtime</code> only)</li>
+                    <li>Key rotation or recovery of an existing agent through enrollment (enrollment always creates a new agent)</li>
                 </ul>
             </section>
 

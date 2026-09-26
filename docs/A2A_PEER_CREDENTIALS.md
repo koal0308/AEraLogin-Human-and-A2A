@@ -121,8 +121,13 @@ only — never the secret, and never anything beginning with `aera_a2a_`.
   The row is never deleted, so `revoked_at`/`revoked_reason` and the historical
   peer identity stay auditable. Revoking a credential that is absent, already
   revoked, or another owner's all return the same `404`.
-* **Rotation** — issue a second credential for the same `peer_id`, hand it
-  over, then revoke the old one. Nothing is revoked implicitly at issuance.
+* **Rotation** — `POST /api/dashboard/a2a-credentials` with
+  `"rotate_cred_id": "<existing cred_id>"` (plus the fresh scope). The server
+  looks the credential up **for the session owner only** and reuses its
+  `peer_id`; an unknown or foreign `cred_id` returns `404 unknown_credential`.
+  The scope is re-validated like any issuance, and a body `peer_id` is always
+  ignored. Hand the new credential over, then revoke the old one. Nothing is
+  revoked implicitly at issuance.
   Multiple simultaneously valid credentials per peer are supported, so rotation
   needs no downtime.
 
