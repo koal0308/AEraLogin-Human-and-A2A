@@ -633,6 +633,52 @@
                 </ul>
             </section>
 
+            <!-- Four authentication levels -->
+            <section id="layers">
+                <h2>🧱 Security Layers: Four Separate Authentication Levels</h2>
+                <p>AEraLogIn separates four relationships. Each has its own credential, and none of them can be substituted for another.</p>
+                <table>
+                    <thead>
+                        <tr><th>Level</th><th>Who authenticates to whom</th><th>Mechanism</th><th>Cannot do</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>Human / Owner &rarr; AEraLogIn</td><td>Wallet signature (EIP-191, EIP-1271 for smart wallets) over a server nonce &rarr; dashboard session. Agent lifecycle actions additionally require an owner signature over a single-use, operation-bound challenge.</td><td>A dashboard session alone cannot register, rotate or revoke an agent key.</td></tr>
+                        <tr><td>2</td><td>AEraLogIn &rarr; Runtime</td><td>One-time enrollment code (short-lived, single use, bound to the owner). The runtime generates its Ed25519 key locally; the private key never leaves the machine. The server only stores the public key.</td><td>An enrollment code cannot be reused, and it cannot be claimed for another owner.</td></tr>
+                        <tr><td>3</td><td>Agent &rarr; Agent (A2A, internal)</td><td>Ed25519 challenge&ndash;response &rarr; short-lived Agent JWT (issuer, audience and <code>jti</code> bound). Revocation applies on the next request.</td><td>A revoked or foreign agent cannot relay messages. The JWT is not accepted as a dashboard session.</td></tr>
+                        <tr><td>4</td><td>External peer &rarr; Gateway</td><td>Owner-issued peer credential (<code>aera_a2a_&hellip;</code>). It is scoped to agents and skills, expires, and can be revoked. Only a hash is stored. The <code>peer_id</code> is minted by AEraLogIn and stays the same when the credential is rotated.</td><td>An external peer never becomes an internal agent. Its trust score does not widen its scope.</td></tr>
+                    </tbody>
+                </table>
+                <p>Details: <a href="/docs/agent-api.html#enrollment">Agent enrollment</a> &middot; <a href="/docs/AGENT_IDENTITY.md">Agent identity reference</a> &middot; <a href="/docs/a2a.html">A2A gateway</a> &middot; <a href="/docs/A2A_PEER_CREDENTIALS.md">Peer credentials reference</a></p>
+            </section>
+
+            <!-- Verification -->
+            <section id="verification">
+                <h2>🔬 Security Verification (Release Status)</h2>
+                <p>These are the automated checks behind the current release. They are reproducible from the public repository. Passing tests show that the listed properties hold under the tested conditions. They do not prove that there are no vulnerabilities.</p>
+                <table>
+                    <thead><tr><th>Check</th><th>Result</th></tr></thead>
+                    <tbody>
+                        <tr><td>Unit / integration test suite (<code>pytest tests/</code>)</td><td>668 passed, 3 skipped, 12 expected failures (documented, not-yet-implemented spec items)</td></tr>
+                        <tr><td>Agent security lab (isolated)</td><td>237 passed</td></tr>
+                        <tr><td>End-to-end release run against an isolated server (<code>tools/release_live_e2e.py</code>): enrollment, runtime, Agent JWT, A2A relay, external peer, trust monitoring, recovery, revocation, secret/log audit</td><td>114 / 114 checks</td></tr>
+                        <tr><td>Mutation checks: deliberately broken security code must be detected by the tests</td><td>Enrollment 9/9 caught &middot; external A2A 6/6 caught</td></tr>
+                        <tr><td>Negative proofs (credentials, trust, gateway, rate limit, runtime)</td><td>29/29 &middot; 32/32 &middot; 10/10 &middot; 7/7 &middot; 14/14</td></tr>
+                        <tr><td>Repository secret scan / forbidden-file audit</td><td>0 high findings &middot; 0 forbidden files</td></tr>
+                        <tr><td>Public file exposure: only allowlisted files under <code>/static</code> and <code>/docs</code></td><td>Regression tests for configuration, database, source and path-traversal requests</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Known limitations</h3>
+                <ul>
+                    <li>Trust assessment of external peers is monitoring only. It does not change any access decision, and trust enforcement is not enabled.</li>
+                    <li>No automatic installer: the agent runtime is set up by the operator. Anyone with access to the runtime host can use its key.</li>
+                    <li>No in-place key recovery after the runtime key is lost. Recovery means re-enrolling, which produces a new agent.</li>
+                    <li>Peer credentials are bearer secrets. Whoever holds one can use it until it expires or is revoked.</li>
+                    <li>Rate limiting runs in memory per process and is not shared across several server instances.</li>
+                    <li>No external audit has been done yet. The results above come from the project's own test tooling.</li>
+                </ul>
+            </section>
+
             <!-- Core Security Principles -->
             <section>
                 <h2>🎯 Core Security Principles</h2>
@@ -1046,7 +1092,7 @@ else:
                     <ul>
                         <li><strong>Phase 1:</strong> Frictionless onboarding for early adopters, full flow testing</li>
                         <li><strong>Phase 2:</strong> Sybil-resistant gates with social proof validation</li>
-                        <li><strong>Both Phases:</strong> Cryptographic security + blockchain transparency = Fake-proof system</li>
+                        <li><strong>Both Phases:</strong> Cryptographic signatures + blockchain transparency make fake accounts expensive and visible</li>
                     </ul>
                     
                     <p style="margin-top: 20px;"><strong>Result:</strong> A self-regulating community where authenticity is transparent, verifiable, and economically enforced.</p>

@@ -2044,7 +2044,7 @@ print('ed25519:' + base64.urlsafe_b64encode(raw_pub).decode().rstrip('='))
             </div>
         </div>
 
-        <!-- Living Feed Section - AUSKOMMENTIERT
+        <!-- Living Feed Section (static feedData below) -->
         <div class="card">
             <h3 class="section-title">📰 Latest Updates</h3>
             <div id="feedContainer">
@@ -2054,7 +2054,6 @@ print('ed25519:' + base64.urlsafe_b64encode(raw_pub).decode().rstrip('='))
                 </div>
             </div>
         </div>
-        -->
 
     </div>
 
@@ -2092,6 +2091,14 @@ print('ed25519:' + base64.urlsafe_b64encode(raw_pub).decode().rstrip('='))
         
         // Project Update Feed (loaded from backend or static)
         const feedData = [
+            {
+                id: 0,
+                title: "AEraLogIn Security & Release Verification Completed",
+                badge: "security",
+                timestamp: "Sep 26, 2026",
+                content: "Release verification for the agent layer is complete. Checks: a full isolated end-to-end run (enrollment, runtime, Agent JWT, A2A relay, external peers, recovery, revocation: 114/114), 668 automated tests, the agent security lab (237) and mutation checks. Only allowlisted files are now served under /static and /docs. Peer-credential rotation over the dashboard API keeps the AEra-assigned peer identity. Trust assessment stays monitoring only. Known limitations are listed on the security page.",
+                link: "/security-concept.html#verification"
+            },
             {
                 id: 1,
                 title: "AEra Gate SDK Infrastructure Live",
