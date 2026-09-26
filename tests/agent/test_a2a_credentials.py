@@ -953,3 +953,48 @@ def test_70_issuance_response_never_leaks_into_the_server_log(
     assert credential not in caplog.text
     secret = credential.rsplit("_", 1)[1]
     assert secret not in caplog.text
+
+
+# --- HTTP rotation (rotate_cred_id): peer identity survives, never caller-chosen ---
+
+def test_90_http_rotation_keeps_peer_id(client, server_module, alice):
+    first = _issue(client, server_module, alice.owner).json()
+    r = client.post(CRED_URL, json={"rotate_cred_id": first["cred_id"]},
+                    headers=session_headers(server_module, alice.owner))
+    assert r.status_code == 200, r.text
+    second = r.json()
+    assert second["peer_id"] == first["peer_id"]
+    assert second["cred_id"] != first["cred_id"]
+    assert second["credential"] != first["credential"]
+
+
+def test_91_rotation_of_foreign_credential_is_404(client, server_module, alice, bob):
+    bobs = _issue(client, server_module, bob.owner).json()
+    r = client.post(CRED_URL, json={"rotate_cred_id": bobs["cred_id"]},
+                    headers=session_headers(server_module, alice.owner))
+    assert r.status_code == 404, r.text
+    assert r.json()["error"] == "unknown_credential"
+    assert CREDENTIAL_PREFIX not in r.text
+
+
+def test_92_rotation_of_unknown_credential_is_404(client, server_module, alice):
+    r = client.post(CRED_URL, json={"rotate_cred_id": "cred_doesnotexist"},
+                    headers=session_headers(server_module, alice.owner))
+    assert r.status_code == 404, r.text
+
+
+def test_93_rotation_ignores_body_peer_id(client, server_module, alice):
+    first = _issue(client, server_module, alice.owner).json()
+    r = client.post(CRED_URL, json={"rotate_cred_id": first["cred_id"],
+                                    "peer_id": "peer_attacker_chosen"},
+                    headers=session_headers(server_module, alice.owner))
+    assert r.status_code == 200, r.text
+    assert r.json()["peer_id"] == first["peer_id"]
+
+
+def test_94_rotation_still_enforces_agent_ownership(client, server_module, alice, bob):
+    first = _issue(client, server_module, alice.owner).json()
+    r = client.post(CRED_URL, json={"rotate_cred_id": first["cred_id"],
+                                    "scoped_agents": [bob.agent_id]},
+                    headers=session_headers(server_module, alice.owner))
+    assert r.status_code == 403, r.text

@@ -8,7 +8,7 @@ License: Apache 2.0 (see LICENSE file)
 Verifies wallet addresses and manages Resonance Scores
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -338,13 +338,69 @@ class CSPMiddleware(BaseHTTPMiddleware):
 app.add_middleware(CSPMiddleware)
 logger.info("✓ CSP Middleware aktiviert (Web3 kompatibel)")
 
-# Registriere Static Files (CSS, JS, etc.)
-static_dir = os.path.join(os.path.dirname(__file__))
-try:
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
-    logger.info(f"✓ Static Files mounted: {static_dir}")
-except Exception as e:
-    logger.warning(f"⚠️ Static Files konnten nicht gemountet werden: {e}")
+# ---------------------------------------------------------------------------
+# Public file serving — ALLOWLIST ONLY.
+#
+# `/static` used to mount the whole project directory, which made `.env`,
+# `aera.db`, Python sources and internal reports downloadable. `/docs` served
+# internal working notes next to the public docs. Both are now explicit
+# allowlists; anything not listed is a 404 (same answer as a missing file).
+# ---------------------------------------------------------------------------
+_PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+#: Top-level frontend assets that may be served under /static/<name>.
+PUBLIC_STATIC_FILES = frozenset({
+    "aera-agents.js", "aera-agent-enroll.js", "aera-chat.js", "aera-chat.css",
+    "analytics.js", "blockchain-dashboard.js",
+    "favicon.png", "favicon-black.png", "favicon-transparent.png", "logo1.png",
+})
+
+#: Public docs: every *.html page, the shared assets, and these reference docs.
+PUBLIC_DOCS_MARKDOWN = frozenset({"AGENT_IDENTITY.md", "A2A_PEER_CREDENTIALS.md"})
+_PUBLIC_DOCS_ASSET_EXT = (".css", ".js", ".png", ".svg", ".ico", ".jpg", ".jpeg", ".webp", ".woff2")
+
+_MEDIA_TYPES = {".md": "text/markdown; charset=utf-8"}
+
+
+def _public_docs_path(rel: str):
+    """Resolve a /docs/<rel> request to a file path, or None if not public."""
+    if not rel or "\\" in rel or rel.startswith("/") or ".." in rel.split("/"):
+        return None
+    parts = rel.split("/")
+    if len(parts) == 1:
+        name = parts[0]
+        if not (name.endswith(".html") or name in PUBLIC_DOCS_MARKDOWN):
+            return None
+    elif len(parts) == 2 and parts[0] == "assets":
+        if not parts[1].lower().endswith(_PUBLIC_DOCS_ASSET_EXT):
+            return None
+    else:
+        return None
+    docs_root = os.path.realpath(os.path.join(_PROJECT_DIR, "docs"))
+    full = os.path.realpath(os.path.join(docs_root, *parts))
+    if not full.startswith(docs_root + os.sep) or not os.path.isfile(full):
+        return None
+    return full
+
+
+@app.get("/static/{name}", include_in_schema=False)
+async def public_static(name: str):
+    if name not in PUBLIC_STATIC_FILES:
+        raise HTTPException(status_code=404, detail="Not Found")
+    full = os.path.join(_PROJECT_DIR, name)
+    if not os.path.isfile(full):
+        raise HTTPException(status_code=404, detail="Not Found")
+    return FileResponse(full)
+
+
+@app.get("/docs/{rel:path}", include_in_schema=False)
+async def public_docs(rel: str):
+    full = _public_docs_path(rel)
+    if full is None:
+        raise HTTPException(status_code=404, detail="Not Found")
+    return FileResponse(full, media_type=_MEDIA_TYPES.get(os.path.splitext(full)[1]))
+
+logger.info("✓ /static and /docs served from explicit public allowlists")
 
 # SDK Verzeichnis für Third-Party Integration
 sdk_dir = os.path.join(os.path.dirname(__file__), "sdk")
@@ -364,15 +420,6 @@ if os.path.exists(examples_dir):
     except Exception as e:
         logger.warning(f"⚠️ Examples Files konnten nicht gemountet werden: {e}")
 
-# Docs Verzeichnis für SDK-Dokumentation
-docs_dir = os.path.join(os.path.dirname(__file__), "docs")
-if os.path.exists(docs_dir):
-    try:
-        app.mount("/docs", StaticFiles(directory=docs_dir), name="docs")
-        logger.info(f"✓ Docs Files mounted: {docs_dir}")
-    except Exception as e:
-        logger.warning(f"⚠️ Docs Files konnten nicht gemountet werden: {e}")
-
 # Favicon Route
 @app.get("/favicon.png")
 async def favicon():
@@ -381,7 +428,7 @@ async def favicon():
     return FileResponse(favicon_path, media_type="image/png")
 
 # Templates für dynamische Landing Pages
-templates = Jinja2Templates(directory=static_dir)
+templates = Jinja2Templates(directory=_PROJECT_DIR)  # server-side rendering only, not served
 
 # Datenbank-Konfiguration
 DATABASE_NAME = os.getenv("DATABASE_PATH", "./aera.db")
@@ -8699,9 +8746,25 @@ async def issue_a2a_credential(req: Request):
                     status_code=403,
                     content={"success": False, "error": "not_your_agent",
                              "detail": not_owned})
+            # Rotation: the caller names one of ITS OWN existing credentials;
+            # the peer identity is taken from that DB row. A caller can never
+            # choose a peer_id directly (a body "peer_id" is ignored).
+            rotate_peer = None
+            rotate_cred_id = body.get("rotate_cred_id")
+            if rotate_cred_id is not None:
+                row = conn.execute(
+                    "SELECT peer_id FROM a2a_peer_credentials "
+                    "WHERE cred_id = ? AND owner_address = ?",
+                    (str(rotate_cred_id)[:100], str(owner).lower())).fetchone()
+                if not row:
+                    return JSONResponse(
+                        status_code=404,
+                        content={"success": False, "error": "unknown_credential"})
+                rotate_peer = row[0]
             issued = _gw_cred.issue_credential(
                 conn, owner_address=owner, scoped_agents=scoped_agents,
-                scoped_skills=scoped_skills, peer_label=label, ttl_days=ttl_days)
+                scoped_skills=scoped_skills, peer_id=rotate_peer,
+                peer_label=label, ttl_days=ttl_days)
             conn.commit()
         finally:
             conn.close()
