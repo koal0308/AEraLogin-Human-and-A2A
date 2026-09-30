@@ -360,8 +360,51 @@ GET /api/blockchain/stats
 
 ---
 
+## 🧭 Agentic Web Architecture
+
+AEraLogIn is evolving beyond wallet authentication into a standards-oriented trust layer for agentic systems.
+
+### Core model
+
+**Human → Agent → Runtime → Capability → Action → Provenance**
+
+AEraLogIn is designed to complement, not replace, open agent protocols:
+
+- **A2A** — agent-to-agent communication
+- **MCP** — agent-to-tool and agent-to-context integration
+- **ANP / DID** — emerging agent identity interoperability
+- **Runtime identity** — cryptographic proof of the execution runtime
+- **Capability authorization** — explicit control over what an agent may do
+- **Provenance** — traceable delegation and action chains
+
+### Architecture documents
+
+- 📘 [Architecture Whitepaper](docs/WHITEPAPER.md)
+- 🛣️ [Standards-Driven Roadmap](docs/ROADMAP.md)
+- 🔐 [Agent Identity](docs/AGENT_IDENTITY.md)
+
+### Standards Watch
+
+The project tracks protocol releases, breaking changes, deprecations and emerging agent-identity standards. The current focus is **A2A 1.0.1**, the **MCP 2026-07-28** specification, Agent Identity/DID work, ANP interoperability, delegation and runtime provenance.
+
+> **Design principle:** keep the AEra core stable; integrate evolving standards through explicit adapters.
+
+---
+
 ## 🛣️ Roadmap
 
+The full standards-driven roadmap is maintained in [docs/ROADMAP.md](docs/ROADMAP.md).
+
+### Current priorities
+
+1. A2A 1.0.1 compatibility and 1.1 readiness
+2. MCP 2026-07-28 assessment and adapter boundary
+3. Agent Identity abstraction and runtime identity hardening
+4. ANP / did:wba interoperability
+5. Capability authorization and delegation
+6. Cryptographic provenance and auditability
+
+Product roadmap items:
 - **Dashboard V2 with cross-platform resonance analytics** - Enhanced user insights
 - **Optional Miniapp integration** - Once SIWE is supported natively in Base Miniapps
 
