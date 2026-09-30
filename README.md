@@ -412,7 +412,13 @@ Product roadmap items:
 
 ## 📝 License
 
-Apache License 2.0 - See [LICENSE](LICENSE) file for details
+The AEraLogIn source code in this repository is licensed under the **Apache License 2.0**.
+
+This license permits use, modification, distribution, and commercial integration of the project, subject to the terms of the license. The Apache 2.0 license also includes an express patent grant.
+
+See [LICENSE](LICENSE) for the complete license text.
+
+The **AEraLogIn name, logo, and other project branding are not granted as trademarks by the Apache License 2.0**. Separate rights may apply to third-party components and to files containing their own license or attribution notices.
 
 ---
 
