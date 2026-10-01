@@ -397,12 +397,13 @@ The full standards-driven roadmap is maintained in [docs/ROADMAP.md](docs/ROADMA
 
 ### Current priorities
 
-1. A2A 1.0.1 compatibility and 1.1 readiness
-2. MCP 2026-07-28 assessment and adapter boundary
-3. Agent Identity abstraction and runtime identity hardening
-4. ANP / did:wba interoperability
-5. Capability authorization and delegation
-6. Cryptographic provenance and auditability
+1. Multi-Usage Human Access — provider-neutral Human Identity, Google/GitHub entry and AEra Agent Hub
+2. A2A 1.0.1 compatibility and 1.1 readiness
+3. MCP 2026-07-28 assessment and adapter boundary
+4. Agent Identity abstraction and runtime identity hardening
+5. ANP / did:wba interoperability
+6. Capability authorization and delegation
+7. Cryptographic provenance and auditability
 
 Product roadmap items:
 - **Dashboard V2 with cross-platform resonance analytics** - Enhanced user insights
