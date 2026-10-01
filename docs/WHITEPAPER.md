@@ -2,7 +2,7 @@
 
 **Architecture Whitepaper — Version 1.0**  
 **Status:** Living architecture document  
-**Last reviewed:** September 2026
+**Last reviewed:** October 2026
 
 ## 1. Abstract
 
@@ -76,11 +76,70 @@ These concerns should remain separate.
                   v
               Provenance
 
-## 4. Human Identity
+## 4. Human Identity and Multi-Usage Access
 
-AEraLogIn currently uses wallet-based authentication and an on-chain identity layer. The human-controlled identity is the root from which agents can be registered and managed.
+AEraLogIn supports multiple human authentication profiles while keeping human authentication separate from agent and runtime authentication.
 
-The agent identity must remain distinct from the underlying AI model provider.
+The initial architecture uses wallet-based authentication and an on-chain identity layer. For broader adoption, AEraLogIn will add a Web2-compatible human entry layer using established OAuth/OIDC providers, initially targeting:
+
+- Google
+- GitHub
+
+The purpose is to remove the wallet requirement for users who are not Web3-native while preserving the existing wallet-based path for users who want cryptographic wallet identity.
+
+The target model is:
+
+    Human Authentication
+           |
+      +----+----+----------------+
+      |         |                |
+    Google    GitHub           Wallet
+    OAuth      OAuth            SIWE
+      |         |                |
+      +---------+----------------+
+                |
+                v
+          AEra Human Identity
+                |
+                v
+          Agent Registration
+                |
+                v
+           Agent Identity
+                |
+                v
+          Runtime Identity
+                |
+                v
+        Cryptographic Proof
+
+OAuth credentials must not become agent or runtime credentials.
+
+Instead:
+
+**OAuth / Wallet = Human authentication**
+
+**Agent identity = Software actor identity**
+
+**Runtime key = Cryptographic execution identity**
+
+**Authorization = Permission to perform an action**
+
+This preserves the core AEraLogIn trust model while making the A2A service accessible to conventional Web2 developers, enterprise users and users without prior Web3 knowledge.
+
+### Multi-Usage Design Goal
+
+The same AEraLogIn trust core should support different human entry methods without creating separate trust architectures.
+
+A user authenticated through Google, GitHub or a wallet should ultimately reach the same agent registration, runtime verification and authorization model.
+
+The A2A layer should remain agnostic to the human login provider. An external agent should verify the relevant agent identity, runtime proof, authorization context and provenance rather than depend on how the human originally authenticated.
+
+This is a deliberate separation of concerns:
+
+**Human login → AEra identity → Agent → Runtime → Authorization → A2A action**
+
+The next implementation step is therefore to introduce a provider-agnostic Human Identity abstraction with Google and GitHub as initial Web2 providers, while retaining wallet/SIWE as a first-class authentication profile.
 
 ## 5. Agent Identity
 
@@ -126,6 +185,8 @@ AEraLogIn therefore follows a compatibility-first strategy:
 - Track 1.1 development.
 - Keep protocol-specific logic behind an adapter.
 - Avoid coupling the AEra core to a single A2A implementation.
+
+The A2A service must remain independent of the human login provider. Google, GitHub and wallet authentication are entry mechanisms for the human identity layer; they do not define the A2A protocol identity of the agent or runtime.
 
 ## 9. MCP Integration
 
@@ -316,6 +377,8 @@ The architecture follows four rules:
 3. **Cryptographic proof over claims** — distinguish declared identity from verified execution.
 4. **Version-aware design** — protocol versions, capability negotiation and migration paths are first-class concerns.
 
+The multi-usage human identity layer follows the same principles: authentication providers are replaceable adapters and must not become dependencies of the AEra agent/runtime trust core.
+
 ## 18. Long-Term Vision
 
 The long-term target is:
@@ -328,6 +391,6 @@ and, for multi-agent systems:
 
 Every relevant step can carry identity, authorization and provenance.
 
-That provides a foundation for an agentic internet in which autonomous software can interact without every participant being locked to the same vendor, model, framework or platform.
+That provides a foundation for an agentic internet in which autonomous software can interact without every participant being locked to the same vendor, model, framework, authentication provider or platform.
 
 **AEraLogIn — Identity for humans. Identity for agents. Proof for runtimes. Authorization for actions.**
