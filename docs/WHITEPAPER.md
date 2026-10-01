@@ -141,6 +141,32 @@ This is a deliberate separation of concerns:
 
 The next implementation step is therefore to introduce a provider-agnostic Human Identity abstraction with Google and GitHub as initial Web2 providers, while retaining wallet/SIWE as a first-class authentication profile.
 
+### 4.1 Dashboard separation
+
+The human-facing application uses two UI surfaces while maintaining one trust architecture.
+
+**AEra Core / Web3 Dashboard** remains the existing Web3-oriented interface for wallet/SIWE authentication, Identity NFT, Resonance and other Web3-specific functions.
+
+**AEra Agent Hub** is a separate, provider-neutral interface focused on Agent registration, Runtime enrollment, A2A credentials, capabilities and authorization. Google and GitHub users enter primarily through this surface. Wallet users may also use it.
+
+This is intentionally a UI separation, not a separation of identity or trust systems:
+
+**AEra Core + Agent Hub → AEra Human Identity → Agent Registry → Runtime Registry → Authorization → A2A/MCP**
+
+The Agent Hub must reuse the same backend Agent Registry and Runtime trust model. There must not be separate Google Agents, GitHub Agents and Wallet Agents.
+
+### 4.2 Provider-neutral owner identity
+
+The current wallet-centric implementation uses the wallet as the Agent owner reference. The target architecture introduces a canonical AEra Human Identity / `owner_id` and treats wallet, Google and GitHub as authentication profiles attached to that identity.
+
+Existing wallet-owned Agents must remain compatible through an explicit migration or compatibility mapping. The migration must not create duplicate Agents or weaken existing owner checks.
+
+For Google/GitHub users, OAuth/OIDC establishes the human authentication session but does not become the Agent or Runtime credential. Sensitive Agent lifecycle operations should additionally use a cryptographic owner authorization mechanism; Passkey/WebAuthn is the current candidate for evaluation.
+
+The resulting separation is:
+
+**Authentication provider → Human Identity → owner_id → Agent → Runtime → cryptographic proof → Authorization → Action**
+
 ## 5. Agent Identity
 
 An Agent receives an independent identity represented by an agent_id and associated lifecycle state.
