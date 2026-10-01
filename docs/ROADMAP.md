@@ -17,8 +17,16 @@ Build an interoperable trust layer connecting:
 ### Human authentication profiles
 
 - [ ] Introduce provider-agnostic Human Identity abstraction
+- [ ] Define canonical `human_id` / owner identity independent of authentication provider
+- [ ] Separate Human Authentication from Agent/Runtime identity and authorization
+- [ ] Keep the existing `user-dashboard.html` as the AEra Core / Web3 dashboard
+- [ ] Introduce a separate provider-neutral Agent Hub dashboard for Google/GitHub and future Web2/enterprise users
+- [ ] Keep both dashboards on the same backend Agent Registry and Human Identity layer
+- [ ] Do not duplicate Agent Identity, Runtime Identity or A2A authorization logic between dashboards
+- [ ] Design a common dashboard API contract based on `owner_id`, not `owner_wallet`
 - [ ] Add Google OAuth/OIDC login
 - [ ] Add GitHub OAuth/OIDC login
+- [ ] Add cryptographic Web2 owner authorization (Passkey/WebAuthn candidate) before Agent lifecycle approval
 - [x] Retain wallet / SIWE authentication as a first-class profile
 - [ ] Map all supported human authentication methods into one AEra Human Identity
 - [ ] Ensure OAuth credentials are never used as Agent or Runtime credentials
@@ -26,7 +34,32 @@ Build an interoperable trust layer connecting:
 - [ ] Keep A2A independent of the human login provider
 - [ ] Document account linking between supported authentication profiles
 - [ ] Define recovery, unlinking and identity lifecycle rules
+- [ ] Define migration from existing wallet-owned Agents to provider-agnostic `owner_id`
+- [ ] Preserve backward compatibility for existing wallet/SIWE Agents during migration
 - [ ] Add security tests for OAuth/OIDC flows, session binding and account linking
+
+### Dashboard architecture
+
+The human-facing product is intentionally split at the UI layer because the existing Web3 dashboard and the new Web2/agent workflow have materially different user journeys.
+
+**AEra Core / Web3 Dashboard**
+
+- Existing `user-dashboard.html` remains the Web3-oriented dashboard.
+- Wallet/SIWE, Identity NFT, Resonance and Web3-specific functionality remain here.
+- Existing wallet users and their Agents must continue to work without a forced migration of the UI.
+
+**AEra Agent Hub**
+
+- A new provider-neutral dashboard for Agent, Runtime, A2A and authorization management.
+- Primary entry point for Google and GitHub users.
+- May also be opened by wallet users; it is not a second Agent system.
+- Uses the same Human Identity, Agent Registry, Runtime Registry and authorization backend as AEra Core.
+
+The split is therefore:
+
+**Two user interfaces → one Human Identity layer → one Agent/Runtime trust core.**
+
+No provider-specific Agent Registry, Runtime Registry or A2A implementation should be introduced.
 
 ### Multi-Usage objective
 
@@ -45,6 +78,28 @@ or:
 All three paths must converge on the same AEra trust architecture.
 
 The objective is not to replace Web3 identity. It is to remove the wallet requirement for users who do not need or want Web3 authentication.
+
+### Owner identity model
+
+The current Agent layer binds ownership to `owner_wallet`. For Multi-Usage Human Access this must evolve toward a provider-neutral `owner_id` / AEra Human Identity.
+
+Conceptually:
+
+```
+Wallet / Google / GitHub / future OIDC provider
+                    |
+                    v
+             AEra Human Identity
+                    |
+                owner_id
+                    |
+                    v
+             Agent Registry
+```
+
+Authentication-provider credentials are never Agent or Runtime credentials. OAuth/OIDC establishes the human session; a separate cryptographic authorization mechanism is required for sensitive Agent lifecycle operations. Passkey/WebAuthn is the current candidate for Web2 users and must be evaluated before implementation.
+
+Existing wallet-owned Agents must remain valid through a compatibility/migration layer rather than being duplicated into a second Agent system.
 
 ### Architectural rule
 
@@ -256,7 +311,7 @@ Before a major AEraLogIn release:
 ## Current Strategic Priorities
 
 ### Now
-1. **Multi-Usage Human Access — Google + GitHub OAuth/OIDC while retaining Wallet/SIWE**
+1. **Multi-Usage Human Access — provider-neutral Human Identity + Google/GitHub + dual-dashboard architecture while retaining Wallet/SIWE**
 2. A2A 1.0.1 compatibility
 3. MCP 2026-07-28 assessment
 4. Agent Identity abstraction
