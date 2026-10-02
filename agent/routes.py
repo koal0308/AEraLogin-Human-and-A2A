@@ -171,6 +171,14 @@ def create_agent(conn: sqlite3.Connection, *, owner_wallet: str, public_key: str
         )
     except sqlite3.IntegrityError:
         raise _err("duplicate", 409)
+    # Human Identity: the owner_wallet here is already signature-verified by
+    # the caller; resolve (or create) its human in the SAME transaction.
+    from identity import authorization as _identity_auth
+    human_id = _identity_auth.human_for_verified_wallet(conn, owner_wallet)
+    if human_id is None:
+        raise _err("owner_identity_unavailable", 403)
+    conn.execute("UPDATE agents SET owner_id = ? WHERE agent_id = ?",
+                 (human_id, agent_id))
     meta = {"owner_wallet": owner_wallet.lower()}
     if via:
         meta["via"] = via

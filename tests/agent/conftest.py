@@ -38,7 +38,8 @@ def wipe_agent_tables(server_module):
     try:
         for t in ("agent_audit_log", "agent_interactions", "agent_message_ids",
                   "agent_jti", "owner_challenges", "agent_challenges",
-                  "agent_keys", "agents", "agent_rate_limits", "agent_enrollments"):
+                  "agent_keys", "agents", "agent_rate_limits", "agent_enrollments",
+                  "human_identity_providers", "human_identities"):
             try:
                 conn.execute(f"DELETE FROM {t}")
             except Exception:

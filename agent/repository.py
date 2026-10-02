@@ -201,6 +201,10 @@ def init_schema(conn: Optional[sqlite3.Connection] = None) -> None:
     try:
         for ddl in _SCHEMA:
             c.execute(ddl)
+        # Human Identity layer (Phase 0.1): additive tables + agents.owner_id,
+        # idempotent backfill of existing wallet owners. Never rewrites data.
+        from identity import migration as _identity_migration
+        _identity_migration.migrate_existing_wallets(c)
         c.commit()
     finally:
         if own:

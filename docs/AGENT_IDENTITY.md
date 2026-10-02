@@ -186,6 +186,30 @@ a proof-of-possession signature. AEra never receives a private key, seed,
 mnemonic or decrypted key material; `LocalKeyStore` has no method that returns
 private bytes. The owner wallet key never touches the runtime.
 
+## Human Identity (owner layer, Phase 0.1)
+
+Agent owners are now also represented by a provider-neutral **Human Identity**
+(`did:aera:human:<random hex>`, package `identity/`):
+
+```
+Wallet → Human Identity → owner authorization → existing Agent system
+```
+
+* Tables `human_identities` and `human_identity_providers`
+  (`UNIQUE(provider, provider_subject)`); the only implemented provider is
+  `wallet` (subject = lowercase 0x address). Other providers are reserved and
+  refused.
+* `agents.owner_id` (nullable, additive) links an agent to its human. It is set
+  in the same transaction when an agent is created, and backfilled
+  idempotently at schema init from the existing `owner_wallet`. Rows are never
+  rewritten; an existing `owner_id` is never overwritten.
+* `owner_wallet`, owner challenges (signed payload), agent JWTs, runtime, A2A
+  gateway and Agent Cards are **unchanged**. `owner_id` is not exposed by
+  public agent endpoints or cards.
+* Dashboard agent views require the session wallet to match `owner_wallet`
+  **and**, for linked agents, the session's human to match `owner_id`.
+  Client-supplied `owner_id`/`human_id` values are ignored.
+
 ## Advanced / Developer: manual registration
 
 Still supported and unchanged: generate a key yourself

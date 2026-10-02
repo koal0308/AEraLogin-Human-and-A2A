@@ -8489,6 +8489,32 @@ def _dashboard_owner_from_request(req: Request) -> str:
     return (payload.get("address") or "").lower()
 
 
+def _dashboard_human_id(conn, owner_wallet: str):
+    """Human Identity of the (already session-verified) dashboard wallet.
+
+    Read-only: never creates an identity. Returns None if none exists or the
+    identity layer is unavailable; callers then only see agents that are not
+    yet linked to any human (owner_id IS NULL), never someone else's.
+    """
+    try:
+        from identity import repository as _idrepo
+        human = _idrepo.resolve_wallet(conn, owner_wallet)
+    except Exception:
+        return None
+    return human.human_id if human and human.is_active else None
+
+
+def _agent_owned_by_session(agent_row, owner_wallet: str, human_id) -> bool:
+    """Wallet must match AND, if the agent is linked, the human must match."""
+    if (agent_row["owner_wallet"] or "").lower() != owner_wallet:
+        return False
+    try:
+        linked = agent_row["owner_id"]
+    except (IndexError, KeyError):
+        linked = None
+    return linked is None or linked == human_id
+
+
 def _agent_row_to_dashboard_dict(agent_row, key_rows) -> dict:
     """Shape an agent for the dashboard.
 
@@ -8537,12 +8563,13 @@ async def list_my_agents(req: Request):
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT agent_id, owner_wallet, status, capabilities, label, "
-                "created_at, updated_at FROM agents "
+                "SELECT * FROM agents "
                 "WHERE lower(owner_wallet) = ? ORDER BY created_at DESC",
                 (owner,),
             )
-            agents = cursor.fetchall()
+            human_id = _dashboard_human_id(conn, owner)
+            agents = [a for a in cursor.fetchall()
+                      if _agent_owned_by_session(a, owner, human_id)]
             out = []
             for a in agents:
                 cursor.execute(
@@ -8573,14 +8600,14 @@ async def get_my_agent(agent_id: str, req: Request):
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT agent_id, owner_wallet, status, capabilities, label, "
-                "created_at, updated_at FROM agents WHERE agent_id = ?",
+                "SELECT * FROM agents WHERE agent_id = ?",
                 (agent_id,),
             )
             a = cursor.fetchone()
             # Same 404 whether the agent is absent or owned by somebody else,
             # so this endpoint cannot be used to enumerate other owners' agents.
-            if a is None or (a["owner_wallet"] or "").lower() != owner:
+            if a is None or not _agent_owned_by_session(
+                    a, owner, _dashboard_human_id(conn, owner)):
                 return JSONResponse(
                     status_code=404,
                     content={"success": False, "error": "unknown_agent"})
