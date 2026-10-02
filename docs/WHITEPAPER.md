@@ -1,275 +1,309 @@
 # AEraLogIn Trust Infrastructure for the Agentic Web
 
-**Architecture Whitepaper — Version 1.0**  
+**Architecture Whitepaper — Version 2.0**  
 **Status:** Living architecture document  
 **Last reviewed:** October 2026
 
 ## 1. Abstract
 
-AI agents are evolving from isolated assistants into software entities that can discover other agents, delegate tasks, access tools, interact with APIs and execute actions on behalf of humans and organizations.
+AI agents increasingly operate as software actors that discover other agents, exchange tasks, access tools and execute actions across organizational and network boundaries.
 
-This creates an identity and trust problem. Traditional authentication can identify an account, application or user without proving which agent runtime actually executed an operation.
+The core trust problem is no longer only **who owns an account?** It is also:
 
-AEraLogIn addresses this by separating:
+> **Which agent is acting, which runtime is actually executing, what is that runtime authorized to do, and what evidence can another system verify?**
 
-- Human identity
+AEraLogIn is an open trust and authorization layer for that boundary.
+
+The architecture separates:
+
+- Human ownership and governance
 - Agent identity
 - Runtime identity
-- Capability authorization
-- Agent-to-agent communication
-- Tool access
-- Action provenance
+- Runtime authorization
+- External peer identity
+- A2A communication
+- Execution evidence
+- Delegation and provenance
 
-AEraLogIn is intentionally designed as a trust layer around open protocols rather than as a replacement for them.
+The primary machine-to-machine trust chain is:
 
-The target trust chain is:
+**Agent → Runtime → Authorization → A2A → Execution → Evidence**
 
-**Human → Agent → Runtime → Capability → Action**
+The ownership chain remains:
 
-For delegated multi-agent workflows:
+**Human → Agent → Runtime**
 
-**Human → Agent A → Runtime A → Agent B → Runtime B → Tool → Action**
+AEraLogIn is deliberately complementary to open agent protocols. It does not attempt to replace A2A, MCP, identity standards or model platforms.
 
-## 2. Architectural Principle
+## 2. Core Architectural Principle
 
-> **Identity, execution and authorization must be independently verifiable.**
+> **Identity, authorization, execution and evidence must remain independently verifiable.**
 
-Authentication answers **who are you?**
+These questions are distinct:
 
-Authorization answers **what are you allowed to do?**
+**Identity** — Which human, agent, runtime or external peer is this?
 
-Runtime verification answers **which execution environment actually performed the action?**
+**Authorization** — Is this principal permitted to perform this operation against this target?
 
-Provenance answers **how did this action originate and which chain of delegation led to it?**
+**Execution authenticity** — Which registered runtime produced the response or execution artifact?
 
-These concerns should remain separate.
+**Evidence** — What security-relevant facts can be inspected or cryptographically verified afterwards?
 
-## 3. AEraLogIn Layers
+A valid identity must never be treated as automatic authorization.
 
-    Human Identity
-          |
-          v
-    Agent Identity
-          |
-          v
-    Runtime Identity
-          |
-          v
-    Cryptographic Proof
-          |
-          v
-    Authorization / Capabilities
-          |
-          +----------------+
-          |                |
-          v                v
-         A2A              MCP
-          |                |
-          v                v
-       Agents             Tools
-          |                |
-          +-------+--------+
-                  |
-                  v
-                Action
-                  |
-                  v
-              Provenance
+A valid authorization decision must not be treated as proof that a specific runtime executed the action.
 
-## 4. Human Identity and Multi-Usage Access
+A log entry must not be treated as cryptographic proof merely because it exists.
 
-AEraLogIn supports multiple human authentication profiles while keeping human authentication separate from agent and runtime authentication.
+## 3. AEraLogIn Trust Architecture
 
-The initial architecture uses wallet-based authentication and an on-chain identity layer. For broader adoption, AEraLogIn will add a Web2-compatible human entry layer using established OAuth/OIDC providers, initially targeting:
+```text
+Human / Owner
+      |
+      | owns / enrolls / governs
+      v
+Agent Identity
+      |
+      | bound to
+      v
+Runtime Identity
+      |
+      | authenticated execution boundary
+      v
+Runtime Authorization
+      |
+      +----------------------+
+      |                      |
+      v                      v
+     A2A              Other Protocol Adapters
+      |                      |
+      v                      v
+External Peers          MCP / DID / ANP /
+                         Workload Identity
+      |
+      v
+Execution / Response
+      |
+      v
+Evidence / Provenance
+```
 
-- Google
-- GitHub
+The AEra core is the trust boundary. Protocols and human authentication methods are adapters or entry mechanisms around it.
 
-The purpose is to remove the wallet requirement for users who are not Web3-native while preserving the existing wallet-based path for users who want cryptographic wallet identity.
+## 4. Agent Identity
+
+An AEra Agent is a software actor with an independent `agent_id` and lifecycle state.
+
+The identity is not tied to a specific:
+
+- LLM
+- model provider
+- machine
+- process instance
+- human login provider
+
+This allows the runtime or underlying model to change without silently changing the logical agent.
+
+Agent lifecycle operations are owner-controlled. The current implementation supports owner challenges, agent registration, key lifecycle, capability assignment and revocation.
+
+## 5. Runtime Identity
+
+The runtime is the execution process that actually handles agent work.
+
+The implemented runtime model uses an Ed25519 key generated and held locally by the runtime. The private key does not leave the runtime. AEra registers the public key and verifies signatures produced by the corresponding active key.
+
+The resulting execution boundary is:
+
+```text
+Agent
+  ↓
+Registered Runtime Key
+  ↓
+Runtime-generated signature
+  ↓
+Gateway verification
+  ↓
+Accept / reject
+```
+
+Runtime key state and agent state are revocable. Revocation propagates into the runtime authentication and A2A delivery path.
+
+## 6. Runtime Enrollment
+
+The recommended creation flow is runtime-first:
+
+```text
+Owner Dashboard
+    ↓
+Enrollment code
+    ↓
+Runtime generates Ed25519 key locally
+    ↓
+Proof of possession
+    ↓
+Owner approval
+    ↓
+Agent + Runtime registration
+    ↓
+Runtime starts
+```
+
+The owner does not handle the runtime private key.
+
+The runtime does not handle the owner's wallet key.
+
+Enrollment codes are single-use, short-lived and stored through a hashed secret representation. The submitted public key is bound to the enrollment through a proof-of-possession signature.
+
+This establishes a concrete relationship between:
+
+**owner authorization → agent identity → runtime key**
+
+## 7. Runtime Authorization
+
+Runtime authorization is the central engineering concern of the A2A-first architecture.
+
+The system must distinguish:
+
+1. an identified agent,
+2. a registered runtime,
+3. an active runtime key,
+4. an authorization decision,
+5. an actual runtime-generated response.
+
+The current implementation already verifies the runtime side of the A2A path:
+
+- the runtime authenticates with AEra,
+- the runtime holds the private key,
+- the gateway sends work to the target runtime,
+- the runtime signs its response,
+- the gateway verifies the signature,
+- the key must still be active,
+- the returned agent and request identifiers must match the request.
+
+Future authorization work extends this from agent-level capability checks toward explicit runtime-scoped permissions, resources, deny rules and formal authorization semantics.
+
+## 8. A2A as the Primary Interoperability Surface
+
+A2A is the communication and interoperability layer.
+
+AEraLogIn does not define a competing agent-to-agent protocol. Instead, it surrounds A2A traffic with additional trust semantics.
+
+The current architecture exposes:
+
+- an Agent Card,
+- `/.well-known/agent-card.json`,
+- an A2A gateway,
+- `POST /api/a2a`,
+- runtime-authenticated delivery,
+- external peer credentials,
+- replay protection,
+- rate limiting,
+- runtime-signed responses.
+
+The conceptual separation is:
+
+```text
+A2A
+  = how agents communicate
+
+AEraLogIn
+  = who / which runtime / what authorization / what evidence
+```
+
+This keeps the AEra trust core independent of the transport and protocol evolution of A2A.
+
+## 9. External A2A Peer Trust
+
+External agents are separate trust domains.
+
+A peer credential proves:
+
+> **This request is associated with peer X.**
+
+It does not by itself prove:
+
+> **Peer X is authorized to invoke agent Y.**
+
+The implemented model therefore evaluates:
+
+```text
+credential
+   ↓
+ExternalPeerIdentity
+   ↓
+peer authorization
+   ↓
+scope checks
+   ↓
+rate limit
+   ↓
+replay guard
+   ↓
+runtime delivery
+```
+
+Current peer credentials are:
+
+- opaque rather than JWT-based,
+- stored server-side by secret hash,
+- owner-issued,
+- scoped to agents and skills,
+- expiring,
+- revocable,
+- rotatable,
+- associated with an AEra-minted stable `peer_id`.
+
+Invalid credentials fail closed. Credential failures are deliberately collapsed into an opaque authentication error so the gateway does not become an enumeration oracle.
+
+## 10. Capabilities and Authorization
+
+Identity and capability are separate.
+
+A capability is an authorization claim; it is not an identity.
+
+The current agent layer has server-issued capabilities such as:
+
+- `agent.authenticate`
+- `agent.read.profile`
+- `agent.communicate`
+- `agent.interaction.record`
+
+The current A2A peer layer additionally supports scoped agents and scoped skills.
+
+The next architecture step is to formalize a cross-layer capability vocabulary that can express:
+
+- agent scope,
+- runtime scope,
+- resource scope,
+- tool scope,
+- explicit deny rules,
+- expiration,
+- revocation,
+- delegation.
+
+## 11. Delegated Agent Execution
+
+Multi-agent systems introduce a second authorization boundary.
 
 The target model is:
 
-    Human Authentication
-           |
-      +----+----+----------------+
-      |         |                |
-    Google    GitHub           Wallet
-    OAuth      OAuth            SIWE
-      |         |                |
-      +---------+----------------+
-                |
-                v
-          AEra Human Identity
-                |
-                v
-          Agent Registration
-                |
-                v
-           Agent Identity
-                |
-                v
-          Runtime Identity
-                |
-                v
-        Cryptographic Proof
-
-OAuth credentials must not become agent or runtime credentials.
-
-Instead:
-
-**OAuth / Wallet = Human authentication**
-
-**Agent identity = Software actor identity**
-
-**Runtime key = Cryptographic execution identity**
-
-**Authorization = Permission to perform an action**
-
-This preserves the core AEraLogIn trust model while making the A2A service accessible to conventional Web2 developers, enterprise users and users without prior Web3 knowledge.
-
-### Multi-Usage Design Goal
-
-The same AEraLogIn trust core should support different human entry methods without creating separate trust architectures.
-
-A user authenticated through Google, GitHub or a wallet should ultimately reach the same agent registration, runtime verification and authorization model.
-
-The A2A layer should remain agnostic to the human login provider. An external agent should verify the relevant agent identity, runtime proof, authorization context and provenance rather than depend on how the human originally authenticated.
-
-This is a deliberate separation of concerns:
-
-**Human login → AEra identity → Agent → Runtime → Authorization → A2A action**
-
-The next implementation step is therefore to introduce a provider-agnostic Human Identity abstraction with Google and GitHub as initial Web2 providers, while retaining wallet/SIWE as a first-class authentication profile.
-
-### 4.1 Dashboard separation
-
-The human-facing application uses two UI surfaces while maintaining one trust architecture.
-
-**AEra Core / Web3 Dashboard** remains the existing Web3-oriented interface for wallet/SIWE authentication, Identity NFT, Resonance and other Web3-specific functions.
-
-**AEra Agent Hub** is a separate, provider-neutral interface focused on Agent registration, Runtime enrollment, A2A credentials, capabilities and authorization. Google and GitHub users enter primarily through this surface. Wallet users may also use it.
-
-This is intentionally a UI separation, not a separation of identity or trust systems:
-
-**AEra Core + Agent Hub → AEra Human Identity → Agent Registry → Runtime Registry → Authorization → A2A/MCP**
-
-The Agent Hub must reuse the same backend Agent Registry and Runtime trust model. There must not be separate Google Agents, GitHub Agents and Wallet Agents.
-
-### 4.2 Provider-neutral owner identity
-
-The current wallet-centric implementation uses the wallet as the Agent owner reference. The target architecture introduces a canonical AEra Human Identity / `owner_id` and treats wallet, Google and GitHub as authentication profiles attached to that identity.
-
-Existing wallet-owned Agents must remain compatible through an explicit migration or compatibility mapping. The migration must not create duplicate Agents or weaken existing owner checks.
-
-For Google/GitHub users, OAuth/OIDC establishes the human authentication session but does not become the Agent or Runtime credential. Sensitive Agent lifecycle operations should additionally use a cryptographic owner authorization mechanism; Passkey/WebAuthn is the current candidate for evaluation.
-
-The resulting separation is:
-
-**Authentication provider → Human Identity → owner_id → Agent → Runtime → cryptographic proof → Authorization → Action**
-
-## 5. Agent Identity
-
-An Agent receives an independent identity represented by an agent_id and associated lifecycle state.
-
-The identity belongs to the agent as a software actor, not to a particular LLM.
-
-This permits a runtime to change its underlying model without forcing the agent identity to change.
-
-## 6. Runtime Identity
-
-The runtime is the software process that actually executes an agent.
-
-AEraLogIn currently uses an Ed25519 key generated locally by the Agent Runtime. The private key remains in the runtime. AEraLogIn receives and registers the public key.
-
-This creates a cryptographic binding between an agent and a registered execution runtime.
-
-## 7. Runtime Authentication
-
-The AEra Gateway can verify that a response corresponds to an active registered runtime key.
-
-The resulting chain is:
-
-Agent
-  -> Registered Runtime
-  -> Public Key
-  -> Cryptographic Signature
-  -> Gateway Verification
-
-Key rotation and revocation are part of the runtime lifecycle.
-
-## 8. A2A Integration
-
-A2A is treated as the communication layer for agent-to-agent interoperability.
-
-AEraLogIn should not replace A2A. Instead, AEraLogIn can provide identity, runtime authentication and authorization context around A2A communication.
-
-The current A2A protocol release is 1.0.1. The A2A roadmap continues work toward 1.1, bidirectional streaming, richer multi-turn workflows and validation tooling.
-
-AEraLogIn therefore follows a compatibility-first strategy:
-
-- Maintain A2A 1.0.x interoperability.
-- Track 1.1 development.
-- Keep protocol-specific logic behind an adapter.
-- Avoid coupling the AEra core to a single A2A implementation.
-
-The A2A service must remain independent of the human login provider. Google, GitHub and wallet authentication are entry mechanisms for the human identity layer; they do not define the A2A protocol identity of the agent or runtime.
-
-## 9. MCP Integration
-
-MCP is treated as the agent-to-tool and agent-to-context integration layer.
-
-The current MCP specification is 2026-07-28. It introduced a stateless protocol core, per-request metadata, protocol version negotiation and significant transport/authentication changes.
-
-AEraLogIn should therefore isolate MCP behind an adapter:
-
-AEra Identity
-     |
-Agent Identity
-     |
-Runtime Identity
-     |
-Authorization
-     |
-MCP Adapter
-     |
-MCP Server / Tool
-
-The AEra identity core must not depend on MCP session semantics.
-
-## 10. Agent Identity, DID and ANP
-
-The ecosystem is also developing explicit agent-identity mechanisms, including DID-based approaches and HTTP-level cryptographic authentication.
-
-AEraLogIn should support interoperability with such systems without making one DID method a permanent architectural dependency.
-
-Potential adapters include:
-
-- did:wba
-- did:web
-- did:webvh
-- HTTP Message Signatures
-- OAuth/OIDC
-- Enterprise workload identity
-
-These should be treated as identity/authentication profiles around the AEra core.
-
-## 11. Delegation
-
-Multi-agent systems require restricted delegation.
-
-Example:
-
-Human
-  |
+```text
 Agent A
-  |
-delegates limited capability
-  |
+   |
+   | limited delegated authority
+   v
 Agent B
-  |
-Tool
+   |
+   v
+Runtime B
+   |
+   v
+Authorized action
+```
 
-Delegation should carry, where applicable:
+Delegation must not transfer all authority implicitly.
+
+A future delegation model should carry, where applicable:
 
 - issuer
 - subject
@@ -279,144 +313,166 @@ Delegation should carry, where applicable:
 - expiry
 - nonce
 - parent task
-- provenance
+- delegation chain
 - cryptographic proof
 
-Agent A must not automatically transfer all of its authority to Agent B.
+Delegation is intentionally separate from peer authentication.
 
-## 12. Capability Authorization
+## 12. Verifiable Execution and Evidence
 
-AEraLogIn should separate identity from permissions.
+AEraLogIn aims to make execution boundaries inspectable without overstating what cryptography proves.
 
-Example:
+A signed runtime response can establish that a response was produced by the holder of an active registered runtime key, subject to successful verification.
 
-maintenance-agent-01
+It does **not**, by itself, prove that:
 
-read.machine.status       ALLOWED
-read.temperature          ALLOWED
-read.cpu                  ALLOWED
-restart.machine           DENIED
-modify.configuration      DENIED
-download.firmware         DENIED
+- the physical world changed as requested,
+- a downstream tool actually completed the action,
+- a human intended the exact output,
+- every intermediate system in a distributed workflow behaved correctly.
 
-This becomes especially important in enterprise and industrial environments.
+The roadmap therefore separates:
 
-## 13. Provenance
+**runtime authenticity → authorization decision → execution evidence → provenance**
 
-A mature AEraLogIn deployment should be able to represent an auditable action chain:
+Future signed action receipts and portable evidence formats should add stronger, explicit semantics around completed actions.
 
-Human
-  |
-authorized
-  v
-Agent A
-  |
-delegated
-  v
-Agent B
-  |
-runtime authenticated
-  v
-Runtime B
-  |
-capability verified
-  v
-MCP Tool
-  |
-action executed
-  v
-Result
+## 13. Logging and Auditability
 
-The goal is not simply logging. The goal is verifiable provenance.
+Logging is an evidence layer, not the authorization mechanism.
 
-## 14. Enterprise and Industrial Use
+Security-sensitive records should eventually be able to represent:
 
-A machine-monitoring scenario illustrates the intended architecture.
+- authorization decision,
+- runtime identity,
+- target agent,
+- peer identity,
+- request/task correlation,
+- capability evaluation,
+- execution result,
+- revocation state,
+- timestamps,
+- provenance relationships.
 
-Instead of exposing machine telemetry broadly:
+Sensitive credentials and private keys must never enter logs.
 
-Machine
-  |
-Always-online API
-  |
-Network access
+The existing peer credential implementation explicitly excludes plaintext credentials, credential hashes, authorization headers, JWT secrets, private keys and provider API keys from logs and audit records.
 
-a controlled agent boundary can be used:
+## 14. Human Identity
 
-Machine
-  |
-Local Agent Runtime
-  |
-AEra Identity
-  |
-Capability Verification
-  |
-Authorized Request
-  |
-Machine Data
+Human identity is intentionally secondary in the A2A-first architecture.
 
-Potential applications include:
+Its responsibilities are:
 
-- industrial machines
-- server monitoring
-- enterprise databases
-- internal documents
-- maintenance systems
-- remote diagnostics
-- controlled software deployment
+- ownership,
+- enrollment approval,
+- administration,
+- lifecycle governance,
+- optional human-facing authentication.
 
-## 15. Protocol Independence
+Human authentication is not runtime authentication.
 
-AEraLogIn should remain protocol-neutral at its core.
+Wallet, OAuth/OIDC, Passkeys or other future providers may establish a human session, but none of them should become the credential proving that a runtime executed an A2A action.
 
-                    AEra Core
-                       |
-        +--------------+--------------+
-        |              |              |
-       A2A            MCP            ANP
-        |              |              |
-     Agents          Tools        Networks
+The existing Human Identity layer therefore remains a governance subsystem rather than the architectural center.
 
-Additional adapters can be added for OAuth/OIDC, SPIFFE/workload identity, DID methods and future agent-identity standards.
+## 15. Protocol Adapters
 
-## 16. Strategic Position
+The trust core should remain protocol-neutral.
 
-AEraLogIn should not become:
+```text
+                    AEra Trust Core
+                          |
+        +-----------------+------------------+
+        |                 |                  |
+       A2A               MCP           Identity / HTTP
+        |                 |             / Workload
+      Agents            Tools             Identity
+```
 
-- another LLM framework
-- another orchestration platform
-- another MCP implementation
-- another A2A replacement
-- another model provider
-- a closed proprietary agent network
+Potential adapter areas include:
 
-Its architectural purpose is narrower:
+- MCP
+- DID-based identities
+- HTTP message signatures
+- enterprise workload identity
+- OAuth/OIDC for human ownership
+- future agent identity standards
 
-> **Establish and verify trust between humans, agents, runtimes and actions across interoperable agent protocols.**
+New protocols should normally be adapters around the AEra trust core, not replacements for it.
 
-## 17. Evolution Strategy
+## 16. Security Boundaries
 
-The architecture follows four rules:
+The current architecture intentionally keeps these credentials separate:
 
-1. **Standards first** — prefer open protocols and published specifications.
-2. **Adapters over forks** — integrate evolving standards without changing the AEra core unnecessarily.
-3. **Cryptographic proof over claims** — distinguish declared identity from verified execution.
-4. **Version-aware design** — protocol versions, capability negotiation and migration paths are first-class concerns.
+| Trust domain | Credential / proof | Purpose |
+|---|---|---|
+| Human owner | dashboard / owner authorization | governance and lifecycle |
+| Agent | Agent JWT + Ed25519 identity | agent API authentication |
+| Runtime | runtime-held Ed25519 key | execution authenticity |
+| External A2A peer | opaque peer credential | inbound peer identity |
+| Internal gateway-runtime channel | shared internal secret | local transport authentication |
 
-The multi-usage human identity layer follows the same principles: authentication providers are replaceable adapters and must not become dependencies of the AEra agent/runtime trust core.
+A credential from one domain must not silently satisfy another domain's authorization requirement.
 
-## 18. Long-Term Vision
+This is a core security invariant.
 
-The long-term target is:
+## 17. Current Strategic Position
 
-**Human → Trusted Agent → Trusted Runtime → Authorized Capability → Verifiable Action**
+AEraLogIn is not intended to become:
 
-and, for multi-agent systems:
+- an LLM or model provider,
+- an agent orchestration framework,
+- an A2A replacement,
+- an MCP replacement,
+- a closed agent network,
+- a consumer login product.
 
-**Human → Agent A → Runtime A → Agent B → Runtime B → Tool → Action**
+Its purpose is narrower:
 
-Every relevant step can carry identity, authorization and provenance.
+> **Provide a verifiable trust boundary between agent identity, runtime execution, authorization and interoperable agent actions.**
 
-That provides a foundation for an agentic internet in which autonomous software can interact without every participant being locked to the same vendor, model, framework, authentication provider or platform.
+## 18. Long-Term Target
 
-**AEraLogIn — Identity for humans. Identity for agents. Proof for runtimes. Authorization for actions.**
+The intended trust path is:
+
+**Human Ownership → Agent → Runtime → Authorization → A2A → Action → Evidence**
+
+For multi-agent execution:
+
+**Human → Agent A → Runtime A → Delegation → Agent B → Runtime B → Authorized Action → Evidence**
+
+The long-term goal is not merely to identify agents. It is to make the execution boundary itself a first-class security primitive.
+
+**AEraLogIn — Agent Execution, Runtime Authorization & Logging Infrastructure**
+
+---
+
+## 19. Implementation Status
+
+Implemented foundations include:
+
+- runtime enrollment,
+- runtime-held Ed25519 keys,
+- agent identity and lifecycle,
+- runtime signature verification,
+- revocation,
+- A2A Agent Card and gateway,
+- external A2A peer credentials,
+- credential scope, expiry, rotation and revocation,
+- replay protection,
+- rate limiting,
+- signed runtime responses,
+- structured trust evidence in the existing end-to-end path.
+
+Major future work includes:
+
+- formal runtime capability vocabulary,
+- resource/tool-level authorization,
+- explicit deny semantics,
+- signed action receipts,
+- portable evidence verification,
+- delegation,
+- stronger provenance semantics,
+- protocol conformance tooling,
+- optional human identity provider expansion.
