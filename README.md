@@ -360,8 +360,52 @@ GET /api/blockchain/stats
 
 ---
 
+## 🧭 Agentic Web Architecture
+
+AEraLogIn is evolving beyond wallet authentication into a standards-oriented trust layer for agentic systems.
+
+### Core model
+
+**Human → Agent → Runtime → Capability → Action → Provenance**
+
+AEraLogIn is designed to complement, not replace, open agent protocols:
+
+- **A2A** — agent-to-agent communication
+- **MCP** — agent-to-tool and agent-to-context integration
+- **ANP / DID** — emerging agent identity interoperability
+- **Runtime identity** — cryptographic proof of the execution runtime
+- **Capability authorization** — explicit control over what an agent may do
+- **Provenance** — traceable delegation and action chains
+
+### Architecture documents
+
+- 📘 [Architecture Whitepaper](docs/WHITEPAPER.md)
+- 🛣️ [Standards-Driven Roadmap](docs/ROADMAP.md)
+- 🔐 [Agent Identity](docs/AGENT_IDENTITY.md)
+
+### Standards Watch
+
+The project tracks protocol releases, breaking changes, deprecations and emerging agent-identity standards. The current focus is **A2A 1.0.1**, the **MCP 2026-07-28** specification, Agent Identity/DID work, ANP interoperability, delegation and runtime provenance.
+
+> **Design principle:** keep the AEra core stable; integrate evolving standards through explicit adapters.
+
+---
+
 ## 🛣️ Roadmap
 
+The full standards-driven roadmap is maintained in [docs/ROADMAP.md](docs/ROADMAP.md).
+
+### Current priorities
+
+1. Multi-Usage Human Access — provider-neutral Human Identity, Google/GitHub entry and AEra Agent Hub
+2. A2A 1.0.1 compatibility and 1.1 readiness
+3. MCP 2026-07-28 assessment and adapter boundary
+4. Agent Identity abstraction and runtime identity hardening
+5. ANP / did:wba interoperability
+6. Capability authorization and delegation
+7. Cryptographic provenance and auditability
+
+Product roadmap items:
 - **Dashboard V2 with cross-platform resonance analytics** - Enhanced user insights
 - **Optional Miniapp integration** - Once SIWE is supported natively in Base Miniapps
 
@@ -369,7 +413,13 @@ GET /api/blockchain/stats
 
 ## 📝 License
 
-Apache License 2.0 - See [LICENSE](LICENSE) file for details
+The AEraLogIn source code in this repository is licensed under the **Apache License 2.0**.
+
+This license permits use, modification, distribution, and commercial integration of the project, subject to the terms of the license. The Apache 2.0 license also includes an express patent grant.
+
+See [LICENSE](LICENSE) for the complete license text.
+
+The **AEraLogIn name, logo, and other project branding are not granted as trademarks by the Apache License 2.0**. Separate rights may apply to third-party components and to files containing their own license or attribution notices.
 
 ---
 
