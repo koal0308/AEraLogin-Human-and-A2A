@@ -1,128 +1,161 @@
-# AEraLogIn Human & A2A
+# AEraLogIn — Agent Execution, Runtime Authorization & Logging Infrastructure
 
-AEraLogIn is an open-source trust and authorization layer for human-owned AI agents and their execution runtimes.
+AEraLogIn is an open-source authorization and interoperability layer for autonomous agents, their execution runtimes, and agent-to-agent communication.
 
-> **Repository status: Frozen Open-Source Reference Implementation**
+> **A2A-first architecture. Human Identity is an ownership and bootstrap layer — not the center of execution authorization.**
 
-This repository preserves the public Human & A2A reference implementation. It is no longer the active development repository. Future architectural and feature development continues separately.
+AEraLogIn separates six concerns:
 
-## What this reference demonstrates
+**Human ownership → Agent identity → Runtime identity → Authorization → A2A communication → Execution evidence**
 
-AEraLogIn separates four concerns that are often collapsed into a single login credential:
+## The core problem
 
-**Human identity → Agent identity → Runtime identity → Authorized action**
+A credential can identify an account without proving which runtime actually performed an action.
 
-A human can own an agent without the human authentication mechanism becoming the agent's execution credential. The runtime uses its own cryptographic identity so that an external party can distinguish an authorized agent/runtime from a mere account credential.
+| Question | AEra layer |
+|---|---|
+| Who owns this agent? | Human / Owner Identity |
+| Which software agent is this? | Agent Identity |
+| Which runtime is actually executing? | Runtime Identity |
+| Is this runtime allowed to act? | Runtime Authorization |
+| Can another agent communicate with it? | A2A Gateway |
+| What happened during execution? | Logging / Evidence |
 
-The reference implementation includes:
+## A2A-first architecture
 
-- Human identity and owner binding
-- Agent registration and lifecycle management
-- Runtime enrollment and cryptographic runtime keys
-- A2A gateway integration
-- Agent Cards and peer credentials
-- Capability and authorization checks
-- Replay protection and rate limiting
-- Security-focused negative-proof testing
-- External A2A interoperability tests
-- SDK and integration examples
+~~~text
+Human / Owner
+     │ owns / enrolls / governs
+     ▼
+Agent Identity
+     │
+     ▼
+Runtime Identity
+     │
+     ▼
+Runtime Authorization
+     │
+     ▼
+A2A Gateway
+     │
+     ├──────── AEra Agent Runtime
+     │
+     └──────── External A2A Peer
+     │
+     ▼
+Execution / Response
+     │
+     ▼
+Logging / Evidence
+~~~
 
-## Architecture
+The important boundary is not the human login. It is the transition from **identity to authorized execution**.
 
-```text
-Human
-  │
-  └── owns ──► Agent
-                 │
-                 └── executes through ──► Runtime
-                                           │
-                                           ▼
-                                   Cryptographic proof
-                                           │
-                                           ▼
-                                      Authorization
-                                           │
-                                           ▼
-                                      A2A / Action
-```
+## Human Identity
 
-The important boundary is:
+Human authentication remains supported, but it is deliberately secondary to the agent execution architecture.
 
-- **Human authentication** establishes the human/owner context.
-- **Agent identity** identifies the software actor.
-- **Runtime identity** proves which registered execution runtime acted.
-- **Authorization** determines what that actor is permitted to do.
-- **A2A** provides interoperable agent-to-agent communication.
+Human identity is used for ownership, agent enrollment, lifecycle administration, key rotation/revocation authorization and optional human-facing authentication.
+
+A human credential is **not** an agent runtime credential and is never treated as proof that a particular runtime executed an action.
+
+## Agent Identity
+
+An agent has its own cryptographic identity and lifecycle, including stable identity, Ed25519 keys, key identifiers, challenge-response verification, rotation and revocation.
+
+Agent identity is distinct from human sessions and external A2A peer credentials.
+
+## Runtime Identity
+
+The runtime is the execution boundary.
+
+The private runtime key is generated and retained by the runtime. AEraLogIn receives the public key and binds it to the registered agent/runtime relationship.
+
+This allows the system to distinguish:
+
+~~~text
+an account has access
+        from
+this registered runtime actually acted
+~~~
+
+That distinction is central to AEraLogIn.
+
+## Runtime Authorization
+
+Authentication is not authorization.
+
+AEraLogIn establishes explicit authorization boundaries around the target agent, runtime, capability/skill, external peer, credential scope, lifecycle state and revocation state.
+
+A valid identity alone does not grant unrestricted execution rights.
+
+## A2A Interoperability
+
+AEraLogIn does not replace the A2A protocol. It provides an authorization and trust boundary around A2A communication.
+
+The public A2A surface includes:
+
+- `/.well-known/agent-card.json`
+- `POST /api/a2a`
+- JSON-RPC based A2A messaging
+- capability discovery
+- scoped peer credentials where configured
+- replay protection
+- gateway authorization
+
+External agents remain external peers. Reaching the gateway does not automatically make a caller an AEra agent or grant it permissions.
+
+## Logging and Evidence
+
+The **LogIn** identity is intentionally retained through the concept of **Logging Infrastructure**:
+
+> **AEraLogIn = Agent Execution, Runtime Authorization & Logging Infrastructure**
+
+Logging is part of the evidence boundary around authorization and execution. It is not itself authorization, and logs must not be treated as cryptographic proof merely because an event was recorded.
+
+## Project scope
+
+AEraLogIn is an agent authorization layer, runtime identity layer, A2A interoperability gateway, capability/credential boundary and security reference implementation for verifiable agent execution.
+
+AEraLogIn is not an LLM, agent framework, model provider, MCP replacement, A2A replacement or general-purpose human login product.
+
+## Development direction
+
+Future development priorities are:
+
+1. Runtime Authorization
+2. A2A interoperability
+3. Agent/runtime cryptographic binding
+4. Capability and credential semantics
+5. Verifiable execution and response provenance
+6. Security testing and negative proofs
+7. Auditability and operational evidence
+8. Human identity only where it supports ownership and governance
+
+Human Login remains supported, but it is no longer the architectural center of gravity.
 
 ## Repository status
 
-This repository is intentionally frozen.
+This branch contains the **A2A-first reorientation** of the public reference repository.
 
-It should be treated as:
-
-- a public reference implementation
-- a historical architecture snapshot
-- a reproducible security and interoperability reference
-
-It should **not** be treated as the source of truth for unreleased future AEraLogIn development.
-
-## Repository structure
-
-```text
-agent/                    Agent identity and lifecycle
-agent_runtime/            Runtime identity and execution
-a2a_gateway/              A2A authentication, trust and routing
-identity/                 Human identity and ownership
-aera-agent-security-lab/  Security and external-A2A test lab
-sdk/                      Integration SDK
-examples/                 Integration examples
-tests/                    Automated tests
-docs/                     Architecture and API documentation
-tools/                    Validation and test utilities
-legacy/                   Historical components retained for reference
-```
-
-## Getting started
-
-See [QUICKSTART.md](QUICKSTART.md) for the reference setup.
-
-For architecture details:
-
-- [Agent Identity](docs/AGENT_IDENTITY.md)
-- [A2A Peer Credentials](docs/A2A_PEER_CREDENTIALS.md)
-- [Whitepaper](docs/WHITEPAPER.md)
-- [System Analysis](docs/SYSTEM_ANALYSIS.md)
+The original `main` branch remains preserved as the frozen reference snapshot. This branch intentionally changes the project narrative and development direction without rewriting the historical reference state.
 
 ## Testing
 
-The reference repository contains a substantial automated test suite covering Human Identity, Agent Identity, Runtime authentication, A2A credentials and trust, replay protection, authorization and security-lab scenarios.
-
 Run the standard suite with:
 
-```bash
+~~~bash
 python -m pytest tests/ -q
-```
+~~~
 
-The security lab has its own test suite under `aera-agent-security-lab/`.
-
-Historical verification results describe the tested state at the time of the reference snapshot and should not be interpreted as a guarantee about a future deployment.
-
-## Security
-
-Security issues should be reported according to [SECURITY.md](SECURITY.md).
-
-Do not commit private keys, API tokens, OAuth client secrets, production databases, runtime private keys or deployment credentials.
+The security lab contains additional negative-proof and interoperability scenarios.
 
 ## License
 
-AEraLogIn Human & A2A is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
-
-## Scope
-
-This project is not an LLM, agent framework, model provider, MCP replacement, or A2A replacement.
-
-Its purpose is to provide a trust boundary between human ownership, agent identity, runtime execution and authorization while remaining interoperable with open agent protocols.
+AEraLogIn is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
 
 ---
 
-**AEraLogIn — identity for humans, identity for agents, proof for runtimes, authorization for actions.**
+**AEraLogIn — Agent Execution, Runtime Authorization & Logging Infrastructure.**
+
+**Identity establishes the actor. Authorization establishes the boundary. A2A establishes interoperability. Logging preserves the evidence.**
