@@ -1,6 +1,8 @@
 # AEraLogIn Roadmap
 
-**Living roadmap — October 2026**
+**Frozen roadmap snapshot — October 2026**
+
+> This roadmap is historical. This repository is frozen and is not the active development line.
 
 This roadmap is standards-driven. AEraLogIn should evolve with the agent ecosystem rather than locking its core architecture to one protocol.
 
@@ -308,7 +310,7 @@ Before a major AEraLogIn release:
 - **Deprecated** — migration required
 - **Superseded** — do not add new dependencies
 
-## Current Strategic Priorities
+## Strategic Priorities Recorded at Freeze
 
 ### Now
 1. **Multi-Usage Human Access — provider-neutral Human Identity + Google/GitHub + dual-dashboard architecture while retaining Wallet/SIWE**
