@@ -41,12 +41,15 @@ Target: Agent → Runtime → Signature → Authorization → A2A Request/Respon
 - [x] Cryptographic runtime identity
 - [x] Signed runtime responses
 - [x] Gateway verification
+- [x] Runtime/request binding checks
+- [x] Revocation-aware runtime verification
 - [ ] Standard execution event model
 - [ ] Task correlation IDs
 - [ ] Signed action receipts
 - [ ] Response provenance
 - [ ] Verification utility
 - [ ] Portable evidence format
+- [ ] Signed action receipts
 
 ## P1 — Agent Identity
 - [x] agent_id
@@ -64,11 +67,14 @@ Target: Agent → Runtime → Signature → Authorization → A2A Request/Respon
 - [x] Peer trust checks
 - [x] Replay protection
 - [x] Rate limiting
-- [ ] Scoped peer credentials
-- [ ] Expiration
-- [ ] Revocation
-- [ ] Audience restriction
-- [ ] Delegation semantics
+- [x] Agent/skill scoping
+- [x] Expiration
+- [x] Revocation
+- [x] Rotation
+- [x] Audience handling
+- [x] Replay protection
+- [x] Rate limiting
+- [ ] Formal delegation semantics
 
 ## P1 — Delegated Agent Execution
 Target: Agent A → delegated authority → Agent B → Runtime B → Action
